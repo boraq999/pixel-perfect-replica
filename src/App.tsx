@@ -6,7 +6,12 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { LoginPage } from "@/features/auth/components/LoginPage";
 import { MarketerLayout } from "@/features/marketer/components/MarketerLayout";
 import { MarketerDashboard } from "@/features/marketer/components/Dashboard";
-import { PlaceholderPage } from "@/features/marketer/components/PlaceholderPage";
+import { WarehousePage } from "@/features/marketer/components/WarehousePage";
+import { StoresPage } from "@/features/marketer/components/StoresPage";
+import { NewOrderPage } from "@/features/marketer/components/NewOrderPage";
+import { ReturnsPage } from "@/features/marketer/components/ReturnsPage";
+import { OperationsPage } from "@/features/marketer/components/OperationsPage";
+import { SettingsPage } from "@/features/marketer/components/SettingsPage";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { useAuthStore } from "@/store/authStore";
 import NotFound from "./pages/NotFound";
@@ -41,22 +46,14 @@ const App = () => {
               }
             >
               <Route index element={<MarketerDashboard />} />
-              <Route
-                path="warehouse"
-                element={<PlaceholderPage title="إدارة المخزن" description="استلام وإرجاع البضائع من وإلى المخزن" />}
-              />
-              <Route
-                path="stores"
-                element={<PlaceholderPage title="إدارة المتاجر" description="إنشاء الطلبات وإصدار الفواتير" />}
-              />
-              <Route
-                path="operations"
-                element={<PlaceholderPage title="العمليات" description="تقارير العمليات والإحصائيات" />}
-              />
-              <Route
-                path="settings"
-                element={<PlaceholderPage title="الإعدادات" description="إعدادات الحساب والتطبيق" />}
-              />
+              <Route path="warehouse" element={<WarehousePage />} />
+              <Route path="warehouse/receive" element={<WarehousePage />} />
+              <Route path="stores" element={<StoresPage />} />
+              <Route path="stores/new-order" element={<NewOrderPage />} />
+              <Route path="stores/returns" element={<ReturnsPage />} />
+              <Route path="operations" element={<OperationsPage />} />
+              <Route path="reports" element={<OperationsPage />} />
+              <Route path="settings" element={<SettingsPage />} />
             </Route>
 
             {/* 404 */}
