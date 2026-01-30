@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import {
   TrendingUp,
   TrendingDown,
@@ -74,6 +75,11 @@ const itemVariants = {
 
 export const MarketerDashboard = () => {
   const { user } = useAuthStore();
+  const navigate = useNavigate();
+
+  const handleQuickAction = (href: string) => {
+    navigate(href);
+  };
 
   return (
     <motion.div
@@ -230,9 +236,10 @@ export const MarketerDashboard = () => {
           {quickActions.map((action) => (
             <motion.button
               key={action.label}
+              onClick={() => handleQuickAction(action.href)}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="flex flex-col items-center gap-2 p-4 rounded-xl bg-accent/30 hover:bg-accent/50 transition-all group"
+              className="flex flex-col items-center gap-2 p-4 rounded-xl bg-accent/30 hover:bg-accent/50 transition-all group cursor-pointer"
             >
               <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${
                 action.color === 'primary' ? 'bg-primary/20 text-primary group-hover:bg-primary group-hover:text-primary-foreground' :
