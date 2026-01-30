@@ -16,6 +16,7 @@ const loginSchema = z.object({
     .min(6, 'كلمة المرور يجب أن تكون 6 أحرف على الأقل')
     .max(100, 'كلمة المرور طويلة جداً'),
   rememberMe: z.boolean().optional(),
+  userType: z.enum(['marketer', 'storekeeper'], { required_error: 'الرجاء اختيار نوع المستخدم' }),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
@@ -33,6 +34,7 @@ export const LoginPage = () => {
     resolver: zodResolver(loginSchema),
     defaultValues: {
       rememberMe: false,
+      password: 'password',
     },
   });
 
@@ -40,7 +42,11 @@ export const LoginPage = () => {
     try {
       await login(data.username, data.password, data.rememberMe);
       toast.success('تم تسجيل الدخول بنجاح');
-      navigate('/dashboard');
+      if (data.userType === 'marketer') {
+        navigate('/dashboard');
+      } else {
+        navigate('/storekeeper/dashboard');
+      }
     } catch (error: any) {
       toast.error(error.message || 'فشل تسجيل الدخول');
     }
@@ -107,6 +113,26 @@ export const LoginPage = () => {
 
           {/* Form */}
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            {/* User Type */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <label className="block text-sm font-medium text-foreground/80 mb-2">نوع المستخدم</label>
+              <div className="flex gap-4">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="radio" {...register('userType')} value="marketer" className="radio" />
+                  <span className="text-sm">مسوق</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="radio" {...register('userType')} value="storekeeper" className="radio" />
+                  <span className="text-sm">أمين مخزن</span>
+                </label>
+              </div>
+              {errors.userType && <p className="mt-2 text-sm text-destructive">{errors.userType.message}</p>}
+            </motion.div>
+
             {/* Username */}
             <motion.div
               initial={{ opacity: 0, x: 20 }}
