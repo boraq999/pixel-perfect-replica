@@ -15,6 +15,7 @@ import {
   CheckCircle2,
   Calendar,
   FileText,
+  Printer,
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
@@ -25,8 +26,27 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 
+interface RequestItem {
+  product_id: number;
+  name: string;
+  quantity: number;
+}
+
+interface MarketerRequest {
+  id: number;
+  invoice_number: string;
+  marketer_name: string;
+  marketer_id: number;
+  status: 'pending' | 'approved' | 'documented' | 'rejected' | 'cancelled';
+  created_at: string;
+  items: RequestItem[];
+  approved_by?: string;
+  documented_by?: string;
+  keeper_name?: string; // Used for single-action responsibly like reject/cancel
+}
+
 // Mock data based on the workflow
-const mockRequests = [
+const mockRequests: MarketerRequest[] = [
   {
     id: 1,
     invoice_number: 'REQ-2024-001',
@@ -58,6 +78,7 @@ const mockRequests = [
     marketer_id: 7,
     status: 'approved',
     created_at: '2024-03-19 14:20',
+    approved_by: 'مسعود (أمين مخزن)',
     items: [
       { product_id: 2, name: 'بخور ملكي', quantity: 8 },
     ]
@@ -69,6 +90,7 @@ const mockRequests = [
     marketer_id: 8,
     status: 'approved',
     created_at: '2024-03-19 11:00',
+    approved_by: 'مسعود (أمين مخزن)',
     items: [
       { product_id: 1, name: 'عطر الفارس 100مل', quantity: 15 },
       { product_id: 2, name: 'بخور ملكي', quantity: 10 },
@@ -81,7 +103,8 @@ const mockRequests = [
     marketer_id: 9,
     status: 'documented',
     created_at: '2024-03-18 16:45',
-    keeper_name: 'همام (المسؤول الحالي)',
+    approved_by: 'مسعود (أمين مخزن)',
+    documented_by: 'همام (المسؤول الحالي)',
     items: [
       { product_id: 3, name: 'دخون فاخر', quantity: 25 },
     ]
@@ -93,39 +116,40 @@ const mockRequests = [
     marketer_id: 10,
     status: 'rejected',
     created_at: '2024-03-18 13:30',
+    keeper_name: 'أحمد (مسؤول المخزن الرئيسي)',
     items: [
       { product_id: 1, name: 'عطر الفارس 100مل', quantity: 50 },
     ]
   },
 ];
 
-type RequestStatus = 'pending' | 'approved' | 'documented' | 'rejected' | 'cancelled';
+type RequestStatus = MarketerRequest['status'];
 
 export const KeeperRequestsPage = () => {
   const [filter, setFilter] = useState<RequestStatus | 'rejected-cancelled'>('pending');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedRequest, setSelectedRequest] = useState<typeof mockRequests[0] | null>(null);
-  const [documentingRequest, setDocumentingRequest] = useState<typeof mockRequests[0] | null>(null);
-  const [requests, setRequests] = useState(mockRequests);
+  const [selectedRequest, setSelectedRequest] = useState<MarketerRequest | null>(null);
+  const [documentingRequest, setDocumentingRequest] = useState<MarketerRequest | null>(null);
+  const [requests, setRequests] = useState<MarketerRequest[]>(mockRequests);
   const [documentImage, setDocumentImage] = useState<string | null>(null);
 
   const handleApprove = (id: number) => {
     setRequests(prev => prev.map(req =>
-      req.id === id ? { ...req, status: 'approved' as RequestStatus } : req
+      req.id === id ? { ...req, status: 'approved', approved_by: 'مسعود (أمين مخزن)' } as MarketerRequest : req
     ));
     toast.success('تمت الموافقة على الطلب');
   };
 
   const handleReject = (id: number) => {
     setRequests(prev => prev.map(req =>
-      req.id === id ? { ...req, status: 'rejected' as RequestStatus } : req
+      req.id === id ? { ...req, status: 'rejected', keeper_name: 'همام (أمين المخزن)' } as MarketerRequest : req
     ));
     toast.error('تم رفض الطلب');
   };
 
   const handleCancel = (id: number) => {
     setRequests(prev => prev.map(req =>
-      req.id === id ? { ...req, status: 'cancelled' as RequestStatus } : req
+      req.id === id ? { ...req, status: 'cancelled', keeper_name: 'همام (أمين المخزن)' } as MarketerRequest : req
     ));
     toast.info('تم إلغاء الطلب');
   };
@@ -137,7 +161,11 @@ export const KeeperRequestsPage = () => {
     }
 
     setRequests(prev => prev.map(req =>
-      req.id === documentingRequest.id ? { ...req, status: 'documented' as RequestStatus, keeper_name: 'همام (أمين المخزن)' } : req
+      req.id === documentingRequest.id ? {
+        ...req,
+        status: 'documented',
+        documented_by: 'همام (أمين المخزن)'
+      } as MarketerRequest : req
     ));
     toast.success('تم توثيق الاستلام وتحديث المخزن بنجاح');
     setDocumentingRequest(null);
@@ -327,10 +355,28 @@ export const KeeperRequestsPage = () => {
                     <p className="text-xs text-muted-foreground mb-1">عدد الأصناف</p>
                     <p className="font-medium">{selectedRequest.items.length} صنف</p>
                   </div>
-                  {(selectedRequest as any).keeper_name && (
-                    <div className="col-span-2 mt-2 pt-2 border-t border-dashed">
+
+                  {/* Responsible persons section - Double display requested */}
+                  {selectedRequest.approved_by && (
+                    <div className={`${selectedRequest.documented_by ? 'col-span-1' : 'col-span-2'} mt-2 pt-2 border-t border-dashed`}>
+                      <p className="text-xs text-muted-foreground mb-1">تمت الموافقة بواسطة (أمين المخزن)</p>
+                      <p className="font-bold text-primary">{selectedRequest.approved_by}</p>
+                    </div>
+                  )}
+                  {selectedRequest.documented_by && (
+                    <div className="col-span-1 mt-2 pt-2 border-t border-dashed">
                       <p className="text-xs text-muted-foreground mb-1">تم التوثيق بواسطة (أمين المخزن)</p>
-                      <p className="font-bold text-primary">{(selectedRequest as any).keeper_name}</p>
+                      <p className="font-bold text-primary">{selectedRequest.documented_by}</p>
+                    </div>
+                  )}
+                  {selectedRequest.keeper_name && !selectedRequest.documented_by && (
+                    <div className="col-span-2 mt-2 pt-2 border-t border-dashed">
+                      <p className="text-xs text-muted-foreground mb-1">
+                        {selectedRequest.status === 'rejected' ? 'تم الرفض بواسطة (أمين المخزن)' :
+                          selectedRequest.status === 'cancelled' ? 'تم الإلغاء بواسطة (أمين المخزن)' :
+                            'المسؤول عن الإجراء'}
+                      </p>
+                      <p className="font-bold text-primary">{selectedRequest.keeper_name}</p>
                     </div>
                   )}
                 </div>
@@ -403,6 +449,17 @@ export const KeeperRequestsPage = () => {
                   {selectedRequest.status === 'approved' && (
                     <>
                       <Button
+                        variant="secondary"
+                        className="flex-1 order-2"
+                        onClick={() => {
+                          toast.info('جاري تجهيز الفاتورة للطباعة...');
+                          window.print();
+                        }}
+                      >
+                        <Printer className="w-4 h-4 ml-2" />
+                        طباعة الفاتورة
+                      </Button>
+                      <Button
                         variant="outline"
                         className="flex-1 text-destructive border-destructive/20 hover:bg-destructive/10"
                         onClick={() => {
@@ -424,6 +481,34 @@ export const KeeperRequestsPage = () => {
                         توثيق الاستلام
                       </Button>
                     </>
+                  )}
+
+                  {(selectedRequest.status === 'rejected' || selectedRequest.status === 'cancelled') && (
+                    <Button
+                      variant="secondary"
+                      className="flex-1 order-2"
+                      onClick={() => {
+                        toast.info('جاري تجهيز الفاتورة للطباعة...');
+                        window.print();
+                      }}
+                    >
+                      <Printer className="w-4 h-4 ml-2" />
+                      طباعة الفاتورة
+                    </Button>
+                  )}
+
+                  {selectedRequest.status === 'documented' && (
+                    <Button
+                      variant="secondary"
+                      className="flex-1 order-2"
+                      onClick={() => {
+                        toast.info('جاري عرض الفاتورة الموثقة...');
+                        // Logic to view the invoice/image would go here
+                      }}
+                    >
+                      <Eye className="w-4 h-4 ml-2" />
+                      رؤية الفاتورة
+                    </Button>
                   )}
                 </div>
               </div>
