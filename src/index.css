@@ -50,6 +50,11 @@
     --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
     --shadow-glow: 0 0 40px -10px hsl(270 60% 50% / 0.5);
     --shadow-card: 0 10px 40px -15px rgba(0, 0, 0, 0.5);
+
+    /* Sidebar Active - Best (Soft & Glossy) */
+    --sidebar-active-bg: 270 60% 50% / 0.15;
+    --sidebar-active-text: 270 60% 60%;
+    --sidebar-active-border: 270 60% 50%;
   }
 
   .dark {
@@ -80,6 +85,11 @@
     --gradient-primary-hover: none;
     --gradient-glass: none;
     --shadow-glow: none;
+
+    /* Sidebar Active - Standard Dark (Elegant Purple Tint) */
+    --sidebar-active-bg: 270 60% 50% / 0.2;
+    --sidebar-active-text: 270 60% 80%;
+    --sidebar-active-border: 270 60% 50%;
   }
 
   .light {
@@ -104,8 +114,14 @@
     --destructive-foreground: 210 20% 98%;
     --ring: 262 83% 58%;
     --radius: 0.75rem;
-    --sidebar-background: 210 40% 96%;
+    --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 224 71.4% 4.1%;
+    --sidebar-primary: 262 83% 58%;
+    --sidebar-primary-foreground: 210 20% 98%;
+    --sidebar-accent: 262 80% 96%;
+    --sidebar-accent-foreground: 262 83% 45%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 262 83% 58%;
 
     /* New Premium Light Gradients */
     --gradient-primary: linear-gradient(135deg, hsl(262, 83%, 58%) 0%, hsl(280, 80%, 65%) 100%);
@@ -117,6 +133,11 @@
     /* Soft Premium Shadows */
     --shadow-glow: 0 10px 30px -10px hsla(262, 83%, 58%, 0.3);
     --shadow-card: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
+
+    /* Sidebar Active - Professional Light (Soft Indigo Glow) */
+    --sidebar-active-bg: 262 83% 58% / 0.1;
+    --sidebar-active-text: 262 83% 45%;
+    --sidebar-active-border: 262 83% 58%;
   }
 }
 
@@ -202,7 +223,11 @@
   }
 
   .nav-link.active {
-    @apply bg-primary/20 text-primary-foreground border-r-4 border-primary;
+    background-color: hsla(var(--sidebar-active-bg));
+    color: hsl(var(--sidebar-active-text));
+    border-right: 4px solid hsl(var(--sidebar-active-border));
+    font-weight: 600;
+    @apply shadow-sm transition-all duration-300;
   }
 }
 
