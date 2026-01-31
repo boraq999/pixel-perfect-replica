@@ -27,6 +27,9 @@ import { AdminWithdrawalsPage } from "@/features/admin/components/WithdrawalsPag
 import { KeeperRequestsPage } from "@/features/keeper/components/RequestsPage";
 import { WarehouseStockPage } from "@/features/keeper/components/WarehouseStockPage";
 import { FactoryInvoicesPage } from "@/features/keeper/components/FactoryInvoicesPage";
+import { KeeperDeliveryConfirmationPage } from "@/features/keeper/components/DeliveryConfirmationPage";
+import { KeeperPaymentConfirmationPage } from "@/features/keeper/components/PaymentConfirmationPage";
+import { KeeperSalesReturnsPage } from "@/features/keeper/components/SalesReturnsPage";
 
 const queryClient = new QueryClient();
 
@@ -70,7 +73,8 @@ const App = () => {
               <Route path="users" element={<AdminUsersPage />} />
               <Route path="products" element={<AdminProductsPage />} />
               <Route path="stores" element={<AdminStoresPage />} />
-              <Route path="reports" element={<AdminWithdrawalsPage />} /> {/* Using Withdrawals as temporary reports */}
+              <Route path="withdrawals" element={<AdminWithdrawalsPage />} />
+              <Route path="reports" element={<div>System Reports</div>} />
             </Route>
 
             {/* Keeper Routes */}
@@ -86,6 +90,9 @@ const App = () => {
               <Route path="stock" element={<WarehouseStockPage />} />
               <Route path="requests" element={<KeeperRequestsPage />} />
               <Route path="factory-invoices" element={<FactoryInvoicesPage />} />
+              <Route path="delivery-confirmation" element={<KeeperDeliveryConfirmationPage />} />
+              <Route path="payment-confirmation" element={<KeeperPaymentConfirmationPage />} />
+              <Route path="sales-returns" element={<KeeperSalesReturnsPage />} />
             </Route>
 
             {/* Marketer Routes */}

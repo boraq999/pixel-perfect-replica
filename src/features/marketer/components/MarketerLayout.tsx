@@ -19,7 +19,10 @@ import {
   ClipboardList,
   FileText,
   CreditCard,
-  History
+  History,
+  ReceiptText,
+  ArrowDownLeft,
+  ClipboardCheck
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { UserRole } from '@/types/auth';
@@ -36,13 +39,17 @@ const navItems: Record<UserRole, NavigationItem[]> = {
     { name: 'إدارة المستخدمين', href: '/admin/users', icon: Users },
     { name: 'إدارة المنتجات', href: '/admin/products', icon: Package },
     { name: 'إدارة المتاجر', href: '/admin/stores', icon: Store },
-    { name: 'الفواتير والتقارير', href: '/admin/reports', icon: BarChart3 },
+    { name: 'مراجعة السحوبات', href: '/admin/withdrawals', icon: CreditCard },
+    { name: 'التقارير المالية', href: '/admin/reports', icon: BarChart3 },
   ],
   keeper: [
     { name: 'لوحة التحكم', href: '/keeper', icon: Home },
-    { name: 'مخزون المستودع', href: '/keeper/stock', icon: Package },
-    { name: 'طلبات المسوقين', href: '/keeper/requests', icon: ClipboardList },
+    { name: 'المخزن الرئيسي', href: '/keeper/stock', icon: Package },
     { name: 'فواتير المصنع', href: '/keeper/factory-invoices', icon: FileText },
+    { name: 'توثيق البيع', href: '/keeper/delivery-confirmation', icon: ClipboardCheck },
+    { name: 'توثيق إيصالات القبض', href: '/keeper/payment-confirmation', icon: ReceiptText },
+    { name: 'طلبات الإرجاع', href: '/keeper/sales-returns', icon: ArrowDownLeft },
+    { name: 'طلبات المسوقين', href: '/keeper/requests', icon: ClipboardList },
   ],
   marketer: [
     { name: 'لوحة التحكم', href: '/dashboard', icon: Home },
