@@ -1,16 +1,16 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Package, 
-  RotateCcw, 
   Plus, 
   Search, 
-  Calendar,
   ArrowDownToLine,
-  ArrowUpFromLine,
   Check,
   X,
-  Loader2
+  Loader2,
+  FileText,
+  Upload,
+  AlertCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,42 +19,14 @@ import {
   DialogContent, 
   DialogHeader, 
   DialogTitle,
-  DialogFooter 
+  DialogFooter,
+  DialogDescription
 } from '@/components/ui/dialog';
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-
-// Mock data
-const mockProducts = [
-  { id: '1', name: 'حليب كامل الدسم', category: 'ألبان', stock: 150 },
-  { id: '2', name: 'زبادي طبيعي', category: 'ألبان', stock: 80 },
-  { id: '3', name: 'عصير برتقال', category: 'مشروبات', stock: 200 },
-  { id: '4', name: 'ماء معدني', category: 'مشروبات', stock: 500 },
-  { id: '5', name: 'خبز أبيض', category: 'مخبوزات', stock: 45 },
-];
-
-const mockTransactions = [
-  { id: '1', type: 'receive', product: 'حليب كامل الدسم', quantity: 50, date: '2026-01-30', status: 'completed' },
-  { id: '2', type: 'return', product: 'زبادي طبيعي', quantity: 10, date: '2026-01-30', status: 'pending' },
-  { id: '3', type: 'receive', product: 'عصير برتقال', quantity: 100, date: '2026-01-29', status: 'completed' },
-  { id: '4', type: 'return', product: 'خبز أبيض', quantity: 5, date: '2026-01-29', status: 'completed' },
-];
-
-type TransactionType = 'receive' | 'return';
-
-interface TransactionFormData {
-  productId: string;
-  quantity: number;
-  notes: string;
-}
+import { useMarketerStore } from '@/store/marketerStore';
+import { useAuthStore } from '@/store/authStore';
+import { Badge } from '@/components/ui/badge';
+import { useNavigate } from 'react-router-dom';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -70,63 +42,67 @@ const itemVariants = {
 };
 
 export const WarehousePage = () => {
-  const [activeTab, setActiveTab] = useState<'transactions' | 'products'>('transactions');
+  const navigate = useNavigate();
+  const { user } = useAuthStore();
+  const { 
+    requests, 
+    stock, 
+    fetchRequests, 
+    fetchStock, 
+    cancelRequest, 
+    documentRequest,
+    isLoading 
+  } = useMarketerStore();
+
   const [searchQuery, setSearchQuery] = useState('');
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [transactionType, setTransactionType] = useState<TransactionType>('receive');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState<TransactionFormData>({
-    productId: '',
-    quantity: 1,
-    notes: ''
-  });
+  const [activeTab, setActiveTab] = useState<'my-stock' | 'requests'>('requests');
+  const [selectedRequest, setSelectedRequest] = useState<any>(null);
+  const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
-  const openReceiveDialog = () => {
-    setTransactionType('receive');
-    setFormData({ productId: '', quantity: 1, notes: '' });
-    setIsDialogOpen(true);
+  useEffect(() => {
+    if (user?.id) {
+      fetchRequests(user.id);
+      fetchStock(user.id);
+    }
+  }, [user?.id]);
+
+  const handleCancelRequest = async (id: string) => {
+    try {
+      await cancelRequest(id);
+      toast.success('تم إلغاء الطلب بنجاح');
+    } catch (error) {
+      toast.error('فشل إلغاء الطلب');
+    }
   };
 
-  const openReturnDialog = () => {
-    setTransactionType('return');
-    setFormData({ productId: '', quantity: 1, notes: '' });
-    setIsDialogOpen(true);
+  const handleDocumentRequest = async () => {
+    if (!selectedRequest) return;
+    setUploading(true);
+    try {
+      // Simulate image upload
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      await documentRequest(selectedRequest.id, 'keeper-1', 'path/to/signed-image.jpg');
+      toast.success('تم توثيق استلام البضاعة وتحديث المخزون');
+      setIsUploadDialogOpen(false);
+      setSelectedRequest(null);
+    } catch (error) {
+      toast.error('فشل توثيق الاستلام');
+    } finally {
+      setUploading(false);
+    }
   };
 
-  const handleSubmit = async () => {
-    if (!formData.productId) {
-      toast.error('يرجى اختيار المنتج');
-      return;
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'pending': return <Badge variant="outline" className="bg-yellow-500/10 text-yellow-500 border-yellow-500/20">قيد الانتظار</Badge>;
+      case 'approved': return <Badge variant="outline" className="bg-blue-500/10 text-blue-500 border-blue-500/20">تمت الموافقة</Badge>;
+      case 'rejected': return <Badge variant="outline" className="bg-red-500/10 text-red-500 border-red-500/20">مرفوض</Badge>;
+      case 'documented': return <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20">تم الاستلام</Badge>;
+      case 'cancelled': return <Badge variant="outline" className="bg-gray-500/10 text-gray-500 border-gray-500/20">ملغي</Badge>;
+      default: return null;
     }
-    if (formData.quantity < 1) {
-      toast.error('الكمية يجب أن تكون أكبر من صفر');
-      return;
-    }
-
-    setIsSubmitting(true);
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    const product = mockProducts.find(p => p.id === formData.productId);
-    
-    if (transactionType === 'receive') {
-      toast.success(`تم استلام ${formData.quantity} وحدة من ${product?.name}`);
-    } else {
-      toast.success(`تم إرجاع ${formData.quantity} وحدة من ${product?.name}`);
-    }
-    
-    setIsSubmitting(false);
-    setIsDialogOpen(false);
   };
-
-  const filteredProducts = mockProducts.filter(product =>
-    product.name.includes(searchQuery) || product.category.includes(searchQuery)
-  );
-
-  const filteredTransactions = mockTransactions.filter(tx =>
-    tx.product.includes(searchQuery)
-  );
 
   return (
     <motion.div
@@ -138,42 +114,36 @@ export const WarehousePage = () => {
       {/* Header */}
       <motion.div variants={itemVariants} className="flex flex-col sm:flex-row justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">إدارة المخزن</h1>
-          <p className="text-muted-foreground">استلام وإرجاع البضائع</p>
+          <h1 className="text-2xl font-bold">المخزن وطلبات البضاعة</h1>
+          <p className="text-muted-foreground">إدارة مخزونك وطلباتك من المخزن الرئيسي</p>
         </div>
-        <div className="flex gap-3">
-          <Button onClick={openReceiveDialog} className="gradient-btn">
-            <ArrowDownToLine className="w-4 h-4 ml-2" />
-            استلام بضاعة
-          </Button>
-          <Button onClick={openReturnDialog} variant="outline">
-            <ArrowUpFromLine className="w-4 h-4 ml-2" />
-            إرجاع بضاعة
-          </Button>
-        </div>
+        <Button onClick={() => navigate('receive')} className="gradient-btn">
+          <Plus className="w-4 h-4 ml-2" />
+          طلب بضاعة جديد
+        </Button>
       </motion.div>
 
       {/* Tabs */}
       <motion.div variants={itemVariants} className="flex gap-2 p-1 bg-accent/30 rounded-lg w-fit">
         <button
-          onClick={() => setActiveTab('transactions')}
+          onClick={() => setActiveTab('requests')}
           className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
-            activeTab === 'transactions' 
+            activeTab === 'requests' 
               ? 'bg-primary text-primary-foreground' 
               : 'text-muted-foreground hover:text-foreground'
           }`}
         >
-          سجل الحركات
+          طلباتي
         </button>
         <button
-          onClick={() => setActiveTab('products')}
+          onClick={() => setActiveTab('my-stock')}
           className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
-            activeTab === 'products' 
+            activeTab === 'my-stock' 
               ? 'bg-primary text-primary-foreground' 
               : 'text-muted-foreground hover:text-foreground'
           }`}
         >
-          المنتجات
+          مخزوني الحالي
         </button>
       </motion.div>
 
@@ -190,169 +160,137 @@ export const WarehousePage = () => {
 
       {/* Content */}
       <AnimatePresence mode="wait">
-        {activeTab === 'transactions' ? (
+        {activeTab === 'requests' ? (
           <motion.div
-            key="transactions"
+            key="requests"
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 20 }}
-            className="stat-card"
+            className="space-y-4"
           >
-            <h3 className="text-lg font-semibold mb-4">سجل الحركات</h3>
-            <div className="space-y-3">
-              {filteredTransactions.map((tx) => (
-                <div
-                  key={tx.id}
-                  className="flex items-center justify-between p-4 rounded-lg bg-accent/30 hover:bg-accent/50 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                      tx.type === 'receive' 
-                        ? 'bg-success/20 text-success' 
-                        : 'bg-warning/20 text-warning'
-                    }`}>
-                      {tx.type === 'receive' ? (
-                        <ArrowDownToLine className="w-5 h-5" />
-                      ) : (
-                        <ArrowUpFromLine className="w-5 h-5" />
-                      )}
+            {requests.length === 0 ? (
+              <div className="text-center py-12 glass-card">
+                <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-20" />
+                <p className="text-muted-foreground">لا توجد طلبات سابقة</p>
+              </div>
+            ) : (
+              requests.map((request) => (
+                <div key={request.id} className="glass-card p-6 flex flex-col md:flex-row justify-between gap-4">
+                  <div className="flex gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                      <FileText className="w-6 h-6 text-primary" />
                     </div>
                     <div>
-                      <p className="font-medium">{tx.product}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {tx.type === 'receive' ? 'استلام' : 'إرجاع'} • {tx.date}
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-bold text-lg">{request.invoice_number}</span>
+                        {getStatusBadge(request.status)}
+                      </div>
+                      <p className="text-sm text-muted-foreground mb-2">
+                        بتاريخ: {new Date(request.created_at).toLocaleDateString('ar-LY')}
                       </p>
+                      <div className="flex flex-wrap gap-2">
+                        {request.items.map((item, idx) => (
+                          <span key={idx} className="text-xs bg-accent/50 px-2 py-1 rounded">
+                            {item.product?.name} ({item.quantity})
+                          </span>
+                        ))}
+                      </div>
                     </div>
                   </div>
-                  <div className="text-left">
-                    <p className="font-semibold">{tx.quantity} وحدة</p>
-                    <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${
-                      tx.status === 'completed' 
-                        ? 'bg-success/20 text-success' 
-                        : 'bg-warning/20 text-warning'
-                    }`}>
-                      {tx.status === 'completed' ? 'مكتمل' : 'قيد الانتظار'}
-                    </span>
+
+                  <div className="flex items-center gap-2">
+                    {request.status === 'pending' && (
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-destructive hover:bg-destructive/10"
+                        onClick={() => handleCancelRequest(request.id)}
+                      >
+                        <X className="w-4 h-4 ml-1" />
+                        إلغاء الطلب
+                      </Button>
+                    )}
+                    
+                    {request.status === 'approved' && (
+                      <Button 
+                        size="sm" 
+                        className="bg-green-600 hover:bg-green-700 text-white"
+                        onClick={() => {
+                          setSelectedRequest(request);
+                          setIsUploadDialogOpen(true);
+                        }}
+                      >
+                        <Upload className="w-4 h-4 ml-1" />
+                        توثيق الاستلام
+                      </Button>
+                    )}
                   </div>
                 </div>
-              ))}
-            </div>
+              ))
+            )}
           </motion.div>
         ) : (
           <motion.div
-            key="products"
+            key="stock"
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
-            className="stat-card"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
           >
-            <h3 className="text-lg font-semibold mb-4">المنتجات المتوفرة</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredProducts.map((product) => (
-                <div
-                  key={product.id}
-                  className="p-4 rounded-lg bg-accent/30 hover:bg-accent/50 transition-colors"
-                >
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="font-medium">{product.name}</p>
-                      <p className="text-sm text-muted-foreground">{product.category}</p>
-                    </div>
+            {stock.length === 0 ? (
+              <div className="col-span-full text-center py-12 glass-card">
+                <Package className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-20" />
+                <p className="text-muted-foreground">مخزنك فارغ حالياً</p>
+              </div>
+            ) : (
+              stock.map((item) => (
+                <div key={item.id} className="glass-card p-4 hover:shadow-lg transition-shadow">
+                  <div className="flex items-center justify-between mb-4">
                     <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
                       <Package className="w-5 h-5 text-primary" />
                     </div>
+                    <span className="text-2xl font-bold">{item.quantity}</span>
                   </div>
-                  <div className="mt-4 flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">المخزون</span>
-                    <span className={`font-bold ${
-                      product.stock < 50 ? 'text-destructive' : 
-                      product.stock < 100 ? 'text-warning' : 'text-success'
-                    }`}>
-                      {product.stock} وحدة
-                    </span>
-                  </div>
+                  <h3 className="font-bold">{item.product?.name}</h3>
+                  <p className="text-sm text-muted-foreground">{item.product?.barcode}</p>
                 </div>
-              ))}
-            </div>
+              ))
+            )}
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Transaction Dialog */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      {/* Upload Confirmation Dialog */}
+      <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              {transactionType === 'receive' ? (
-                <>
-                  <ArrowDownToLine className="w-5 h-5 text-success" />
-                  استلام بضاعة من المخزن
-                </>
-              ) : (
-                <>
-                  <ArrowUpFromLine className="w-5 h-5 text-warning" />
-                  إرجاع بضاعة للمخزن
-                </>
-              )}
-            </DialogTitle>
+            <DialogTitle>توثيق استلام البضاعة</DialogTitle>
+            <DialogDescription>
+              يجب رفع صورة الفاتورة الموقعة لتأكيد استلامك للبضاعة من أمين المخزن.
+            </DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label>المنتج</Label>
-              <Select 
-                value={formData.productId} 
-                onValueChange={(value) => setFormData(prev => ({ ...prev, productId: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="اختر المنتج" />
-                </SelectTrigger>
-                <SelectContent>
-                  {mockProducts.map(product => (
-                    <SelectItem key={product.id} value={product.id}>
-                      {product.name} ({product.stock} وحدة)
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>الكمية</Label>
-              <Input
-                type="number"
-                min="1"
-                value={formData.quantity}
-                onChange={(e) => setFormData(prev => ({ ...prev, quantity: parseInt(e.target.value) || 1 }))}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>ملاحظات (اختياري)</Label>
-              <Textarea
-                placeholder="أضف ملاحظات..."
-                value={formData.notes}
-                onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-              />
-            </div>
+          <div className="py-8 flex flex-col items-center justify-center border-2 border-dashed border-muted rounded-xl bg-accent/20">
+            <Upload className="w-12 h-12 text-muted-foreground mb-4 opacity-50" />
+            <p className="text-sm text-muted-foreground">اسحب الصورة هنا أو اضغط للاختيار</p>
+            <Input type="file" className="hidden" id="file-upload" />
+            <Button variant="outline" size="sm" className="mt-4" onClick={() => document.getElementById('file-upload')?.click()}>
+              اختر ملف
+            </Button>
           </div>
 
-          <DialogFooter className="flex gap-2">
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)} disabled={isSubmitting}>
-              إلغاء
-            </Button>
-            <Button onClick={handleSubmit} disabled={isSubmitting} className="gradient-btn">
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin ml-2" />
-                  جاري الحفظ...
-                </>
-              ) : (
-                <>
-                  <Check className="w-4 h-4 ml-2" />
-                  تأكيد
-                </>
-              )}
+          <div className="bg-blue-500/10 p-4 rounded-lg flex gap-3">
+            <AlertCircle className="w-5 h-5 text-blue-500 shrink-0" />
+            <p className="text-xs text-blue-700 leading-relaxed">
+              بمجرد التوثيق، سيتم إضافة الكميات إلى مخزونك الفعلي وخصمها من المخزن الرئيسي.
+            </p>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsUploadDialogOpen(false)}>إلغاء</Button>
+            <Button className="gradient-btn" onClick={handleDocumentRequest} disabled={uploading}>
+              {uploading ? <Loader2 className="w-4 h-4 animate-spin ml-2" /> : <Check className="w-4 h-4 ml-2" />}
+              تأكيد وتوثيق
             </Button>
           </DialogFooter>
         </DialogContent>

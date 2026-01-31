@@ -1,15 +1,29 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { AuthState, User } from '@/types/auth';
+import { AuthState, User, UserRole } from '@/types/auth';
 
-// Mock user for demo
-const mockUser: User = {
-  id: '1',
-  username: 'ahmad',
-  email: 'ahmad@taqnia.com',
-  name: 'أحمد محمد',
-  role: 'marketer',
-  avatar: undefined,
+const mockUsers: Record<UserRole, User> = {
+  admin: {
+    id: 'admin-1',
+    username: 'admin',
+    email: 'admin@taqnia.com',
+    name: 'مدير النظام',
+    role: 'admin',
+  },
+  keeper: {
+    id: 'keeper-1',
+    username: 'warehouse',
+    email: 'keeper@taqnia.com',
+    name: 'أمين المخزن',
+    role: 'keeper',
+  },
+  marketer: {
+    id: 'marketer-1',
+    username: 'salesman',
+    email: 'marketer@taqnia.com',
+    name: 'المسوق الميداني',
+    role: 'marketer',
+  },
 };
 
 export const useAuthStore = create<AuthState>()(
@@ -22,23 +36,30 @@ export const useAuthStore = create<AuthState>()(
       login: async (username: string, password: string, rememberMe = false) => {
         set({ isLoading: true });
         
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // Demo: Accept any login with username length >= 3 and password length >= 6
-        if (username.length >= 3 && password.length >= 6) {
+        let role: UserRole | null = null;
+        if (username.toLowerCase().includes('admin')) role = 'admin';
+        else if (username.toLowerCase().includes('warehouse') || username.toLowerCase().includes('keeper')) role = 'keeper';
+        else if (username.toLowerCase().includes('salesman') || username.toLowerCase().includes('marketer')) role = 'marketer';
+
+        if (role && password.length >= 6) {
+          const user = mockUsers[role];
           set({
-            user: { ...mockUser, username, name: username },
+            user: { ...user, username },
             isAuthenticated: true,
             isLoading: false,
           });
+          // Save token for axiosInstance
+          localStorage.setItem('auth-token', 'mock-jwt-token');
         } else {
           set({ isLoading: false });
-          throw new Error('بيانات الدخول غير صحيحة');
+          throw new Error('بيانات الدخول غير صحيحة. يرجى التأكد من اسم المستخدم وكلمة المرور.');
         }
       },
 
       logout: () => {
+        localStorage.removeItem('auth-token');
         set({
           user: null,
           isAuthenticated: false,

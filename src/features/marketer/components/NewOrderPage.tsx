@@ -1,22 +1,22 @@
-import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
+  Search, 
   ShoppingCart, 
   Plus, 
-  Minus,
-  Trash2,
-  Store,
-  CreditCard,
-  Banknote,
-  Clock,
-  Check,
+  Minus, 
+  Trash2, 
+  Check, 
   Loader2,
-  ArrowRight
+  ArrowRight,
+  Package,
+  Store as StoreIcon,
+  Tag,
+  Percent,
+  CircleDollarSign
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { 
   Select,
   SelectContent,
@@ -25,356 +25,326 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-
-// Mock data
-const mockStores = [
-  { id: '1', name: 'متجر الرياض' },
-  { id: '2', name: 'سوبرماركت النور' },
-  { id: '3', name: 'مركز السلام' },
-  { id: '4', name: 'متجر الخير' },
-];
-
-const mockProducts = [
-  { id: '1', name: 'حليب كامل الدسم', price: 8, category: 'ألبان' },
-  { id: '2', name: 'زبادي طبيعي', price: 5, category: 'ألبان' },
-  { id: '3', name: 'عصير برتقال', price: 12, category: 'مشروبات' },
-  { id: '4', name: 'ماء معدني', price: 2, category: 'مشروبات' },
-  { id: '5', name: 'خبز أبيض', price: 4, category: 'مخبوزات' },
-  { id: '6', name: 'جبنة بيضاء', price: 15, category: 'ألبان' },
-  { id: '7', name: 'بيض بلدي', price: 25, category: 'طعام' },
-  { id: '8', name: 'زيت زيتون', price: 45, category: 'زيوت' },
-];
-
-interface OrderItem {
-  productId: string;
-  productName: string;
-  quantity: number;
-  price: number;
-  discount: number;
-}
-
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.1 },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 },
-};
+import { useMarketerStore } from '@/store/marketerStore';
+import { useAuthStore } from '@/store/authStore';
+import { useNavigate } from 'react-router-dom';
+import { DiscountType, SalesInvoiceItem } from '@/types/marketer';
 
 export const NewOrderPage = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const preselectedStoreId = searchParams.get('storeId') || '';
+  const { user } = useAuthStore();
+  const { 
+    stock, 
+    stores, 
+    promotions, 
+    createSalesInvoice, 
+    isLoading,
+    fetchInitialData 
+  } = useMarketerStore();
+  
+  const [selectedStoreId, setSelectedStoreId] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [cart, setCart] = useState<{ product_id: string; quantity: number }[]>([]);
+  const [discountType, setDiscountType] = useState<DiscountType>('percentage');
+  const [discountValue, setDiscountValue] = useState<number>(0);
+  const [submitting, setSubmitting] = useState(false);
 
-  const [storeId, setStoreId] = useState(preselectedStoreId);
-  const [items, setItems] = useState<OrderItem[]>([]);
-  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'credit' | 'deferred'>('cash');
-  const [notes, setNotes] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  useEffect(() => {
+    fetchInitialData();
+  }, []);
 
-  const addProduct = (productId: string) => {
-    const product = mockProducts.find(p => p.id === productId);
-    if (!product) return;
-
-    const existingIndex = items.findIndex(item => item.productId === productId);
-    
-    if (existingIndex >= 0) {
-      const newItems = [...items];
-      newItems[existingIndex].quantity += 1;
-      setItems(newItems);
-    } else {
-      setItems([...items, {
-        productId: product.id,
-        productName: product.name,
-        quantity: 1,
-        price: product.price,
-        discount: 0
-      }]);
+  const addToCart = (productId: string) => {
+    const stockItem = stock.find(s => s.product_id === productId);
+    if (!stockItem || stockItem.quantity <= 0) {
+      toast.error('هذا المنتج غير متوفر في مخزونك');
+      return;
     }
+
+    setCart(prev => {
+      const existing = prev.find(item => item.product_id === productId);
+      if (existing) {
+        if (existing.quantity >= stockItem.quantity) {
+          toast.error('لا يمكنك تجاوز الكمية المتوفرة في مخزونك');
+          return prev;
+        }
+        return prev.map(item => 
+          item.product_id === productId ? { ...item, quantity: item.quantity + 1 } : item
+        );
+      }
+      return [...prev, { product_id: productId, quantity: 1 }];
+    });
   };
 
-  const updateQuantity = (index: number, change: number) => {
-    const newItems = [...items];
-    newItems[index].quantity = Math.max(1, newItems[index].quantity + change);
-    setItems(newItems);
+  const updateQuantity = (productId: string, delta: number) => {
+    const stockItem = stock.find(s => s.product_id === productId);
+    setCart(prev => prev.map(item => {
+      if (item.product_id === productId) {
+        const newQty = Math.max(1, item.quantity + delta);
+        if (stockItem && newQty > stockItem.quantity) {
+          toast.error('الكمية المطلوبة تتجاوز المخزون');
+          return item;
+        }
+        return { ...item, quantity: newQty };
+      }
+      return item;
+    }));
   };
 
-  const updateDiscount = (index: number, discount: number) => {
-    const newItems = [...items];
-    newItems[index].discount = Math.min(100, Math.max(0, discount));
-    setItems(newItems);
+  const calculatePromotions = (productId: string, quantity: number) => {
+    const promo = promotions.find(p => p.product_id === productId && p.is_active);
+    if (promo && quantity >= promo.min_quantity) {
+      const sets = Math.floor(quantity / promo.min_quantity);
+      return { free: sets * promo.free_quantity, promoId: promo.id };
+    }
+    return { free: 0, promoId: undefined };
   };
 
-  const removeItem = (index: number) => {
-    setItems(items.filter((_, i) => i !== index));
-  };
+  const cartItems = cart.map(item => {
+    const stockItem = stock.find(s => s.product_id === item.product_id);
+    const product = stockItem?.product;
+    const { free, promoId } = calculatePromotions(item.product_id, item.quantity);
+    const unitPrice = product?.current_price || 0;
+    const totalPrice = item.quantity * unitPrice;
 
-  const calculateItemTotal = (item: OrderItem) => {
-    const subtotal = item.quantity * item.price;
-    return subtotal * (1 - item.discount / 100);
-  };
+    return {
+      ...item,
+      product,
+      free_quantity: free,
+      unit_price: unitPrice,
+      total_price: totalPrice,
+      promotion_id: promoId
+    };
+  });
 
-  const total = items.reduce((sum, item) => sum + calculateItemTotal(item), 0);
+  const subtotal = cartItems.reduce((acc, item) => acc + item.total_price, 0);
+  const invoiceDiscountAmount = discountType === 'percentage' 
+    ? (subtotal * (discountValue / 100)) 
+    : discountValue;
+  const totalAmount = subtotal - invoiceDiscountAmount;
 
   const handleSubmit = async () => {
-    if (!storeId) {
-      toast.error('يرجى اختيار المتجر');
+    if (!selectedStoreId) {
+      toast.error('الرجاء اختيار المتجر أولاً');
       return;
     }
-    if (items.length === 0) {
-      toast.error('يرجى إضافة منتج واحد على الأقل');
+    if (cart.length === 0) {
+      toast.error('الرجاء إضافة منتجات للفاتورة');
       return;
     }
 
-    setIsSubmitting(true);
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    toast.success('تم إنشاء الطلب بنجاح!');
-    setIsSubmitting(false);
-    navigate('/dashboard/stores');
+    setSubmitting(true);
+    try {
+      const invoiceData = {
+        marketer_id: user?.id,
+        store_id: selectedStoreId,
+        subtotal,
+        product_discount: 0, // Simplified
+        invoice_discount_type: discountType,
+        invoice_discount_value: discountValue,
+        invoice_discount_amount: invoiceDiscountAmount,
+        total_amount: totalAmount,
+        items: cartItems.map(item => ({
+          product_id: item.product_id,
+          quantity: item.quantity,
+          free_quantity: item.free_quantity,
+          unit_price: item.unit_price,
+          total_price: item.total_price,
+          promotion_id: item.promotion_id
+        }))
+      };
+
+      await createSalesInvoice(invoiceData);
+      toast.success('تم إنشاء فاتورة البيع بنجاح');
+      navigate('/dashboard/operations');
+    } catch (error) {
+      toast.error('فشل إنشاء الفاتورة');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
+  const filteredStock = stock.filter(s => 
+    s.product?.name.includes(searchQuery) || s.product?.barcode.includes(searchQuery)
+  );
+
   return (
-    <motion.div
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-      className="space-y-6"
-    >
-      {/* Header */}
-      <motion.div variants={itemVariants} className="flex items-center gap-4">
+    <div className="space-y-6">
+      <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
           <ArrowRight className="w-5 h-5" />
         </Button>
         <div>
-          <h1 className="text-2xl font-bold">طلب مبيعات جديد</h1>
-          <p className="text-muted-foreground">إنشاء طلب جديد للمتجر</p>
+          <h1 className="text-2xl font-bold text-right">إنشاء فاتورة مبيعات</h1>
+          <p className="text-muted-foreground text-right">بيع بضاعة لمتجر وتسجيلها في النظام</p>
         </div>
-      </motion.div>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Products Selection */}
-        <motion.div variants={itemVariants} className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-6">
           {/* Store Selection */}
-          <div className="stat-card">
-            <Label className="text-base font-semibold mb-3 block">اختر المتجر</Label>
-            <Select value={storeId} onValueChange={setStoreId}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="اختر المتجر" />
+          <div className="glass-card p-6">
+            <label className="flex items-center gap-2 mb-4 font-bold">
+              <StoreIcon className="w-5 h-5 text-primary" />
+              اختيار المتجر
+            </label>
+            <Select value={selectedStoreId} onValueChange={setSelectedStoreId}>
+              <SelectTrigger className="h-12">
+                <SelectValue placeholder="اختر المتجر الذي تبيع له..." />
               </SelectTrigger>
               <SelectContent>
-                {mockStores.map(store => (
+                {stores.map(store => (
                   <SelectItem key={store.id} value={store.id}>
-                    <div className="flex items-center gap-2">
-                      <Store className="w-4 h-4" />
-                      {store.name}
-                    </div>
+                    {store.name} - {store.location}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
 
-          {/* Products */}
-          <div className="stat-card">
-            <Label className="text-base font-semibold mb-3 block">المنتجات</Label>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-              {mockProducts.map(product => (
-                <motion.button
-                  key={product.id}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => addProduct(product.id)}
-                  className="p-3 rounded-lg bg-accent/30 hover:bg-accent/50 transition-colors text-right"
-                >
-                  <p className="font-medium text-sm">{product.name}</p>
-                  <p className="text-xs text-muted-foreground">{product.category}</p>
-                  <p className="text-sm font-semibold text-primary mt-1">{product.price} ر.س</p>
-                </motion.button>
-              ))}
-            </div>
-          </div>
-
-          {/* Order Items */}
-          {items.length > 0 && (
-            <div className="stat-card">
-              <Label className="text-base font-semibold mb-3 block">عناصر الطلب</Label>
-              <div className="space-y-3">
-                {items.map((item, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center gap-4 p-3 rounded-lg bg-accent/30"
-                  >
-                    <div className="flex-1">
-                      <p className="font-medium">{item.productName}</p>
-                      <p className="text-sm text-muted-foreground">{item.price} ر.س للوحدة</p>
-                    </div>
-                    
-                    {/* Quantity */}
-                    <div className="flex items-center gap-2">
-                      <Button
-                        size="icon"
-                        variant="outline"
-                        className="h-8 w-8"
-                        onClick={() => updateQuantity(index, -1)}
-                      >
-                        <Minus className="w-3 h-3" />
-                      </Button>
-                      <span className="w-8 text-center font-medium">{item.quantity}</span>
-                      <Button
-                        size="icon"
-                        variant="outline"
-                        className="h-8 w-8"
-                        onClick={() => updateQuantity(index, 1)}
-                      >
-                        <Plus className="w-3 h-3" />
-                      </Button>
-                    </div>
-
-                    {/* Discount */}
-                    <div className="flex items-center gap-1">
-                      <Input
-                        type="number"
-                        min="0"
-                        max="100"
-                        value={item.discount}
-                        onChange={(e) => updateDiscount(index, parseInt(e.target.value) || 0)}
-                        className="w-16 h-8 text-center"
-                      />
-                      <span className="text-sm text-muted-foreground">%</span>
-                    </div>
-
-                    {/* Item Total */}
-                    <div className="w-24 text-left">
-                      <p className="font-semibold">{calculateItemTotal(item).toFixed(2)} ر.س</p>
-                    </div>
-
-                    {/* Remove */}
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-8 w-8 text-destructive hover:text-destructive"
-                      onClick={() => removeItem(index)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </motion.div>
-
-        {/* Order Summary */}
-        <motion.div variants={itemVariants} className="space-y-6">
-          <div className="stat-card sticky top-24">
-            <h3 className="text-lg font-semibold mb-4">ملخص الطلب</h3>
-            
-            {/* Payment Method */}
-            <div className="space-y-3 mb-6">
-              <Label>طريقة الدفع</Label>
-              <div className="grid grid-cols-3 gap-2">
-                <button
-                  onClick={() => setPaymentMethod('cash')}
-                  className={`p-3 rounded-lg border text-center transition-all ${
-                    paymentMethod === 'cash' 
-                      ? 'border-primary bg-primary/10 text-primary' 
-                      : 'border-border hover:border-primary/50'
-                  }`}
-                >
-                  <Banknote className="w-5 h-5 mx-auto mb-1" />
-                  <span className="text-xs">نقداً</span>
-                </button>
-                <button
-                  onClick={() => setPaymentMethod('credit')}
-                  className={`p-3 rounded-lg border text-center transition-all ${
-                    paymentMethod === 'credit' 
-                      ? 'border-primary bg-primary/10 text-primary' 
-                      : 'border-border hover:border-primary/50'
-                  }`}
-                >
-                  <CreditCard className="w-5 h-5 mx-auto mb-1" />
-                  <span className="text-xs">بطاقة</span>
-                </button>
-                <button
-                  onClick={() => setPaymentMethod('deferred')}
-                  className={`p-3 rounded-lg border text-center transition-all ${
-                    paymentMethod === 'deferred' 
-                      ? 'border-primary bg-primary/10 text-primary' 
-                      : 'border-border hover:border-primary/50'
-                  }`}
-                >
-                  <Clock className="w-5 h-5 mx-auto mb-1" />
-                  <span className="text-xs">آجل</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Notes */}
-            <div className="space-y-2 mb-6">
-              <Label>ملاحظات</Label>
-              <Textarea
-                placeholder="أضف ملاحظات للطلب..."
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                rows={3}
+          {/* Product Search & Selection */}
+          <div className="space-y-4">
+            <div className="relative">
+              <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="بحث في مخزونك الخاص..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pr-10 h-12"
               />
             </div>
 
-            {/* Summary */}
-            <div className="space-y-2 pt-4 border-t border-border">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">عدد المنتجات</span>
-                <span>{items.length}</span>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {filteredStock.map(item => (
+                <motion.div 
+                  layout
+                  key={item.id} 
+                  className={`glass-card p-4 flex gap-4 items-center group transition-colors ${item.quantity <= 0 ? 'opacity-50 grayscale' : 'hover:border-primary/50 cursor-pointer'}`}
+                  onClick={() => item.quantity > 0 && addToCart(item.product_id)}
+                >
+                  <div className="w-16 h-16 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                    <Package className="w-8 h-8 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0 text-right">
+                    <h3 className="font-bold truncate">{item.product?.name}</h3>
+                    <p className="text-xs text-muted-foreground">متوفر: {item.quantity} قطعة</p>
+                    <p className="text-sm font-bold text-primary mt-1">{item.product?.current_price} د.ل</p>
+                  </div>
+                  <Button 
+                    size="icon" 
+                    className="rounded-full gradient-btn"
+                    disabled={item.quantity <= 0}
+                  >
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Invoice Summary */}
+        <div className="lg:col-span-1">
+          <div className="glass-card p-6 sticky top-6 flex flex-col h-fit">
+            <div className="flex items-center gap-2 mb-6 border-b pb-4">
+              <ShoppingCart className="w-5 h-5 text-primary" />
+              <h2 className="font-bold text-lg">مخلص الفاتورة</h2>
+            </div>
+
+            <div className="space-y-4 mb-6 max-h-[300px] overflow-auto pr-2 custom-scrollbar">
+              {cartItems.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-sm text-muted-foreground">الفاتورة فارغة</p>
+                </div>
+              ) : (
+                cartItems.map(item => (
+                  <div key={item.product_id} className="space-y-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <button className="text-muted-foreground hover:text-destructive" onClick={() => removeFromCart(item.product_id)}>
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                      <div className="flex items-center gap-2 bg-accent/30 rounded-lg p-1">
+                        <button className="w-6 h-6 flex items-center justify-center rounded bg-background" onClick={() => updateQuantity(item.product_id, -1)}><Minus className="w-3 h-3" /></button>
+                        <span className="w-6 text-center text-sm font-bold">{item.quantity}</span>
+                        <button className="w-6 h-6 flex items-center justify-center rounded bg-background" onClick={() => updateQuantity(item.product_id, 1)}><Plus className="w-3 h-3" /></button>
+                      </div>
+                      <div className="flex-1 text-right min-w-0">
+                        <p className="text-sm font-medium truncate">{item.product?.name}</p>
+                        <p className="text-xs text-muted-foreground">{item.total_price} د.ل</p>
+                      </div>
+                    </div>
+                    {item.free_quantity > 0 && (
+                      <p className="text-[10px] text-green-600 font-bold text-right bg-green-50 rounded px-2 py-0.5">
+                        🎁 عرض: +{item.free_quantity} قطعة مجانية
+                      </p>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Discount Section */}
+            <div className="border-t pt-4 space-y-4 mb-6">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex bg-accent/30 rounded-lg p-1">
+                  <button 
+                    className={`px-3 py-1 text-xs rounded-md transition-colors ${discountType === 'percentage' ? 'bg-primary text-white' : 'hover:bg-accent'}`}
+                    onClick={() => setDiscountType('percentage')}
+                  >
+                    %
+                  </button>
+                  <button 
+                    className={`px-3 py-1 text-xs rounded-md transition-colors ${discountType === 'fixed' ? 'bg-primary text-white' : 'hover:bg-accent'}`}
+                    onClick={() => setDiscountType('fixed')}
+                  >
+                    د.ل
+                  </button>
+                </div>
+                <label className="text-sm font-medium flex items-center gap-1">
+                   خصم الفاتورة <Tag className="w-3 h-3" />
+                </label>
               </div>
+              <Input 
+                type="number" 
+                value={discountValue} 
+                onChange={(e) => setDiscountValue(Number(e.target.value))}
+                className="text-right"
+                placeholder="0.00"
+              />
+            </div>
+
+            {/* Totals */}
+            <div className="space-y-2 mb-8 bg-accent/20 p-4 rounded-xl">
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">إجمالي الكمية</span>
-                <span>{items.reduce((sum, item) => sum + item.quantity, 0)}</span>
+                <span>{subtotal.toFixed(2)} د.ل</span>
+                <span className="text-muted-foreground">المجموع الفرعي</span>
               </div>
-              <div className="flex justify-between text-lg font-bold pt-2">
+              <div className="flex justify-between text-sm text-red-500">
+                <span>-{invoiceDiscountAmount.toFixed(2)} د.ل</span>
+                <span>خصم الفاتورة</span>
+              </div>
+              <div className="flex justify-between text-lg font-bold border-t pt-2 mt-2">
+                <span className="text-primary">{totalAmount.toFixed(2)} د.ل</span>
                 <span>الإجمالي</span>
-                <span className="text-primary">{total.toFixed(2)} ر.س</span>
               </div>
             </div>
 
-            {/* Actions */}
-            <div className="flex flex-col gap-3 mt-6">
-              <Button 
-                onClick={handleSubmit} 
-                disabled={isSubmitting || items.length === 0}
-                className="w-full gradient-btn"
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin ml-2" />
-                    جاري الإنشاء...
-                  </>
-                ) : (
-                  <>
-                    <Check className="w-4 h-4 ml-2" />
-                    إنشاء الطلب
-                  </>
-                )}
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => navigate(-1)}
-                disabled={isSubmitting}
-              >
-                إلغاء
-              </Button>
-            </div>
+            <Button 
+              className="w-full py-7 text-lg font-bold gradient-btn shadow-lg animate-glow"
+              disabled={submitting || cart.length === 0 || !selectedStoreId}
+              onClick={handleSubmit}
+            >
+              {submitting ? (
+                <Loader2 className="w-6 h-6 animate-spin" />
+              ) : (
+                <div className="flex items-center gap-2">
+                   إتمام عملية البيع
+                   <CircleDollarSign className="w-6 h-6" />
+                </div>
+              )}
+            </Button>
           </div>
-        </motion.div>
+        </div>
       </div>
-    </motion.div>
+    </div>
   );
 };

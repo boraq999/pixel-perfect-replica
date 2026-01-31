@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, Loader2, Zap, ShoppingCart, Package } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Zap, ShoppingCart, Package, ShieldCheck } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { toast } from 'sonner';
 
@@ -38,26 +38,39 @@ export const LoginPage = () => {
       await login(data.username, data.password, false);
       toast.success('تم تسجيل الدخول بنجاح');
       
-      // All routes currently under /dashboard in App.tsx
-      navigate('/dashboard');
+      // Determine navigation based on username (demo logic)
+      if (data.username.toLowerCase().includes('admin')) {
+        navigate('/admin');
+      } else if (data.username.toLowerCase().includes('warehouse') || data.username.toLowerCase().includes('keeper')) {
+        navigate('/keeper');
+      } else {
+        navigate('/dashboard');
+      }
       
     } catch (error: any) {
       toast.error(error.message || 'فشل تسجيل الدخول');
     }
   };
 
-  const handleQuickLogin = async (role: 'salesman' | 'warehouse') => {
-    const username = role === 'salesman' ? 'salesman' : 'warehouse';
-    const password = 'password123'; // Matches > 6 chars requirement
+  const handleQuickLogin = async (role: 'salesman' | 'warehouse' | 'admin') => {
+    let username = '';
+    if (role === 'salesman') username = 'salesman';
+    else if (role === 'warehouse') username = 'warehouse';
+    else username = 'admin';
+
+    const password = 'password123';
     
-    // Set values in form to satisfy validation if needed, though we call login directly
     setValue('username', username);
     setValue('password', password);
     
     try {
       await login(username, password, false);
       toast.success('تم تسجيل الدخول بنجاح');
-      navigate('/dashboard');
+      
+      if (role === 'admin') navigate('/admin');
+      else if (role === 'warehouse') navigate('/keeper');
+      else navigate('/dashboard');
+
     } catch (error: any) {
       toast.error(error.message || 'فشل تسجيل الدخول السريع');
     }
@@ -96,7 +109,7 @@ export const LoginPage = () => {
                 type="text"
                 {...register('username')}
                 className="input-glass text-right"
-                placeholder="salesman / warehouse"
+                placeholder="admin / salesman / warehouse"
                 disabled={isLoading}
               />
               {errors.username && <p className="text-xs text-destructive text-right">{errors.username.message}</p>}
@@ -142,25 +155,41 @@ export const LoginPage = () => {
           <div className="relative z-10 w-full">
             <div className="mb-10">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 bg-white/20 backdrop-blur-sm">
-                <Package className="w-8 h-8 text-white" />
+                <ShieldCheck className="w-8 h-8 text-white" />
               </div>
               <h2 className="text-3xl font-bold text-white mb-2">الدخول السريع</h2>
               <p className="text-white/80">اختر دورك الوظيفي للبدء فوراً</p>
             </div>
 
-            <div className="space-y-4 w-full max-w-sm mx-auto">
+            <div className="space-y-3 w-full max-w-sm mx-auto">
+              {/* Admin Option */}
+              <button
+                type="button"
+                onClick={() => handleQuickLogin('admin')}
+                disabled={isLoading}
+                className="w-full flex items-center gap-4 p-3 rounded-2xl bg-white/20 hover:bg-white/30 border border-white/20 transition-all group disabled:opacity-50 shadow-lg"
+              >
+                <div className="w-10 h-10 rounded-xl bg-red-500/50 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <ShieldCheck className="w-5 h-5 text-white" />
+                </div>
+                <div className="text-right">
+                  <h3 className="font-bold text-white text-sm">دخول كمسؤول</h3>
+                  <p className="text-[10px] text-white/60 uppercase">System Administrator</p>
+                </div>
+              </button>
+
               <button
                 type="button"
                 onClick={() => handleQuickLogin('salesman')}
                 disabled={isLoading}
-                className="w-full flex items-center gap-4 p-4 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/20 transition-all group disabled:opacity-50"
+                className="w-full flex items-center gap-4 p-3 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/10 transition-all group disabled:opacity-50"
               >
-                <div className="w-12 h-12 rounded-xl bg-blue-500/50 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <ShoppingCart className="w-6 h-6 text-white" />
+                <div className="w-10 h-10 rounded-xl bg-blue-500/50 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <ShoppingCart className="w-5 h-5 text-white" />
                 </div>
                 <div className="text-right">
-                  <h3 className="font-bold text-white">دخول كمسوق</h3>
-                  <p className="text-xs text-white/60 uppercase tracking-wider">Salesman Account</p>
+                  <h3 className="font-bold text-white text-sm">دخول كمسوق</h3>
+                  <p className="text-[10px] text-white/60 uppercase">Salesman Account</p>
                 </div>
               </button>
 
@@ -168,20 +197,20 @@ export const LoginPage = () => {
                 type="button"
                 onClick={() => handleQuickLogin('warehouse')}
                 disabled={isLoading}
-                className="w-full flex items-center gap-4 p-4 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/20 transition-all group disabled:opacity-50"
+                className="w-full flex items-center gap-4 p-3 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/10 transition-all group disabled:opacity-50"
               >
-                <div className="w-12 h-12 rounded-xl bg-purple-500/50 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Package className="w-6 h-6 text-white" />
+                <div className="w-10 h-10 rounded-xl bg-purple-500/50 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Package className="w-5 h-5 text-white" />
                 </div>
                 <div className="text-right">
-                  <h3 className="font-bold text-white">أمين مخزن</h3>
-                  <p className="text-xs text-white/60 uppercase tracking-wider">Warehouse Account</p>
+                  <h3 className="font-bold text-white text-sm">أمين مخزن</h3>
+                  <p className="text-[10px] text-white/60 uppercase">Warehouse Account</p>
                 </div>
               </button>
             </div>
           </div>
 
-          <div className="mt-12 text-white/60 text-xs relative z-10">
+          <div className="mt-8 text-white/60 text-[10px] relative z-10">
             <p>جميع الحقوق محفوظة © تقنية للتوزيع 2024</p>
             <p className="mt-1">إصدار النظام V2.5.0</p>
           </div>

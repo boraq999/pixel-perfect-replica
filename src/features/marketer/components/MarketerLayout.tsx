@@ -14,17 +14,44 @@ import {
   User,
   Zap,
   ChevronDown,
+  Users,
+  ShoppingCart,
+  ClipboardList,
+  FileText,
+  CreditCard,
+  History
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
-import { NavigationItem } from '@/types/marketer';
+import { UserRole } from '@/types/auth';
 
-const navigation: NavigationItem[] = [
-  { name: 'لوحة التحكم', href: '/dashboard', icon: Home },
-  { name: 'المخزن', href: '/dashboard/warehouse', icon: Package },
-  { name: 'المتاجر', href: '/dashboard/stores', icon: Store },
-  { name: 'العمليات', href: '/dashboard/operations', icon: BarChart3 },
-  { name: 'الإعدادات', href: '/dashboard/settings', icon: Settings },
-];
+interface NavigationItem {
+  name: string;
+  href: string;
+  icon: any;
+}
+
+const navItems: Record<UserRole, NavigationItem[]> = {
+  admin: [
+    { name: 'لوحة التحكم', href: '/admin', icon: Home },
+    { name: 'إدارة المستخدمين', href: '/admin/users', icon: Users },
+    { name: 'إدارة المنتجات', href: '/admin/products', icon: Package },
+    { name: 'إدارة المتاجر', href: '/admin/stores', icon: Store },
+    { name: 'الفواتير والتقارير', href: '/admin/reports', icon: BarChart3 },
+  ],
+  keeper: [
+    { name: 'لوحة التحكم', href: '/keeper', icon: Home },
+    { name: 'مخزون المستودع', href: '/keeper/stock', icon: Package },
+    { name: 'طلبات المسوقين', href: '/keeper/requests', icon: ClipboardList },
+    { name: 'فواتير المصنع', href: '/keeper/factory-invoices', icon: FileText },
+  ],
+  marketer: [
+    { name: 'لوحة التحكم', href: '/dashboard', icon: Home },
+    { name: 'مخزوني الفعلي', href: '/dashboard/warehouse', icon: ShoppingCart },
+    { name: 'المتاجر والبيع', href: '/dashboard/stores', icon: Store },
+    { name: 'عملياتي', href: '/dashboard/operations', icon: History },
+    { name: 'الإعدادات', href: '/dashboard/settings', icon: Settings },
+  ],
+};
 
 export const MarketerLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -36,6 +63,8 @@ export const MarketerLayout = () => {
     logout();
     navigate('/');
   };
+
+  const currentNavigation = user ? navItems[user.role] : [];
 
   return (
     <div className="min-h-screen bg-background">
@@ -59,7 +88,7 @@ export const MarketerLayout = () => {
               transition={{ type: 'spring', damping: 25 }}
               className="absolute inset-y-0 right-0 w-72 bg-sidebar border-l border-sidebar-border shadow-xl"
             >
-              <Sidebar navigation={navigation} onClose={() => setSidebarOpen(false)} />
+              <Sidebar navigation={currentNavigation} userRole={user?.role} onClose={() => setSidebarOpen(false)} />
             </motion.div>
           </motion.div>
         )}
@@ -68,7 +97,7 @@ export const MarketerLayout = () => {
       {/* Desktop Sidebar */}
       <div className="hidden lg:fixed lg:inset-y-0 lg:right-0 lg:flex lg:w-72 lg:flex-col">
         <div className="flex flex-col flex-grow bg-sidebar border-l border-sidebar-border">
-          <Sidebar navigation={navigation} />
+          <Sidebar navigation={currentNavigation} userRole={user?.role} />
         </div>
       </div>
 
@@ -86,6 +115,11 @@ export const MarketerLayout = () => {
             </button>
 
             <div className="flex items-center gap-4">
+              <div className="text-right hidden sm:block">
+                <p className="text-xs text-muted-foreground">{user?.role === 'admin' ? 'مدير' : user?.role === 'keeper' ? 'أمين مخزن' : 'مسوق'}</p>
+                <p className="text-sm font-bold">{user?.name}</p>
+              </div>
+
               {/* Notifications */}
               <button className="relative p-2 rounded-lg text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors">
                 <Bell className="h-5 w-5" />
@@ -101,9 +135,6 @@ export const MarketerLayout = () => {
                   <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
                     <User className="w-4 h-4 text-primary" />
                   </div>
-                  <span className="hidden sm:block text-sm font-medium">
-                    {user?.name || 'المستخدم'}
-                  </span>
                   <ChevronDown className="w-4 h-4 text-muted-foreground" />
                 </button>
 
@@ -141,10 +172,11 @@ export const MarketerLayout = () => {
 
 interface SidebarProps {
   navigation: NavigationItem[];
+  userRole?: UserRole;
   onClose?: () => void;
 }
 
-const Sidebar = ({ navigation, onClose }: SidebarProps) => {
+const Sidebar = ({ navigation, userRole, onClose }: SidebarProps) => {
   return (
     <div className="flex flex-col h-full">
       {/* Logo */}
@@ -155,7 +187,7 @@ const Sidebar = ({ navigation, onClose }: SidebarProps) => {
           </div>
           <div>
             <h1 className="font-bold text-foreground">تقنية</h1>
-            <p className="text-xs text-muted-foreground">إدارة التوزيع</p>
+            <p className="text-xs text-muted-foreground">نظام إدارة التوزيع</p>
           </div>
         </div>
         {onClose && (
@@ -169,12 +201,12 @@ const Sidebar = ({ navigation, onClose }: SidebarProps) => {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-1">
+      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
         {navigation.map((item) => (
           <NavLink
             key={item.name}
             to={item.href}
-            end={item.href === '/dashboard'}
+            end={item.href === '/dashboard' || item.href === '/admin' || item.href === '/keeper'}
             onClick={onClose}
             className={({ isActive }) =>
               `nav-link ${isActive ? 'active' : ''}`
@@ -189,8 +221,9 @@ const Sidebar = ({ navigation, onClose }: SidebarProps) => {
       {/* Footer */}
       <div className="p-4 border-t border-sidebar-border">
         <div className="glass-card p-4 text-center">
-          <p className="text-xs text-muted-foreground mb-2">الإصدار 1.0.0</p>
-          <p className="text-xs text-muted-foreground">© 2026 Taqnia</p>
+          <p className="text-xs font-bold text-primary mb-1 uppercase">{userRole}</p>
+          <p className="text-[10px] text-muted-foreground">© 2024 Taqnia Distribution</p>
+          <p className="text-[10px] text-muted-foreground">V 2.5.0</p>
         </div>
       </div>
     </div>

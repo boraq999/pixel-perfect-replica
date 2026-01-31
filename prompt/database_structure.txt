@@ -1,0 +1,913 @@
+
+========================================
+جدول: delivery_confirmation
+========================================
+
+  • id
+    النوع: bigint unsigned
+    المفتاح: PRIMARY KEY
+
+  • request_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: marketer_requests.id
+
+  • keeper_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: users.id
+
+  • signed_image
+    النوع: varchar(255)
+
+  • status
+    النوع: enum('documented')
+
+  • confirmed_at
+    النوع: timestamp
+
+========================================
+جدول: factory_invoice_items
+========================================
+
+  • id
+    النوع: bigint unsigned
+    المفتاح: PRIMARY KEY
+
+  • invoice_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: factory_invoices.id
+
+  • product_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: products.id
+
+  • quantity
+    النوع: int
+
+  • unit_cost
+    النوع: decimal(10,2)
+
+  • total_cost
+    النوع: decimal(12,2)
+
+  • expiry_date
+    النوع: date
+
+========================================
+جدول: factory_invoices
+========================================
+
+  • id
+    النوع: bigint unsigned
+    المفتاح: PRIMARY KEY
+
+  • invoice_number
+    النوع: varchar(50)
+
+  • keeper_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: users.id
+
+  • factory_manager_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: users.id
+
+  • notes
+    النوع: text
+
+  • stamped_image
+    النوع: varchar(255)
+
+  • created_at
+    النوع: timestamp
+
+========================================
+جدول: invoice_discount_tiers
+========================================
+
+  • id
+    النوع: bigint unsigned
+    المفتاح: PRIMARY KEY
+
+  • min_amount
+    النوع: decimal(12,2)
+
+  • discount_type
+    النوع: enum('percentage','fixed')
+
+  • discount_percentage
+    النوع: decimal(5,2)
+
+  • discount_amount
+    النوع: decimal(12,2)
+
+  • is_active
+    النوع: tinyint(1)
+
+  • created_by
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: users.id
+
+  • created_at
+    النوع: timestamp
+
+  • updated_at
+    النوع: timestamp
+
+========================================
+جدول: main_stock
+========================================
+
+  • product_id
+    النوع: bigint unsigned
+    المفتاح: PRIMARY KEY
+    المفتاح: FOREIGN KEY
+    يشير إلى: products.id
+
+  • quantity
+    النوع: int
+
+  • updated_at
+    النوع: timestamp
+
+========================================
+جدول: marketer_actual_stock
+========================================
+
+  • id
+    النوع: bigint unsigned
+    المفتاح: PRIMARY KEY
+
+  • marketer_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: users.id
+
+  • product_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: products.id
+
+  • quantity
+    النوع: int
+
+========================================
+جدول: marketer_commissions
+========================================
+
+  • id
+    النوع: bigint unsigned
+    المفتاح: PRIMARY KEY
+
+  • marketer_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: users.id
+
+  • store_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: stores.id
+
+  • keeper_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: users.id
+
+  • payment_amount
+    النوع: decimal(12,2)
+
+  • payment_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: store_payments.id
+
+  • commission_rate
+    النوع: decimal(5,2)
+
+  • commission_amount
+    النوع: decimal(12,2)
+
+  • created_at
+    النوع: timestamp
+
+========================================
+جدول: marketer_request_items
+========================================
+
+  • id
+    النوع: bigint unsigned
+    المفتاح: PRIMARY KEY
+
+  • request_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: marketer_requests.id
+
+  • product_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: products.id
+
+  • quantity
+    النوع: int
+
+========================================
+جدول: marketer_request_status
+========================================
+
+  • id
+    النوع: bigint unsigned
+    المفتاح: PRIMARY KEY
+
+  • request_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: marketer_requests.id
+
+  • marketer_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: users.id
+
+  • keeper_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: users.id
+
+  • status
+    النوع: enum('pending','approved','rejected')
+
+  • updated_at
+    النوع: timestamp
+
+========================================
+جدول: marketer_requests
+========================================
+
+  • id
+    النوع: bigint unsigned
+    المفتاح: PRIMARY KEY
+
+  • invoice_number
+    النوع: varchar(50)
+
+  • marketer_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: users.id
+
+  • status
+    النوع: enum('pending','approved','rejected','cancelled','documented')
+
+  • created_at
+    النوع: timestamp
+
+========================================
+جدول: marketer_reserved_stock
+========================================
+
+  • id
+    النوع: bigint unsigned
+    المفتاح: PRIMARY KEY
+
+  • marketer_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: users.id
+
+  • product_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: products.id
+
+  • reserved_quantity
+    النوع: int
+
+  • created_at
+    النوع: timestamp
+
+  • updated_at
+    النوع: timestamp
+
+========================================
+جدول: marketer_return_items
+========================================
+
+  • id
+    النوع: bigint unsigned
+    المفتاح: PRIMARY KEY
+
+  • return_request_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: marketer_return_requests.id
+
+  • product_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: products.id
+
+  • quantity
+    النوع: int
+
+========================================
+جدول: marketer_return_requests
+========================================
+
+  • id
+    النوع: bigint unsigned
+    المفتاح: PRIMARY KEY
+
+  • invoice_number
+    النوع: varchar(255)
+
+  • marketer_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: users.id
+
+  • keeper_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: users.id
+
+  • approved_by
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: users.id
+
+  • documented_by
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: users.id
+
+  • status
+    النوع: enum('pending','approved','rejected','documented','cancelled')
+
+  • stamped_image
+    النوع: varchar(255)
+
+  • created_at
+    النوع: timestamp
+
+  • updated_at
+    النوع: timestamp
+
+========================================
+جدول: marketer_withdrawal_requests
+========================================
+
+  • id
+    النوع: bigint unsigned
+    المفتاح: PRIMARY KEY
+
+  • marketer_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: users.id
+
+  • requested_amount
+    النوع: decimal(12,2)
+
+  • status
+    النوع: enum('pending','approved','rejected')
+
+  • created_at
+    النوع: timestamp
+
+========================================
+جدول: marketer_withdrawals
+========================================
+
+  • id
+    النوع: bigint unsigned
+    المفتاح: PRIMARY KEY
+
+  • withdrawal_request_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: marketer_withdrawal_requests.id
+
+  • marketer_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: users.id
+
+  • amount
+    النوع: decimal(12,2)
+
+  • admin_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: users.id
+
+  • signed_receipt_image
+    النوع: varchar(255)
+
+  • confirmed_at
+    النوع: timestamp
+
+========================================
+جدول: product_promotions
+========================================
+
+  • id
+    النوع: bigint unsigned
+    المفتاح: PRIMARY KEY
+
+  • product_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: products.id
+
+  • min_quantity
+    النوع: int
+
+  • free_quantity
+    النوع: int
+
+  • start_date
+    النوع: date
+
+  • end_date
+    النوع: date
+
+  • is_active
+    النوع: tinyint(1)
+
+  • created_by
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: users.id
+
+  • created_at
+    النوع: timestamp
+
+  • updated_at
+    النوع: timestamp
+
+========================================
+جدول: products
+========================================
+
+  • id
+    النوع: bigint unsigned
+    المفتاح: PRIMARY KEY
+
+  • name
+    النوع: varchar(100)
+
+  • barcode
+    النوع: varchar(50)
+
+  • description
+    النوع: text
+
+  • current_price
+    النوع: decimal(10,2)
+
+  • is_active
+    النوع: tinyint(1)
+
+  • created_at
+    النوع: timestamp
+
+  • updated_at
+    النوع: timestamp
+
+========================================
+جدول: roles
+========================================
+
+  • id
+    النوع: bigint unsigned
+    المفتاح: PRIMARY KEY
+
+  • name
+    النوع: varchar(255)
+
+  • display_name
+    النوع: varchar(255)
+
+  • description
+    النوع: text
+
+  • is_active
+    النوع: tinyint(1)
+
+  • created_at
+    النوع: timestamp
+
+  • updated_at
+    النوع: timestamp
+
+========================================
+جدول: sales_invoice_items
+========================================
+
+  • id
+    النوع: bigint unsigned
+    المفتاح: PRIMARY KEY
+
+  • invoice_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: sales_invoices.id
+
+  • product_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: products.id
+
+  • quantity
+    النوع: int
+
+  • free_quantity
+    النوع: int
+
+  • unit_price
+    النوع: decimal(10,2)
+
+  • total_price
+    النوع: decimal(12,2)
+
+  • promotion_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: product_promotions.id
+
+========================================
+جدول: sales_invoices
+========================================
+
+  • id
+    النوع: bigint unsigned
+    المفتاح: PRIMARY KEY
+
+  • invoice_number
+    النوع: varchar(50)
+
+  • marketer_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: users.id
+
+  • store_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: stores.id
+
+  • total_amount
+    النوع: decimal(12,2)
+
+  • subtotal
+    النوع: decimal(12,2)
+
+  • product_discount
+    النوع: decimal(12,2)
+
+  • invoice_discount_type
+    النوع: enum('percentage','fixed')
+
+  • invoice_discount_value
+    النوع: decimal(10,2)
+
+  • invoice_discount_amount
+    النوع: decimal(12,2)
+
+  • status
+    النوع: enum('pending','approved','cancelled')
+
+  • keeper_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: users.id
+
+  • stamped_invoice_image
+    النوع: varchar(255)
+
+  • confirmed_at
+    النوع: timestamp
+
+  • notes
+    النوع: text
+
+  • created_at
+    النوع: timestamp
+
+  • updated_at
+    النوع: timestamp
+
+========================================
+جدول: sales_return_confirmation
+========================================
+
+  • id
+    النوع: bigint unsigned
+    المفتاح: PRIMARY KEY
+
+  • return_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: sales_returns.id
+
+  • keeper_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: users.id
+
+  • stamped_image
+    النوع: varchar(255)
+
+  • confirmed_at
+    النوع: timestamp
+
+========================================
+جدول: sales_return_items
+========================================
+
+  • id
+    النوع: bigint unsigned
+    المفتاح: PRIMARY KEY
+
+  • return_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: sales_returns.id
+
+  • sales_invoice_item_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: sales_invoice_items.id
+
+  • product_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: products.id
+
+  • quantity
+    النوع: int
+
+  • unit_price
+    النوع: decimal(10,2)
+
+========================================
+جدول: sales_returns
+========================================
+
+  • id
+    النوع: bigint unsigned
+    المفتاح: PRIMARY KEY
+
+  • sales_invoice_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: sales_invoices.id
+
+  • store_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: stores.id
+
+  • marketer_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: users.id
+
+  • status
+    النوع: enum('pending','approved')
+
+  • created_at
+    النوع: timestamp
+
+========================================
+جدول: store_actual_stock
+========================================
+
+  • id
+    النوع: bigint unsigned
+    المفتاح: PRIMARY KEY
+
+  • store_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: stores.id
+
+  • product_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: products.id
+
+  • quantity
+    النوع: int
+
+========================================
+جدول: store_debt_ledger
+========================================
+
+  • id
+    النوع: bigint unsigned
+    المفتاح: PRIMARY KEY
+
+  • store_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: stores.id
+
+  • entry_type
+    النوع: enum('sale','return','payment')
+
+  • sales_invoice_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: sales_invoices.id
+
+  • return_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: sales_returns.id
+
+  • payment_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: store_payments.id
+
+  • amount
+    النوع: decimal(12,2)
+
+  • created_at
+    النوع: timestamp
+
+========================================
+جدول: store_payments
+========================================
+
+  • id
+    النوع: bigint unsigned
+    المفتاح: PRIMARY KEY
+
+  • payment_number
+    النوع: varchar(50)
+
+  • store_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: stores.id
+
+  • marketer_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: users.id
+
+  • keeper_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: users.id
+
+  • amount
+    النوع: decimal(12,2)
+
+  • payment_method
+    النوع: enum('cash','transfer','certified_check')
+
+  • status
+    النوع: enum('pending','approved','rejected','cancelled')
+
+  • receipt_image
+    النوع: varchar(255)
+
+  • confirmed_at
+    النوع: timestamp
+
+  • created_at
+    النوع: timestamp
+
+========================================
+جدول: store_pending_stock
+========================================
+
+  • id
+    النوع: bigint unsigned
+    المفتاح: PRIMARY KEY
+
+  • store_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: stores.id
+
+  • sales_invoice_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: sales_invoices.id
+
+  • product_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: products.id
+
+  • quantity
+    النوع: int
+
+  • created_at
+    النوع: timestamp
+
+========================================
+جدول: stores
+========================================
+
+  • id
+    النوع: bigint unsigned
+    المفتاح: PRIMARY KEY
+
+  • name
+    النوع: varchar(100)
+
+  • owner_name
+    النوع: varchar(100)
+
+  • phone
+    النوع: varchar(20)
+
+  • location
+    النوع: varchar(200)
+
+  • address
+    النوع: text
+
+  • is_active
+    النوع: tinyint(1)
+
+  • created_at
+    النوع: timestamp
+
+========================================
+جدول: users
+========================================
+
+  • id
+    النوع: bigint unsigned
+    المفتاح: PRIMARY KEY
+
+  • username
+    النوع: varchar(50)
+
+  • password_hash
+    النوع: varchar(255)
+
+  • full_name
+    النوع: varchar(100)
+
+  • role_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: roles.id
+
+  • commission_rate
+    النوع: decimal(5,2)
+
+  • phone
+    النوع: varchar(20)
+
+  • is_active
+    النوع: tinyint(1)
+
+  • created_at
+    النوع: timestamp
+
+  • updated_at
+    النوع: timestamp
+
+========================================
+جدول: warehouse_stock_logs
+========================================
+
+  • id
+    النوع: bigint unsigned
+    المفتاح: PRIMARY KEY
+
+  • invoice_type
+    النوع: enum('factory','marketer_request','sales_return')
+
+  • invoice_id
+    النوع: int
+
+  • keeper_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: users.id
+
+  • action
+    النوع: enum('add','withdraw','return')
+
+  • created_at
+    النوع: timestamp
+
+========================================
+انتهى الاستعلام

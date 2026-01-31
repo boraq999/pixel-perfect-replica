@@ -1,16 +1,12 @@
+export type UserRole = 'admin' | 'keeper' | 'marketer';
+
 export interface User {
   id: string;
   username: string;
   email: string;
   name: string;
-  role: 'marketer' | 'warehouse' | 'admin';
+  role: UserRole;
   avatar?: string;
-}
-
-export interface LoginFormData {
-  username: string;
-  password: string;
-  rememberMe: boolean;
 }
 
 export interface AuthState {
