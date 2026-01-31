@@ -26,14 +26,6 @@ const mockRequests = [
     created_at: '2024-03-20 10:30',
     items_count: 5,
   },
-  {
-    id: 2,
-    invoice_number: 'REQ-2024-002',
-    marketer_name: 'سارة علي',
-    status: 'approved',
-    created_at: '2024-03-20 09:15',
-    items_count: 3,
-  },
 ];
 
 export const KeeperRequestsPage = () => {
@@ -41,14 +33,17 @@ export const KeeperRequestsPage = () => {
 
   const handleApprove = (id: number) => {
     toast.success('تمت الموافقة على الطلب مبدئياً');
+    // In a real app, update request status via API
   };
 
   const handleReject = (id: number) => {
     toast.error('تم رفض الطلب');
+    // In a real app, update request status via API
   };
 
   const handleDocument = (id: number) => {
     toast.info('يرجى رفع صورة الفاتورة الموقعة لإتمام التوثيق');
+    // In a real app, trigger a modal for image upload
   };
 
   return (
@@ -78,11 +73,20 @@ export const KeeperRequestsPage = () => {
           >
             تم التوثيق
           </button>
+          <button 
+            onClick={() => setFilter('rejected-cancelled')}
+            className={`px-4 py-2 rounded-md text-sm transition-all ${filter === 'rejected-cancelled' ? 'bg-background shadow-sm' : ''}`}
+          >
+            مرفوض / ملغى
+          </button>
         </div>
       </div>
 
       <div className="grid gap-4">
-        {mockRequests.filter(r => filter === 'all' || r.status === filter).map((request) => (
+        {mockRequests.filter(r => {
+          if (filter === 'rejected-cancelled') return r.status === 'rejected' || r.status === 'cancelled';
+          return r.status === filter;
+        }).map((request) => (
           <motion.div
             key={request.id}
             initial={{ opacity: 0, y: 10 }}
@@ -107,7 +111,7 @@ export const KeeperRequestsPage = () => {
                   </div>
                   
                   <Badge variant={request.status === 'pending' ? 'outline' : 'secondary'} className="h-fit">
-                    {request.status === 'pending' ? 'قيد الانتظار' : 'تمت الموافقة'}
+                    {request.status === 'pending' ? 'قيد الانتظار' : request.status === 'approved' ? 'بانتظار التوثيق' : request.status === 'documented' ? 'تم التوثيق' : 'مرفوض / ملغى'}
                   </Badge>
 
                   <div className="flex gap-2">
@@ -135,6 +139,15 @@ export const KeeperRequestsPage = () => {
             </Card>
           </motion.div>
         ))}
+
+        {mockRequests.filter(r => {
+          if (filter === 'rejected-cancelled') return r.status === 'rejected' || r.status === 'cancelled';
+          return r.status === filter;
+        }).length === 0 && (
+          <div className="p-8 text-center text-muted-foreground">
+            لا توجد طلبات في هذه الحالة حالياً.
+          </div>
+        )}
       </div>
     </div>
   );

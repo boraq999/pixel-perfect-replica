@@ -15,29 +15,7 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 
 // Mock data for approved marketer requests awaiting documentation
-const mockDeliveries = [
-  { 
-    id: 1, 
-    invoice_number: 'REQ-2024-002', 
-    marketer_name: 'سارة علي', 
-    status: 'approved', 
-    created_at: '2024-03-20 09:15',
-    items: [
-      { product: 'معجون طماطم 400 جرام', qty: 100 },
-      { product: 'زيت زيتون 1 لتر', qty: 10 },
-    ]
-  },
-  { 
-    id: 2, 
-    invoice_number: 'REQ-2024-003', 
-    marketer_name: 'أحمد حسين', 
-    status: 'approved', 
-    created_at: '2024-03-21 11:00',
-    items: [
-      { product: 'أرز بسمتي 5 كجم', qty: 50 },
-    ]
-  },
-];
+const mockDeliveries: any[] = []; // No deliveries in pending or documented state initially
 
 export const KeeperDeliveryConfirmationPage = () => {
   const [selectedRequest, setSelectedRequest] = useState<typeof mockDeliveries[0] | null>(null);
