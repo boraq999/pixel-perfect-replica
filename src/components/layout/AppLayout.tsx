@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { UserRole } from '@/types/auth';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 interface NavigationItem {
     name: string;
@@ -126,6 +127,8 @@ export const AppLayout = () => {
                                 <p className="text-xs text-muted-foreground">{user?.role === 'admin' ? 'مدير' : user?.role === 'keeper' ? 'أمين مخزن' : 'مسوق'}</p>
                                 <p className="text-sm font-bold">{user?.name}</p>
                             </div>
+
+                            <ThemeToggle />
 
                             {/* Notifications */}
                             <button className="relative p-2 rounded-lg text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors">

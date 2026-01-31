@@ -32,6 +32,8 @@ import { KeeperPaymentConfirmationPage } from "@/features/keeper/components/Paym
 import { KeeperSalesReturnsPage } from "@/features/keeper/components/SalesReturnsPage";
 import { KeeperSalesDocsPage } from "@/features/keeper/components/SalesDocsPage";
 
+import { ThemeProvider } from "@/components/theme-provider";
+
 const queryClient = new QueryClient();
 
 const App = () => {
@@ -48,79 +50,81 @@ const App = () => {
   };
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner position="top-center" richColors theme="dark" />
-        <BrowserRouter>
-          <Routes>
-            <Route
-              path="/"
-              element={
-                isAuthenticated ? <Navigate to={getDefaultRoute()} replace /> : <LoginPage />
-              }
-            />
+    <ThemeProvider attribute="class" defaultTheme="best" themes={["light", "dark", "best"]} enableSystem={false}>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner position="top-center" richColors />
+          <BrowserRouter>
+            <Routes>
+              <Route
+                path="/"
+                element={
+                  isAuthenticated ? <Navigate to={getDefaultRoute()} replace /> : <LoginPage />
+                }
+              />
 
-            {/* Admin Routes */}
-            <Route
-              path="/admin"
-              element={
-                <ProtectedRoute allowedRoles={['admin']}>
-                  <AppLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<AdminDashboard />} />
-              <Route path="users" element={<AdminUsersPage />} />
-              <Route path="products" element={<AdminProductsPage />} />
-              <Route path="stores" element={<AdminStoresPage />} />
-              <Route path="withdrawals" element={<AdminWithdrawalsPage />} />
-              <Route path="reports" element={<div>System Reports</div>} />
-            </Route>
+              {/* Admin Routes */}
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <AppLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<AdminDashboard />} />
+                <Route path="users" element={<AdminUsersPage />} />
+                <Route path="products" element={<AdminProductsPage />} />
+                <Route path="stores" element={<AdminStoresPage />} />
+                <Route path="withdrawals" element={<AdminWithdrawalsPage />} />
+                <Route path="reports" element={<div>System Reports</div>} />
+              </Route>
 
-            {/* Keeper Routes */}
-            <Route
-              path="/keeper"
-              element={
-                <ProtectedRoute allowedRoles={['keeper']}>
-                  <AppLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<div className="p-8 text-center h-full flex flex-col items-center justify-center"><h1 className="text-2xl font-bold">لوحة أمين المخزن</h1><p className="text-muted-foreground">قم بإدارة المخزون وطلبات المسوقين من القائمة</p></div>} />
-              <Route path="stock" element={<WarehouseStockPage />} />
-              <Route path="requests" element={<KeeperRequestsPage />} />
-              <Route path="factory-invoices" element={<FactoryInvoicesPage />} />
-              <Route path="delivery-confirmation" element={<KeeperDeliveryConfirmationPage />} />
-              <Route path="payment-confirmation" element={<KeeperPaymentConfirmationPage />} />
-              <Route path="sales-returns" element={<KeeperSalesReturnsPage />} />
-              <Route path="sales-docs" element={<KeeperSalesDocsPage />} />
-            </Route>
+              {/* Keeper Routes */}
+              <Route
+                path="/keeper"
+                element={
+                  <ProtectedRoute allowedRoles={['keeper']}>
+                    <AppLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<div className="p-8 text-center h-full flex flex-col items-center justify-center"><h1 className="text-2xl font-bold">لوحة أمين المخزن</h1><p className="text-muted-foreground">قم بإدارة المخزون وطلبات المسوقين من القائمة</p></div>} />
+                <Route path="stock" element={<WarehouseStockPage />} />
+                <Route path="requests" element={<KeeperRequestsPage />} />
+                <Route path="factory-invoices" element={<FactoryInvoicesPage />} />
+                <Route path="delivery-confirmation" element={<KeeperDeliveryConfirmationPage />} />
+                <Route path="payment-confirmation" element={<KeeperPaymentConfirmationPage />} />
+                <Route path="sales-returns" element={<KeeperSalesReturnsPage />} />
+                <Route path="sales-docs" element={<KeeperSalesDocsPage />} />
+              </Route>
 
-            {/* Marketer Routes */}
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute allowedRoles={['marketer']}>
-                  <AppLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<MarketerDashboard />} />
-              <Route path="warehouse" element={<WarehousePage />} />
-              <Route path="stores" element={<StoresPage />} />
-              <Route path="stores/new-order" element={<NewOrderPage />} />
-              <Route path="stores/returns" element={<ReturnsPage />} />
-              <Route path="operations" element={<OperationsPage />} />
-              <Route path="settings" element={<SettingsPage />} />
-            </Route>
+              {/* Marketer Routes */}
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute allowedRoles={['marketer']}>
+                    <AppLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<MarketerDashboard />} />
+                <Route path="warehouse" element={<WarehousePage />} />
+                <Route path="stores" element={<StoresPage />} />
+                <Route path="stores/new-order" element={<NewOrderPage />} />
+                <Route path="stores/returns" element={<ReturnsPage />} />
+                <Route path="operations" element={<OperationsPage />} />
+                <Route path="settings" element={<SettingsPage />} />
+              </Route>
 
-            <Route path="/unauthorized" element={<div className="flex items-center justify-center h-screen">Unauthorized Access</div>} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
+              <Route path="/unauthorized" element={<div className="flex items-center justify-center h-screen">Unauthorized Access</div>} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ThemeProvider>
   );
 };
 

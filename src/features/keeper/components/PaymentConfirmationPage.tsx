@@ -241,7 +241,7 @@ export const KeeperPaymentConfirmationPage = () => {
           <Dialog open={!!selectedPayment} onOpenChange={() => setSelectedPayment(null)}>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle className="flex items-center justify-end gap-2 text-right">
+                <DialogTitle className="flex items-center justify-start gap-2 text-right">
                   تفاصيل إيصال القبض: {selectedPayment.payment_number}
                   <ReceiptText className="w-5 h-5 text-primary" />
                 </DialogTitle>
@@ -289,7 +289,7 @@ export const KeeperPaymentConfirmationPage = () => {
                 </div>
 
                 <div className="space-y-3">
-                  <h3 className="font-bold flex items-center justify-end gap-2">
+                  <h3 className="font-bold flex items-center justify-start gap-2">
                     {selectedPayment.status === 'pending' ? 'رفع صورة إيصال القبض المختوم' : 'صورة الإيصال الموثق'}
                     <ImageIcon className="w-4 h-4" />
                   </h3>
