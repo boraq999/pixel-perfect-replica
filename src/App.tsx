@@ -4,7 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { LoginPage } from "@/features/auth/components/LoginPage";
-import { MarketerLayout } from "@/features/marketer/components/MarketerLayout";
+import { AppLayout } from "@/components/layout/AppLayout";
 import { MarketerDashboard } from "@/features/marketer/components/Dashboard";
 import { WarehousePage } from "@/features/marketer/components/WarehousePage";
 import { StoresPage } from "@/features/marketer/components/StoresPage";
@@ -30,6 +30,7 @@ import { FactoryInvoicesPage } from "@/features/keeper/components/FactoryInvoice
 import { KeeperDeliveryConfirmationPage } from "@/features/keeper/components/DeliveryConfirmationPage";
 import { KeeperPaymentConfirmationPage } from "@/features/keeper/components/PaymentConfirmationPage";
 import { KeeperSalesReturnsPage } from "@/features/keeper/components/SalesReturnsPage";
+import { KeeperSalesDocsPage } from "@/features/keeper/components/SalesDocsPage";
 
 const queryClient = new QueryClient();
 
@@ -65,7 +66,7 @@ const App = () => {
               path="/admin"
               element={
                 <ProtectedRoute allowedRoles={['admin']}>
-                  <MarketerLayout />
+                  <AppLayout />
                 </ProtectedRoute>
               }
             >
@@ -82,7 +83,7 @@ const App = () => {
               path="/keeper"
               element={
                 <ProtectedRoute allowedRoles={['keeper']}>
-                  <MarketerLayout />
+                  <AppLayout />
                 </ProtectedRoute>
               }
             >
@@ -93,6 +94,7 @@ const App = () => {
               <Route path="delivery-confirmation" element={<KeeperDeliveryConfirmationPage />} />
               <Route path="payment-confirmation" element={<KeeperPaymentConfirmationPage />} />
               <Route path="sales-returns" element={<KeeperSalesReturnsPage />} />
+              <Route path="sales-docs" element={<KeeperSalesDocsPage />} />
             </Route>
 
             {/* Marketer Routes */}
@@ -100,7 +102,7 @@ const App = () => {
               path="/dashboard"
               element={
                 <ProtectedRoute allowedRoles={['marketer']}>
-                  <MarketerLayout />
+                  <AppLayout />
                 </ProtectedRoute>
               }
             >
