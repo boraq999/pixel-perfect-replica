@@ -4,19 +4,13 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, Loader2, Zap } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Zap, ShoppingCart, Package } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { toast } from 'sonner';
 
 const loginSchema = z.object({
-  username: z.string()
-    .min(3, 'اسم المستخدم يجب أن يكون 3 أحرف على الأقل')
-    .max(50, 'اسم المستخدم طويل جداً'),
-  password: z.string()
-    .min(6, 'كلمة المرور يجب أن تكون 6 أحرف على الأقل')
-    .max(100, 'كلمة المرور طويلة جداً'),
-  rememberMe: z.boolean().optional(),
-  userType: z.enum(['marketer', 'storekeeper'], { required_error: 'الرجاء اختيار نوع المستخدم' }),
+  username: z.string().min(3, 'اسم المستخدم يجب أن يكون 3 أحرف على الأقل'),
+  password: z.string().min(6, 'كلمة المرور يجب أن تكون 6 أحرف على الأقل'),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
@@ -29,231 +23,170 @@ export const LoginPage = () => {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      rememberMe: false,
-      password: 'password',
+      username: '',
+      password: '',
     },
   });
 
   const onSubmit = async (data: LoginFormData) => {
     try {
-      await login(data.username, data.password, data.rememberMe);
+      await login(data.username, data.password, false);
       toast.success('تم تسجيل الدخول بنجاح');
-      if (data.userType === 'marketer') {
-        navigate('/dashboard');
-      } else {
-        navigate('/storekeeper/dashboard');
-      }
+      
+      // All routes currently under /dashboard in App.tsx
+      navigate('/dashboard');
+      
     } catch (error: any) {
       toast.error(error.message || 'فشل تسجيل الدخول');
     }
   };
 
+  const handleQuickLogin = async (role: 'salesman' | 'warehouse') => {
+    const username = role === 'salesman' ? 'salesman' : 'warehouse';
+    const password = 'password123'; // Matches > 6 chars requirement
+    
+    // Set values in form to satisfy validation if needed, though we call login directly
+    setValue('username', username);
+    setValue('password', password);
+    
+    try {
+      await login(username, password, false);
+      toast.success('تم تسجيل الدخول بنجاح');
+      navigate('/dashboard');
+    } catch (error: any) {
+      toast.error(error.message || 'فشل تسجيل الدخول السريع');
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden" style={{ background: 'var(--gradient-hero)' }}>
-      {/* Animated Background */}
+      {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full opacity-30"
           style={{ background: 'radial-gradient(circle, hsl(270 60% 50% / 0.4), transparent)' }}
-          animate={{
-            scale: [1, 1.2, 1],
-            opacity: [0.3, 0.5, 0.3],
-          }}
-          transition={{
-            duration: 4,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-        <motion.div
-          className="absolute top-1/4 right-1/4 w-[300px] h-[300px] rounded-full opacity-20"
-          style={{ background: 'radial-gradient(circle, hsl(330 80% 55% / 0.4), transparent)' }}
-          animate={{
-            scale: [1.2, 1, 1.2],
-            x: [0, 50, 0],
-            y: [0, -30, 0],
-          }}
-          transition={{
-            duration: 6,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
+          animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
+          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
         />
       </div>
 
-      {/* Login Card */}
+      {/* Main Container - Two Column Layout */}
       <motion.div
-        initial={{ opacity: 0, y: 20, scale: 0.95 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.5 }}
-        className="relative w-full max-w-md z-10"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative w-full max-w-5xl z-10 glass-card overflow-hidden grid grid-cols-1 md:grid-cols-2"
       >
-        <div className="glass-card p-8">
-          {/* Logo */}
-          <motion.div 
-            className="text-center mb-8"
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 gradient-btn animate-glow">
-              <Zap className="w-8 h-8" />
-            </div>
-            <h1 className="text-3xl font-bold mb-2 gradient-text">
-              نظام إدارة التوزيع
-            </h1>
-            <p className="text-muted-foreground">
-              مرحباً بك، قم بتسجيل الدخول للمتابعة
-            </p>
-          </motion.div>
+        
+        {/* Right Side: Login Form */}
+        <div className="p-8 md:p-12 flex flex-col justify-center order-1 md:order-2 bg-background/50">
+          <div className="text-center mb-10">
+            <h1 className="text-3xl font-bold mb-2 gradient-text">تسجيل الدخول</h1>
+            <p className="text-muted-foreground">أدخل بيانات الحساب للوصول للنظام</p>
+          </div>
 
-          {/* Form */}
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            {/* User Type */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3 }}
-            >
-              <label className="block text-sm font-medium text-foreground/80 mb-2">نوع المستخدم</label>
-              <div className="flex gap-4">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="radio" {...register('userType')} value="marketer" className="radio" />
-                  <span className="text-sm">مسوق</span>
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="radio" {...register('userType')} value="storekeeper" className="radio" />
-                  <span className="text-sm">أمين مخزن</span>
-                </label>
-              </div>
-              {errors.userType && <p className="mt-2 text-sm text-destructive">{errors.userType.message}</p>}
-            </motion.div>
-
-            {/* Username */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3 }}
-            >
-              <label className="block text-sm font-medium text-foreground/80 mb-2">
-                اسم المستخدم
-              </label>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground/80 block text-right">اسم المستخدم</label>
               <input
                 type="text"
                 {...register('username')}
-                className="input-glass"
-                placeholder="أدخل اسم المستخدم"
+                className="input-glass text-right"
+                placeholder="salesman / warehouse"
                 disabled={isLoading}
               />
-              {errors.username && (
-                <p className="mt-2 text-sm text-destructive">
-                  {errors.username.message}
-                </p>
-              )}
-            </motion.div>
+              {errors.username && <p className="text-xs text-destructive text-right">{errors.username.message}</p>}
+            </div>
 
-            {/* Password */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.4 }}
-            >
-              <label className="block text-sm font-medium text-foreground/80 mb-2">
-                كلمة المرور
-              </label>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground/80 block text-right">كلمة المرور</label>
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
                   {...register('password')}
-                  className="input-glass pl-12"
-                  placeholder="أدخل كلمة المرور"
+                  className="input-glass text-right pr-12"
+                  placeholder="********"
                   disabled={isLoading}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 >
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
               </div>
-              {errors.password && (
-                <p className="mt-2 text-sm text-destructive">
-                  {errors.password.message}
-                </p>
-              )}
-            </motion.div>
+              {errors.password && <p className="text-xs text-destructive text-right">{errors.password.message}</p>}
+            </div>
 
-            {/* Remember Me & Forgot Password */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.5 }}
-              className="flex items-center justify-between"
-            >
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  {...register('rememberMe')}
-                  className="w-4 h-4 rounded border-border bg-input text-primary focus:ring-primary focus:ring-offset-0"
-                  disabled={isLoading}
-                />
-                <span className="text-sm text-muted-foreground">تذكرني</span>
-              </label>
-              <a href="#" className="text-sm text-primary hover:text-primary/80 transition-colors">
-                نسيت كلمة المرور؟
-              </a>
-            </motion.div>
-
-            {/* Submit Button */}
-            <motion.button
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6 }}
+            <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3 px-4 rounded-lg font-medium gradient-btn disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              className="w-full py-4 rounded-xl font-bold gradient-btn animate-glow disabled:opacity-50"
             >
-              {isLoading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  جاري تسجيل الدخول...
-                </span>
-              ) : (
-                'تسجيل الدخول'
-              )}
-            </motion.button>
+              {isLoading ? <Loader2 className="w-6 h-6 animate-spin mx-auto" /> : 'دخول للنظام'}
+            </button>
           </form>
-
-          {/* Register Link */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.7 }}
-            className="mt-6 text-center"
-          >
-            <p className="text-sm text-muted-foreground">
-              ليس لديك حساب؟{' '}
-              <a href="#" className="text-primary hover:text-primary/80 font-medium transition-colors">
-                سجل الآن
-              </a>
-            </p>
-          </motion.div>
         </div>
 
-        {/* Footer */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.8 }}
-          className="mt-6 text-center text-sm text-muted-foreground"
-        >
-          <p>© 2026 Taqnia Distribution Manager. جميع الحقوق محفوظة.</p>
-        </motion.div>
+        {/* Left Side: Quick Login Section */}
+        <div className="gradient-btn p-8 md:p-12 flex flex-col justify-between items-center text-center order-2 md:order-1 relative overflow-hidden">
+          <div className="absolute inset-0 opacity-10 pointer-events-none">
+             <Zap className="absolute -top-10 -left-10 w-40 h-40 rotate-12" />
+          </div>
+
+          <div className="relative z-10 w-full">
+            <div className="mb-10">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 bg-white/20 backdrop-blur-sm">
+                <Package className="w-8 h-8 text-white" />
+              </div>
+              <h2 className="text-3xl font-bold text-white mb-2">الدخول السريع</h2>
+              <p className="text-white/80">اختر دورك الوظيفي للبدء فوراً</p>
+            </div>
+
+            <div className="space-y-4 w-full max-w-sm mx-auto">
+              <button
+                type="button"
+                onClick={() => handleQuickLogin('salesman')}
+                disabled={isLoading}
+                className="w-full flex items-center gap-4 p-4 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/20 transition-all group disabled:opacity-50"
+              >
+                <div className="w-12 h-12 rounded-xl bg-blue-500/50 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <ShoppingCart className="w-6 h-6 text-white" />
+                </div>
+                <div className="text-right">
+                  <h3 className="font-bold text-white">دخول كمسوق</h3>
+                  <p className="text-xs text-white/60 uppercase tracking-wider">Salesman Account</p>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleQuickLogin('warehouse')}
+                disabled={isLoading}
+                className="w-full flex items-center gap-4 p-4 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/20 transition-all group disabled:opacity-50"
+              >
+                <div className="w-12 h-12 rounded-xl bg-purple-500/50 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Package className="w-6 h-6 text-white" />
+                </div>
+                <div className="text-right">
+                  <h3 className="font-bold text-white">أمين مخزن</h3>
+                  <p className="text-xs text-white/60 uppercase tracking-wider">Warehouse Account</p>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-12 text-white/60 text-xs relative z-10">
+            <p>جميع الحقوق محفوظة © تقنية للتوزيع 2024</p>
+            <p className="mt-1">إصدار النظام V2.5.0</p>
+          </div>
+        </div>
+
       </motion.div>
     </div>
   );
