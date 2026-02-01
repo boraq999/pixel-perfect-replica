@@ -75,6 +75,10 @@ export const NewOrderPage = () => {
     });
   };
 
+  const removeFromCart = (productId: string) => {
+    setCart(prev => prev.filter(item => item.product_id !== productId));
+  };
+
   const updateQuantity = (productId: string, delta: number) => {
     const stockItem = stock.find(s => s.product_id === productId);
     setCart(prev => prev.map(item => {
@@ -135,22 +139,14 @@ export const NewOrderPage = () => {
     setSubmitting(true);
     try {
       const invoiceData = {
-        marketer_id: user?.id,
+        marketer_id: user?.id || '',
         store_id: selectedStoreId,
         subtotal,
-        product_discount: 0, // Simplified
+        product_discount: 0,
         invoice_discount_type: discountType,
         invoice_discount_value: discountValue,
         invoice_discount_amount: invoiceDiscountAmount,
         total_amount: totalAmount,
-        items: cartItems.map(item => ({
-          product_id: item.product_id,
-          quantity: item.quantity,
-          free_quantity: item.free_quantity,
-          unit_price: item.unit_price,
-          total_price: item.total_price,
-          promotion_id: item.promotion_id
-        }))
       };
 
       await createSalesInvoice(invoiceData);

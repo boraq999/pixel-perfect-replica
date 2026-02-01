@@ -87,3 +87,9 @@ export interface MarketerActualStock {
   product?: Product;
   quantity: number;
 }
+
+export interface NavigationItem {
+  name: string;
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+}
