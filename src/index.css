@@ -6,167 +6,282 @@
 
 @layer base {
 
+  /* ==========================================
+     THEME 1: AURORA GLOW - الأضواء المتوهجة
+     Neon borders, glowing shadows, electric feel
+     ========================================== */
   :root,
-  .best {
-    /* Existing "Best" Theme - Glassmorphism & Premium */
-    --primary: 270 60% 50%;
+  .aurora {
+    --primary: 280 90% 60%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 280 70% 60%;
-    --secondary: 330 80% 60%;
+    --primary-glow: 300 100% 70%;
+    --secondary: 180 90% 50%;
     --secondary-foreground: 0 0% 100%;
-    --background: 222 47% 11%;
-    --foreground: 210 40% 98%;
-    --card: 222 47% 14%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222 47% 12%;
-    --popover-foreground: 210 40% 98%;
-    --muted: 215 25% 20%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 270 50% 25%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 84% 60%;
+    --background: 240 20% 8%;
+    --foreground: 0 0% 98%;
+    --card: 240 25% 12%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 25% 10%;
+    --popover-foreground: 0 0% 98%;
+    --muted: 240 15% 18%;
+    --muted-foreground: 240 10% 60%;
+    --accent: 280 50% 20%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 90% 60%;
     --destructive-foreground: 0 0% 100%;
-    --success: 160 84% 39%;
+    --success: 150 90% 45%;
     --success-foreground: 0 0% 100%;
-    --warning: 38 92% 50%;
+    --warning: 45 100% 55%;
     --warning-foreground: 0 0% 0%;
-    --info: 217 91% 60%;
+    --info: 200 100% 60%;
     --info-foreground: 0 0% 100%;
-    --border: 217 30% 25%;
-    --input: 217 30% 20%;
-    --ring: 270 60% 50%;
+    --border: 280 50% 30%;
+    --input: 240 20% 15%;
+    --ring: 280 90% 60%;
     --radius: 0.75rem;
-    --sidebar-background: 222 47% 8%;
-    --sidebar-foreground: 210 40% 90%;
-    --sidebar-primary: 270 60% 55%;
+    --sidebar-background: 240 25% 6%;
+    --sidebar-foreground: 0 0% 90%;
+    --sidebar-primary: 280 90% 65%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 270 40% 20%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 217 30% 18%;
-    --sidebar-ring: 270 60% 50%;
-    --gradient-primary: linear-gradient(135deg, hsl(270, 60%, 50%), hsl(330, 80%, 55%));
-    --gradient-primary-hover: linear-gradient(135deg, hsl(270, 65%, 45%), hsl(330, 85%, 50%));
-    --gradient-hero: linear-gradient(135deg, hsl(222, 47%, 8%) 0%, hsl(270, 50%, 15%) 50%, hsl(222, 47%, 8%) 100%);
-    --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
-    --shadow-glow: 0 0 40px -10px hsl(270 60% 50% / 0.5);
-    --shadow-card: 0 10px 40px -15px rgba(0, 0, 0, 0.5);
-
-    /* Sidebar Active - Best (Soft & Glossy) */
-    --sidebar-active-bg: 270 60% 50% / 0.15;
-    --sidebar-active-text: 270 60% 60%;
-    --sidebar-active-border: 270 60% 50%;
+    --sidebar-accent: 280 40% 18%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 280 40% 25%;
+    --sidebar-ring: 280 90% 60%;
+    --gradient-primary: linear-gradient(135deg, hsl(280, 90%, 55%), hsl(180, 90%, 50%));
+    --gradient-primary-hover: linear-gradient(135deg, hsl(280, 95%, 50%), hsl(180, 95%, 45%));
+    --gradient-hero: radial-gradient(ellipse at top, hsl(280, 60%, 20%) 0%, transparent 60%),
+      radial-gradient(ellipse at bottom, hsl(180, 50%, 15%) 0%, transparent 60%),
+      hsl(240, 20%, 8%);
+    --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04));
+    --shadow-glow: 0 0 50px -5px hsl(280 90% 60% / 0.6), 0 0 100px -10px hsl(180 90% 50% / 0.3);
+    --shadow-card: 0 0 30px -5px hsl(280 90% 60% / 0.3), 0 20px 40px -20px rgba(0, 0, 0, 0.5);
+    --sidebar-active-bg: 280 90% 60% / 0.2;
+    --sidebar-active-text: 280 90% 75%;
+    --sidebar-active-border: 280 90% 60%;
+    
+    /* Aurora Glow Special Effects */
+    --glow-border: 2px solid hsl(280 90% 50% / 0.5);
+    --glow-intense: 0 0 20px hsl(280 90% 60% / 0.5), 0 0 40px hsl(180 90% 50% / 0.3), 0 0 60px hsl(280 90% 60% / 0.2);
   }
 
-  .dark {
-    /* Creative Dark Theme - Deep Space with Neon Accents */
-    --background: 230 25% 7%;
-    --foreground: 220 15% 92%;
-    --muted: 225 20% 13%;
-    --muted-foreground: 220 15% 55%;
-    --accent: 250 40% 18%;
-    --accent-foreground: 220 20% 98%;
-    --popover: 230 30% 9%;
-    --popover-foreground: 220 15% 85%;
-    --border: 235 25% 18%;
-    --input: 235 25% 15%;
-    --card: 230 28% 10%;
-    --card-foreground: 220 15% 92%;
-    --primary: 265 85% 65%;
+  /* ==========================================
+     THEME 2: OCEAN DEPTHS - أعماق المحيط
+     Deep blues, turquoise accents, calm vibes
+     ========================================== */
+  .ocean {
+    --primary: 200 90% 50%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 280 90% 70%;
-    --secondary: 200 80% 55%;
+    --primary-glow: 190 100% 60%;
+    --secondary: 170 80% 45%;
     --secondary-foreground: 0 0% 100%;
+    --background: 210 50% 8%;
+    --foreground: 200 20% 95%;
+    --card: 210 45% 12%;
+    --card-foreground: 200 20% 95%;
+    --popover: 210 50% 10%;
+    --popover-foreground: 200 20% 95%;
+    --muted: 210 30% 18%;
+    --muted-foreground: 200 15% 55%;
+    --accent: 200 40% 20%;
+    --accent-foreground: 200 20% 98%;
     --destructive: 0 75% 55%;
     --destructive-foreground: 0 0% 100%;
-    --success: 160 80% 45%;
+    --success: 160 80% 40%;
     --success-foreground: 0 0% 100%;
-    --warning: 40 95% 55%;
+    --warning: 40 95% 50%;
     --warning-foreground: 0 0% 0%;
-    --info: 200 90% 55%;
+    --info: 190 90% 55%;
     --info-foreground: 0 0% 100%;
-    --ring: 265 85% 65%;
-    --radius: 0.75rem;
-    --sidebar-background: 230 30% 5%;
-    --sidebar-foreground: 220 15% 85%;
-    --sidebar-primary: 265 85% 65%;
+    --border: 200 35% 22%;
+    --input: 210 40% 15%;
+    --ring: 200 90% 50%;
+    --radius: 1rem;
+    --sidebar-background: 210 55% 6%;
+    --sidebar-foreground: 200 20% 85%;
+    --sidebar-primary: 200 90% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 250 40% 18%;
-    --sidebar-accent-foreground: 220 20% 98%;
-    --sidebar-border: 235 25% 15%;
-    --sidebar-ring: 265 85% 65%;
-
-    /* Creative Dark Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(265, 85%, 60%) 0%, hsl(200, 80%, 55%) 100%);
-    --gradient-primary-hover: linear-gradient(135deg, hsl(265, 90%, 55%) 0%, hsl(200, 85%, 50%) 100%);
-    --gradient-hero: radial-gradient(ellipse at top right, hsl(265, 60%, 15%) 0%, transparent 50%),
-      radial-gradient(ellipse at bottom left, hsl(200, 50%, 12%) 0%, transparent 50%),
-      hsl(230, 25%, 7%);
+    --sidebar-accent: 200 35% 18%;
+    --sidebar-accent-foreground: 200 20% 98%;
+    --sidebar-border: 200 30% 18%;
+    --sidebar-ring: 200 90% 50%;
+    --gradient-primary: linear-gradient(135deg, hsl(200, 90%, 45%) 0%, hsl(170, 80%, 45%) 100%);
+    --gradient-primary-hover: linear-gradient(135deg, hsl(200, 95%, 40%) 0%, hsl(170, 85%, 40%) 100%);
+    --gradient-hero: radial-gradient(ellipse at top right, hsl(200, 70%, 18%) 0%, transparent 50%),
+      radial-gradient(ellipse at bottom left, hsl(170, 60%, 12%) 0%, transparent 50%),
+      hsl(210, 50%, 8%);
     --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
-
-    /* Neon Shadows for Dark Theme */
-    --shadow-glow: 0 0 30px -8px hsl(265 85% 65% / 0.4);
-    --shadow-card: 0 15px 40px -12px rgba(0, 0, 0, 0.6);
-
-    /* Sidebar Active - Neon Glow Effect */
-    --sidebar-active-bg: 265 85% 65% / 0.15;
-    --sidebar-active-text: 265 85% 75%;
-    --sidebar-active-border: 265 85% 65%;
+    --shadow-glow: 0 0 35px -8px hsl(200 90% 50% / 0.4);
+    --shadow-card: 0 15px 45px -15px rgba(0, 0, 0, 0.5);
+    --sidebar-active-bg: 200 90% 50% / 0.15;
+    --sidebar-active-text: 200 90% 65%;
+    --sidebar-active-border: 200 90% 50%;
+    --glow-border: none;
+    --glow-intense: none;
   }
 
-  .light {
-    /* Creative Light Theme - Warm Sunrise with Vibrant Accents */
-    --background: 45 30% 97%;
-    --foreground: 230 25% 12%;
-    --muted: 40 20% 94%;
-    --muted-foreground: 230 15% 45%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 230 25% 12%;
-    --border: 40 15% 88%;
-    --input: 40 15% 88%;
-    --card: 0 0% 100%;
-    --card-foreground: 230 25% 12%;
-    --primary: 340 85% 55%;
+  /* ==========================================
+     THEME 3: SUNSET WARMTH - دفء الغروب
+     Coral, orange, pink warm tones
+     ========================================== */
+  .sunset {
+    --primary: 15 90% 55%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 350 90% 65%;
-    --secondary: 30 90% 55%;
+    --primary-glow: 25 100% 65%;
+    --secondary: 340 80% 55%;
     --secondary-foreground: 0 0% 100%;
-    --accent: 340 60% 95%;
-    --accent-foreground: 340 85% 45%;
+    --background: 20 30% 6%;
+    --foreground: 30 20% 95%;
+    --card: 20 25% 10%;
+    --card-foreground: 30 20% 95%;
+    --popover: 20 30% 8%;
+    --popover-foreground: 30 20% 95%;
+    --muted: 20 20% 16%;
+    --muted-foreground: 30 15% 55%;
+    --accent: 15 40% 18%;
+    --accent-foreground: 30 20% 98%;
     --destructive: 0 80% 55%;
     --destructive-foreground: 0 0% 100%;
     --success: 150 70% 40%;
     --success-foreground: 0 0% 100%;
-    --warning: 40 95% 50%;
+    --warning: 45 100% 55%;
     --warning-foreground: 0 0% 0%;
-    --info: 210 85% 55%;
+    --info: 200 85% 55%;
     --info-foreground: 0 0% 100%;
-    --ring: 340 85% 55%;
-    --radius: 1rem;
-    --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 230 25% 12%;
-    --sidebar-primary: 340 85% 55%;
+    --border: 20 30% 20%;
+    --input: 20 25% 13%;
+    --ring: 15 90% 55%;
+    --radius: 0.875rem;
+    --sidebar-background: 20 35% 5%;
+    --sidebar-foreground: 30 20% 85%;
+    --sidebar-primary: 15 90% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 340 60% 95%;
-    --sidebar-accent-foreground: 340 85% 45%;
-    --sidebar-border: 40 15% 90%;
-    --sidebar-ring: 340 85% 55%;
+    --sidebar-accent: 15 35% 15%;
+    --sidebar-accent-foreground: 30 20% 98%;
+    --sidebar-border: 20 25% 15%;
+    --sidebar-ring: 15 90% 55%;
+    --gradient-primary: linear-gradient(135deg, hsl(15, 90%, 50%) 0%, hsl(340, 80%, 55%) 100%);
+    --gradient-primary-hover: linear-gradient(135deg, hsl(15, 95%, 45%) 0%, hsl(340, 85%, 50%) 100%);
+    --gradient-hero: radial-gradient(ellipse at top right, hsl(15, 60%, 15%) 0%, transparent 50%),
+      radial-gradient(ellipse at bottom left, hsl(340, 50%, 12%) 0%, transparent 50%),
+      hsl(20, 30%, 6%);
+    --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+    --shadow-glow: 0 0 35px -8px hsl(15 90% 55% / 0.4);
+    --shadow-card: 0 15px 45px -15px rgba(0, 0, 0, 0.5);
+    --sidebar-active-bg: 15 90% 55% / 0.15;
+    --sidebar-active-text: 15 90% 65%;
+    --sidebar-active-border: 15 90% 55%;
+    --glow-border: none;
+    --glow-intense: none;
+  }
 
-    /* Warm Sunrise Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(340, 85%, 55%) 0%, hsl(30, 90%, 55%) 100%);
-    --gradient-primary-hover: linear-gradient(135deg, hsl(340, 90%, 50%) 0%, hsl(30, 95%, 50%) 100%);
-    --gradient-hero: radial-gradient(ellipse at top right, hsl(340, 80%, 96%) 0%, transparent 50%),
-      radial-gradient(ellipse at bottom left, hsl(30, 80%, 95%) 0%, transparent 50%),
-      hsl(45, 30%, 97%);
-    --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.7));
+  /* ==========================================
+     THEME 4: FOREST CALM - هدوء الغابة
+     Deep greens, earthy tones, natural feel
+     ========================================== */
+  .forest {
+    --primary: 150 70% 40%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 140 80% 50%;
+    --secondary: 90 60% 45%;
+    --secondary-foreground: 0 0% 100%;
+    --background: 160 30% 7%;
+    --foreground: 120 15% 93%;
+    --card: 160 25% 11%;
+    --card-foreground: 120 15% 93%;
+    --popover: 160 30% 9%;
+    --popover-foreground: 120 15% 93%;
+    --muted: 160 20% 16%;
+    --muted-foreground: 120 10% 55%;
+    --accent: 150 30% 18%;
+    --accent-foreground: 120 15% 98%;
+    --destructive: 0 75% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 140 80% 45%;
+    --success-foreground: 0 0% 100%;
+    --warning: 45 95% 50%;
+    --warning-foreground: 0 0% 0%;
+    --info: 200 85% 55%;
+    --info-foreground: 0 0% 100%;
+    --border: 150 25% 20%;
+    --input: 160 20% 13%;
+    --ring: 150 70% 40%;
+    --radius: 0.75rem;
+    --sidebar-background: 160 35% 5%;
+    --sidebar-foreground: 120 15% 85%;
+    --sidebar-primary: 150 70% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 150 25% 15%;
+    --sidebar-accent-foreground: 120 15% 98%;
+    --sidebar-border: 150 20% 15%;
+    --sidebar-ring: 150 70% 40%;
+    --gradient-primary: linear-gradient(135deg, hsl(150, 70%, 38%) 0%, hsl(90, 60%, 42%) 100%);
+    --gradient-primary-hover: linear-gradient(135deg, hsl(150, 75%, 33%) 0%, hsl(90, 65%, 38%) 100%);
+    --gradient-hero: radial-gradient(ellipse at top right, hsl(150, 50%, 14%) 0%, transparent 50%),
+      radial-gradient(ellipse at bottom left, hsl(90, 40%, 10%) 0%, transparent 50%),
+      hsl(160, 30%, 7%);
+    --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+    --shadow-glow: 0 0 35px -8px hsl(150 70% 40% / 0.35);
+    --shadow-card: 0 15px 45px -15px rgba(0, 0, 0, 0.5);
+    --sidebar-active-bg: 150 70% 40% / 0.15;
+    --sidebar-active-text: 150 70% 55%;
+    --sidebar-active-border: 150 70% 40%;
+    --glow-border: none;
+    --glow-intense: none;
+  }
 
-    /* Warm Glowing Shadows */
-    --shadow-glow: 0 15px 35px -10px hsla(340, 85%, 55%, 0.25);
-    --shadow-card: 0 20px 40px -15px rgba(0, 0, 0, 0.08), 0 8px 16px -8px rgba(0, 0, 0, 0.04);
-
-    /* Sidebar Active - Warm Coral Glow */
-    --sidebar-active-bg: 340 85% 55% / 0.1;
-    --sidebar-active-text: 340 85% 45%;
-    --sidebar-active-border: 340 85% 55%;
+  /* ==========================================
+     THEME 5: ROSE GOLD - الذهب الوردي
+     Elegant rose, gold accents, luxurious feel
+     ========================================== */
+  .rose {
+    --primary: 350 75% 55%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 340 85% 65%;
+    --secondary: 40 80% 55%;
+    --secondary-foreground: 0 0% 0%;
+    --background: 350 20% 8%;
+    --foreground: 350 15% 95%;
+    --card: 350 18% 12%;
+    --card-foreground: 350 15% 95%;
+    --popover: 350 20% 10%;
+    --popover-foreground: 350 15% 95%;
+    --muted: 350 15% 18%;
+    --muted-foreground: 350 10% 55%;
+    --accent: 350 25% 18%;
+    --accent-foreground: 350 15% 98%;
+    --destructive: 0 80% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 150 70% 42%;
+    --success-foreground: 0 0% 100%;
+    --warning: 45 95% 55%;
+    --warning-foreground: 0 0% 0%;
+    --info: 200 85% 55%;
+    --info-foreground: 0 0% 100%;
+    --border: 350 25% 22%;
+    --input: 350 18% 14%;
+    --ring: 350 75% 55%;
+    --radius: 1rem;
+    --sidebar-background: 350 25% 6%;
+    --sidebar-foreground: 350 15% 85%;
+    --sidebar-primary: 350 75% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 350 20% 15%;
+    --sidebar-accent-foreground: 350 15% 98%;
+    --sidebar-border: 350 20% 18%;
+    --sidebar-ring: 350 75% 55%;
+    --gradient-primary: linear-gradient(135deg, hsl(350, 75%, 50%) 0%, hsl(40, 80%, 55%) 100%);
+    --gradient-primary-hover: linear-gradient(135deg, hsl(350, 80%, 45%) 0%, hsl(40, 85%, 50%) 100%);
+    --gradient-hero: radial-gradient(ellipse at top right, hsl(350, 50%, 15%) 0%, transparent 50%),
+      radial-gradient(ellipse at bottom left, hsl(40, 50%, 12%) 0%, transparent 50%),
+      hsl(350, 20%, 8%);
+    --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+    --shadow-glow: 0 0 35px -8px hsl(350 75% 55% / 0.35);
+    --shadow-card: 0 15px 45px -15px rgba(0, 0, 0, 0.5);
+    --sidebar-active-bg: 350 75% 55% / 0.15;
+    --sidebar-active-text: 350 75% 65%;
+    --sidebar-active-border: 350 75% 55%;
+    --glow-border: none;
+    --glow-intense: none;
   }
 }
 
@@ -247,6 +362,26 @@
     @apply bg-card/50 backdrop-blur-sm border border-border rounded-xl p-6 transition-all duration-300 hover:border-primary/50 hover:shadow-lg;
   }
 
+  /* Aurora Glow Theme Special Card */
+  .aurora .stat-card,
+  :root .stat-card {
+    box-shadow: var(--shadow-card);
+    border: var(--glow-border, 1px solid hsl(var(--border)));
+  }
+
+  .aurora .stat-card:hover,
+  :root .stat-card:hover {
+    box-shadow: var(--glow-intense, var(--shadow-glow));
+    border-color: hsl(var(--primary) / 0.6);
+  }
+
+  /* Aurora Glow Theme Glass Card */
+  .aurora .glass-card,
+  :root .glass-card {
+    box-shadow: var(--shadow-glow);
+    border: 1px solid hsl(var(--primary) / 0.3);
+  }
+
   .nav-link {
     @apply flex items-center gap-3 px-4 py-3 rounded-lg text-muted-foreground transition-all duration-200 hover:bg-accent hover:text-accent-foreground;
   }
@@ -257,6 +392,25 @@
     border-right: 4px solid hsl(var(--sidebar-active-border));
     font-weight: 600;
     @apply shadow-sm transition-all duration-300;
+  }
+
+  /* Aurora Glow Theme Nav Link */
+  .aurora .nav-link.active,
+  :root .nav-link.active {
+    box-shadow: 0 0 15px hsl(var(--primary) / 0.3);
+  }
+
+  /* Theme card preview */
+  .theme-card {
+    @apply relative p-4 rounded-xl cursor-pointer transition-all duration-300 border-2;
+  }
+
+  .theme-card:hover {
+    @apply scale-[1.02];
+  }
+
+  .theme-card.selected {
+    @apply ring-2 ring-offset-2 ring-offset-background;
   }
 }
 
@@ -271,6 +425,10 @@
 
   .animate-glow {
     animation: glow 2s ease-in-out infinite alternate;
+  }
+
+  .glow-effect {
+    box-shadow: var(--glow-intense);
   }
 }
 
@@ -288,10 +446,10 @@
 
 @keyframes glow {
   from {
-    box-shadow: 0 0 20px -10px hsl(270 60% 50% / 0.5);
+    box-shadow: 0 0 20px -10px hsl(var(--primary) / 0.5);
   }
 
   to {
-    box-shadow: 0 0 40px -10px hsl(270 60% 50% / 0.8);
+    box-shadow: 0 0 40px -10px hsl(var(--primary) / 0.8);
   }
 }

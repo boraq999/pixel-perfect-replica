@@ -1,17 +1,13 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
-  Settings, 
   User, 
   Bell, 
   Shield, 
   Palette,
-  Globe,
   Smartphone,
   Save,
   Camera,
-  Moon,
-  Sun,
   Check,
   Loader2
 } from 'lucide-react';
@@ -19,16 +15,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/store/authStore';
+import { ThemePalette } from '@/components/ThemePalette';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -51,8 +41,8 @@ interface SettingsSection {
 
 const sections: SettingsSection[] = [
   { id: 'profile', title: 'الملف الشخصي', icon: User },
+  { id: 'appearance', title: 'المظهر والثيمات', icon: Palette },
   { id: 'notifications', title: 'الإشعارات', icon: Bell },
-  { id: 'appearance', title: 'المظهر', icon: Palette },
   { id: 'security', title: 'الأمان', icon: Shield },
 ];
 
@@ -75,13 +65,6 @@ export const SettingsPage = () => {
     reports: false,
     marketing: true,
     sound: true,
-  });
-
-  // Appearance settings
-  const [appearance, setAppearance] = useState({
-    theme: 'dark',
-    language: 'ar',
-    fontSize: 'medium',
   });
 
   const handleSave = async () => {
@@ -141,6 +124,20 @@ export const SettingsPage = () => {
                 />
               </div>
             </div>
+          </div>
+        );
+
+      case 'appearance':
+        return (
+          <div className="space-y-6">
+            <div className="space-y-3">
+              <h3 className="text-lg font-semibold">اختر الثيم المناسب</h3>
+              <p className="text-sm text-muted-foreground">
+                اختر من بين 5 ثيمات مختلفة لتخصيص تجربتك. الثيم المتوهج يتميز بتأثيرات ضوئية خاصة.
+              </p>
+            </div>
+            
+            <ThemePalette />
           </div>
         );
 
@@ -211,74 +208,6 @@ export const SettingsPage = () => {
                   onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, sound: checked }))}
                 />
               </div>
-            </div>
-          </div>
-        );
-
-      case 'appearance':
-        return (
-          <div className="space-y-6">
-            {/* Theme */}
-            <div className="space-y-3">
-              <Label className="text-base font-semibold">المظهر</Label>
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  onClick={() => setAppearance(prev => ({ ...prev, theme: 'light' }))}
-                  className={`p-4 rounded-lg border text-center transition-all ${
-                    appearance.theme === 'light'
-                      ? 'border-primary bg-primary/10'
-                      : 'border-border hover:border-primary/50'
-                  }`}
-                >
-                  <Sun className="w-6 h-6 mx-auto mb-2" />
-                  <span className="text-sm">فاتح</span>
-                </button>
-                <button
-                  onClick={() => setAppearance(prev => ({ ...prev, theme: 'dark' }))}
-                  className={`p-4 rounded-lg border text-center transition-all ${
-                    appearance.theme === 'dark'
-                      ? 'border-primary bg-primary/10'
-                      : 'border-border hover:border-primary/50'
-                  }`}
-                >
-                  <Moon className="w-6 h-6 mx-auto mb-2" />
-                  <span className="text-sm">داكن</span>
-                </button>
-              </div>
-            </div>
-
-            <Separator />
-
-            {/* Language */}
-            <div className="space-y-3">
-              <Label className="text-base font-semibold">اللغة</Label>
-              <Select value={appearance.language} onValueChange={(value) => setAppearance(prev => ({ ...prev, language: value }))}>
-                <SelectTrigger>
-                  <Globe className="w-4 h-4 ml-2" />
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ar">العربية</SelectItem>
-                  <SelectItem value="en">English</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <Separator />
-
-            {/* Font Size */}
-            <div className="space-y-3">
-              <Label className="text-base font-semibold">حجم الخط</Label>
-              <Select value={appearance.fontSize} onValueChange={(value) => setAppearance(prev => ({ ...prev, fontSize: value }))}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="small">صغير</SelectItem>
-                  <SelectItem value="medium">متوسط</SelectItem>
-                  <SelectItem value="large">كبير</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
           </div>
         );
