@@ -85,16 +85,16 @@ export const FactoryInvoicesPage = () => {
                       {items.map((item, index) => (
                         <tr key={item.id} className="hover:bg-muted/30">
                           <td className="p-2">
-                            <Input placeholder="اسم المنتج" variant="ghost" className="h-8" />
+                            <Input placeholder="اسم المنتج" className="h-8 border-0 bg-transparent focus-visible:ring-1" />
                           </td>
                           <td className="p-2 w-24">
-                            <Input type="number" placeholder="0" variant="ghost" className="h-8 text-center" />
+                            <Input type="number" placeholder="0" className="h-8 text-center border-0 bg-transparent focus-visible:ring-1" />
                           </td>
                           <td className="p-2 w-32">
-                            <Input type="number" placeholder="0.00" variant="ghost" className="h-8 text-center" />
+                            <Input type="number" placeholder="0.00" className="h-8 text-center border-0 bg-transparent focus-visible:ring-1" />
                           </td>
                           <td className="p-2 w-40">
-                            <Input type="date" variant="ghost" className="h-8" />
+                            <Input type="date" className="h-8 border-0 bg-transparent focus-visible:ring-1" />
                           </td>
                           <td className="p-2 w-10">
                             {items.length > 1 && (
