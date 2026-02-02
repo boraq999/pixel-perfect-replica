@@ -26,7 +26,8 @@ import {
   ShoppingCart,
   Boxes,
   History,
-  Info
+  Info,
+  UserCheck
 } from 'lucide-react';
 import {
   Dialog,
@@ -69,6 +70,12 @@ interface Order {
   total_amount: number;
   items: OrderItem[];
   notes?: string;
+  approved_by?: string;
+  approval_date?: string;
+  rejected_by?: string;
+  rejection_date?: string;
+  verified_by?: string;
+  verification_date?: string;
 }
 
 const mockOrders: Order[] = [
@@ -82,7 +89,9 @@ const mockOrders: Order[] = [
       { product_id: 'P1', product_name: 'عجينة تمر فاخرة - 1 كجم', quantity: 50, unit_price: 212, total: 10600 },
       { product_id: 'P2', product_name: 'تمر خلاص القصيم - 500 جم', quantity: 25, unit_price: 200, total: 5000 },
     ],
-    notes: 'تغليف خاص للهدايا'
+    notes: 'تغليف خاص للهدايا',
+    approved_by: 'أحمد المحسن',
+    approval_date: '2024-01-16 10:30 AM'
   },
   {
     id: '2',
@@ -104,6 +113,10 @@ const mockOrders: Order[] = [
     items: [
       { product_id: 'P5', product_name: 'عسل سدر طبيعي - 1 كجم', quantity: 40, unit_price: 300, total: 12000 },
     ],
+    approved_by: 'محمد علي',
+    approval_date: '2024-01-18 02:15 PM',
+    verified_by: 'سامي الحربي',
+    verification_date: '2024-01-19 11:00 AM'
   },
   {
     id: '4',
@@ -114,7 +127,9 @@ const mockOrders: Order[] = [
     items: [
       { product_id: 'P6', product_name: 'زعفران أصلي - 5 جم', quantity: 10, unit_price: 320, total: 3200 },
     ],
-    notes: 'الكمية غير متوفرة في المخزن حالياً'
+    notes: 'الكمية غير متوفرة في المخزن حالياً',
+    rejected_by: 'خالد السعيد',
+    rejection_date: '2024-01-21 09:15 AM'
   },
 ];
 
@@ -606,22 +621,91 @@ export const OrderManagementPage = () => {
           {selectedOrder && (
             <div className="space-y-6">
               <DialogHeader>
-                <DialogTitle className="flex items-center justify-between text-xl">
+                <DialogTitle className="flex items-center text-xl">
                   <div className="flex items-center gap-2">
                     <FileText className="w-5 h-5 text-primary" />
                     تفاصيل الطلب: {selectedOrder.order_number}
                   </div>
-                  <Badge className={`${getStatusDetails(selectedOrder.status).bg} ${getStatusDetails(selectedOrder.status).color} border-none`}>
-                    {getStatusDetails(selectedOrder.status).label}
-                  </Badge>
                 </DialogTitle>
               </DialogHeader>
 
-              <div className="grid grid-cols-1 gap-4 p-4 bg-muted/30 rounded-lg text-sm">
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">تاريخ الطلب</p>
-                  <p className="font-medium">{selectedOrder.order_date}</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-5 bg-muted/30 rounded-2xl text-sm border border-muted-foreground/10">
+                <div className="col-span-full border-b border-muted pb-3 mb-1 flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1.5 font-medium">
+                      <Calendar className="h-4 w-4 text-primary/60" />
+                      تاريخ تقديم الطلب
+                    </p>
+                    <p className="font-bold text-base">{selectedOrder.order_date}</p>
+                  </div>
+                  <Badge className={`${getStatusDetails(selectedOrder.status).bg} ${getStatusDetails(selectedOrder.status).color} border-none px-4 py-1.5 text-xs font-bold`}>
+                    {getStatusDetails(selectedOrder.status).label}
+                  </Badge>
                 </div>
+
+                {(selectedOrder.status === 'approved' || selectedOrder.status === 'delivered') && (
+                  <>
+                    {selectedOrder.approved_by && (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <div className="p-1.5 rounded-lg bg-emerald-500/10">
+                            <UserCheck className="h-4 w-4 text-emerald-600" />
+                          </div>
+                          <div>
+                            <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">تمت الموافقة بواسطة</p>
+                            <p className="font-bold text-emerald-700 text-sm">{selectedOrder.approved_by}</p>
+                          </div>
+                        </div>
+                        {selectedOrder.approval_date && (
+                          <div className="flex items-center gap-2 pr-2 border-r-2 border-emerald-100 mr-2">
+                            <Clock className="h-3 w-3 text-emerald-400" />
+                            <p className="text-[11px] text-muted-foreground font-medium">{selectedOrder.approval_date}</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {selectedOrder.status === 'delivered' && selectedOrder.verified_by && (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <div className="p-1.5 rounded-lg bg-sky-500/10">
+                            <CheckCircle className="h-4 w-4 text-sky-600" />
+                          </div>
+                          <div>
+                            <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">تم التوثيق بواسطة</p>
+                            <p className="font-bold text-sky-700 text-sm">{selectedOrder.verified_by}</p>
+                          </div>
+                        </div>
+                        {selectedOrder.verification_date && (
+                          <div className="flex items-center gap-2 pr-2 border-r-2 border-sky-100 mr-2">
+                            <Calendar className="h-3 w-3 text-sky-400" />
+                            <p className="text-[11px] text-muted-foreground font-medium">{selectedOrder.verification_date}</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {selectedOrder.status === 'rejected' && (
+                  <div className="col-span-full space-y-3">
+                    <div className="flex items-center gap-3 p-3 rounded-xl bg-rose-500/5 border border-rose-500/10">
+                      <div className="p-2 rounded-lg bg-rose-500/10">
+                        <UserCheck className="h-5 w-5 text-rose-600" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-xs text-muted-foreground font-bold italic mb-0.5">تم الرفض بواسطة</p>
+                        <p className="font-black text-rose-700">{selectedOrder.rejected_by}</p>
+                        {selectedOrder.rejection_date && (
+                          <p className="text-[11px] text-rose-600/70 mt-1 flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            {selectedOrder.rejection_date}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-4">
