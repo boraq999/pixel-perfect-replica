@@ -52,7 +52,7 @@ const sections: SettingsSection[] = [
   { id: 'security', title: 'الأمان', icon: Shield },
 ];
 
-export const SettingsPage = () => {
+export const AdminSettingsPage = () => {
   const { user } = useAuthStore();
   const { theme: currentTheme, setTheme } = useTheme();
   const { favoriteThemes, toggleFavorite, isFavorite } = useFavoriteThemes();
@@ -68,10 +68,10 @@ export const SettingsPage = () => {
 
   // Notification settings
   const [notifications, setNotifications] = useState({
-    orders: true,
-    warehouse: true,
-    reports: false,
-    marketing: true,
+    system: true,
+    users: true,
+    reports: true,
+    security: true,
     sound: true,
   });
 
@@ -99,7 +99,7 @@ export const SettingsPage = () => {
               </div>
               <div>
                 <h3 className="font-semibold">{profileData.name}</h3>
-                <p className="text-sm text-muted-foreground">مسوّق</p>
+                <p className="text-sm text-muted-foreground">مسؤول النظام</p>
               </div>
             </div>
 
@@ -391,13 +391,13 @@ export const SettingsPage = () => {
                     <Bell className="w-5 h-5 text-primary" />
                   </div>
                   <div>
-                    <p className="font-medium">إشعارات الطلبات</p>
-                    <p className="text-sm text-muted-foreground">تلقي إشعارات عند وصول طلب جديد</p>
+                    <p className="font-medium">إشعارات النظام</p>
+                    <p className="text-sm text-muted-foreground">تحديثات وصيانة النظام</p>
                   </div>
                 </div>
                 <Switch
-                  checked={notifications.orders}
-                  onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, orders: checked }))}
+                  checked={notifications.system}
+                  onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, system: checked }))}
                 />
               </div>
 
@@ -407,13 +407,13 @@ export const SettingsPage = () => {
                     <Bell className="w-5 h-5 text-success" />
                   </div>
                   <div>
-                    <p className="font-medium">إشعارات المخزن</p>
-                    <p className="text-sm text-muted-foreground">تنبيهات حول المخزون والحركات</p>
+                    <p className="font-medium">إشعارات المستخدمين</p>
+                    <p className="text-sm text-muted-foreground">تنبيهات عن نشاط المستخدمين</p>
                   </div>
                 </div>
                 <Switch
-                  checked={notifications.warehouse}
-                  onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, warehouse: checked }))}
+                  checked={notifications.users}
+                  onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, users: checked }))}
                 />
               </div>
 
@@ -423,13 +423,29 @@ export const SettingsPage = () => {
                     <Bell className="w-5 h-5 text-info" />
                   </div>
                   <div>
-                    <p className="font-medium">التقارير الدورية</p>
-                    <p className="text-sm text-muted-foreground">استلام تقارير الأداء الأسبوعية</p>
+                    <p className="font-medium">التقارير الإدارية</p>
+                    <p className="text-sm text-muted-foreground">تقارير الأداء والإحصائيات</p>
                   </div>
                 </div>
                 <Switch
                   checked={notifications.reports}
                   onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, reports: checked }))}
+                />
+              </div>
+
+              <div className="flex items-center justify-between p-4 rounded-lg bg-accent/30">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-destructive/20 flex items-center justify-center">
+                    <Shield className="w-5 h-5 text-destructive" />
+                  </div>
+                  <div>
+                    <p className="font-medium">تنبيهات الأمان</p>
+                    <p className="text-sm text-muted-foreground">إشعارات هامة عن الأمان</p>
+                  </div>
+                </div>
+                <Switch
+                  checked={notifications.security}
+                  onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, security: checked }))}
                 />
               </div>
 
@@ -526,7 +542,7 @@ export const SettingsPage = () => {
       {/* Header */}
       <motion.div variants={itemVariants}>
         <h1 className="text-2xl font-bold">الإعدادات</h1>
-        <p className="text-muted-foreground">إدارة حسابك وتفضيلاتك</p>
+        <p className="text-muted-foreground">إدارة حسابك وتفضيلات النظام</p>
       </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">

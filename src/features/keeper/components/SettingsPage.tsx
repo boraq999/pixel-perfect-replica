@@ -8,9 +8,9 @@ import {
   Smartphone,
   Save,
   Camera,
-  Check,
   Loader2,
   Heart,
+  Check,
   AlertCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -52,7 +52,7 @@ const sections: SettingsSection[] = [
   { id: 'security', title: 'الأمان', icon: Shield },
 ];
 
-export const SettingsPage = () => {
+export const KeeperSettingsPage = () => {
   const { user } = useAuthStore();
   const { theme: currentTheme, setTheme } = useTheme();
   const { favoriteThemes, toggleFavorite, isFavorite } = useFavoriteThemes();
@@ -68,10 +68,10 @@ export const SettingsPage = () => {
 
   // Notification settings
   const [notifications, setNotifications] = useState({
-    orders: true,
-    warehouse: true,
-    reports: false,
-    marketing: true,
+    requests: true,
+    stock: true,
+    returns: true,
+    invoices: true,
     sound: true,
   });
 
@@ -99,7 +99,7 @@ export const SettingsPage = () => {
               </div>
               <div>
                 <h3 className="font-semibold">{profileData.name}</h3>
-                <p className="text-sm text-muted-foreground">مسوّق</p>
+                <p className="text-sm text-muted-foreground">أمين المخزن</p>
               </div>
             </div>
 
@@ -189,18 +189,24 @@ export const SettingsPage = () => {
                           : 'border-border hover:border-primary/50 bg-card'
                       }`}
                     >
+                      {/* Favorite Badge */}
                       {isFav && (
                         <div className="absolute top-2 right-2 w-8 h-8 rounded-full bg-primary flex items-center justify-center">
                           <Check className="w-5 h-5 text-primary-foreground" />
                         </div>
                       )}
+                      
+                      {/* Active Badge */}
                       {isActive && (
                         <div className="absolute top-2 left-2 px-2 py-1 rounded-full bg-success text-success-foreground text-xs font-medium">
                           نشط
                         </div>
                       )}
+                      
                       <div className="flex items-center gap-3 mb-3">
-                        <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${theme.colors.from} ${theme.colors.to} flex items-center justify-center ${theme.id === 'aurora' ? 'animate-pulse' : ''}`}>
+                        <div 
+                          className={`w-12 h-12 rounded-lg bg-gradient-to-br ${theme.colors.from} ${theme.colors.to} flex items-center justify-center ${theme.id === 'aurora' ? 'animate-pulse' : ''}`}
+                        >
                           <Icon className="w-6 h-6 text-white" />
                         </div>
                         <div>
@@ -208,7 +214,9 @@ export const SettingsPage = () => {
                           <p className="text-xs text-muted-foreground">{theme.nameEn}</p>
                         </div>
                       </div>
+                      
                       <p className="text-sm text-muted-foreground mb-3">{theme.description}</p>
+                      
                       <Button
                         size="sm"
                         variant={isActive ? "default" : "outline"}
@@ -258,18 +266,24 @@ export const SettingsPage = () => {
                           : 'border-border hover:border-primary/50 bg-card'
                       }`}
                     >
+                      {/* Favorite Badge */}
                       {isFav && (
                         <div className="absolute top-2 right-2 w-8 h-8 rounded-full bg-primary flex items-center justify-center">
                           <Check className="w-5 h-5 text-primary-foreground" />
                         </div>
                       )}
+                      
+                      {/* Active Badge */}
                       {isActive && (
                         <div className="absolute top-2 left-2 px-2 py-1 rounded-full bg-success text-success-foreground text-xs font-medium">
                           نشط
                         </div>
                       )}
+                      
                       <div className="flex items-center gap-3 mb-3">
-                        <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${theme.colors.from} ${theme.colors.to} flex items-center justify-center`}>
+                        <div 
+                          className={`w-12 h-12 rounded-lg bg-gradient-to-br ${theme.colors.from} ${theme.colors.to} flex items-center justify-center`}
+                        >
                           <Icon className="w-6 h-6 text-white" />
                         </div>
                         <div>
@@ -277,7 +291,9 @@ export const SettingsPage = () => {
                           <p className="text-xs text-gray-700 dark:text-foreground/70">{theme.nameEn}</p>
                         </div>
                       </div>
+                      
                       <p className="text-sm text-gray-800 dark:text-foreground/80 mb-3">{theme.description}</p>
+                      
                       <Button
                         size="sm"
                         variant={isActive ? "default" : "outline"}
@@ -327,18 +343,24 @@ export const SettingsPage = () => {
                           : 'border-border hover:border-primary/50 bg-card'
                       }`}
                     >
+                      {/* Favorite Badge */}
                       {isFav && (
                         <div className="absolute top-2 right-2 w-8 h-8 rounded-full bg-primary flex items-center justify-center">
                           <Check className="w-5 h-5 text-primary-foreground" />
                         </div>
                       )}
+                      
+                      {/* Active Badge */}
                       {isActive && (
                         <div className="absolute top-2 left-2 px-2 py-1 rounded-full bg-success text-success-foreground text-xs font-medium">
                           نشط
                         </div>
                       )}
+                      
                       <div className="flex items-center gap-3 mb-3">
-                        <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${theme.colors.from} ${theme.colors.to} flex items-center justify-center`}>
+                        <div 
+                          className={`w-12 h-12 rounded-lg bg-gradient-to-br ${theme.colors.from} ${theme.colors.to} flex items-center justify-center`}
+                        >
                           <Icon className="w-6 h-6 text-white" />
                         </div>
                         <div>
@@ -346,7 +368,9 @@ export const SettingsPage = () => {
                           <p className="text-xs text-muted-foreground">{theme.nameEn}</p>
                         </div>
                       </div>
+                      
                       <p className="text-sm text-muted-foreground mb-3">{theme.description}</p>
+                      
                       <Button
                         size="sm"
                         variant={isActive ? "default" : "outline"}
@@ -392,12 +416,12 @@ export const SettingsPage = () => {
                   </div>
                   <div>
                     <p className="font-medium">إشعارات الطلبات</p>
-                    <p className="text-sm text-muted-foreground">تلقي إشعارات عند وصول طلب جديد</p>
+                    <p className="text-sm text-muted-foreground">تلقي إشعارات عند وصول طلب جديد من المسوقين</p>
                   </div>
                 </div>
                 <Switch
-                  checked={notifications.orders}
-                  onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, orders: checked }))}
+                  checked={notifications.requests}
+                  onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, requests: checked }))}
                 />
               </div>
 
@@ -407,13 +431,29 @@ export const SettingsPage = () => {
                     <Bell className="w-5 h-5 text-success" />
                   </div>
                   <div>
-                    <p className="font-medium">إشعارات المخزن</p>
-                    <p className="text-sm text-muted-foreground">تنبيهات حول المخزون والحركات</p>
+                    <p className="font-medium">تنبيهات المخزون</p>
+                    <p className="text-sm text-muted-foreground">تنبيهات عند انخفاض مستويات المخزون</p>
                   </div>
                 </div>
                 <Switch
-                  checked={notifications.warehouse}
-                  onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, warehouse: checked }))}
+                  checked={notifications.stock}
+                  onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, stock: checked }))}
+                />
+              </div>
+
+              <div className="flex items-center justify-between p-4 rounded-lg bg-accent/30">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-warning/20 flex items-center justify-center">
+                    <Bell className="w-5 h-5 text-warning" />
+                  </div>
+                  <div>
+                    <p className="font-medium">المرتجعات</p>
+                    <p className="text-sm text-muted-foreground">إشعارات عند استلام مرتجعات جديدة</p>
+                  </div>
+                </div>
+                <Switch
+                  checked={notifications.returns}
+                  onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, returns: checked }))}
                 />
               </div>
 
@@ -423,13 +463,13 @@ export const SettingsPage = () => {
                     <Bell className="w-5 h-5 text-info" />
                   </div>
                   <div>
-                    <p className="font-medium">التقارير الدورية</p>
-                    <p className="text-sm text-muted-foreground">استلام تقارير الأداء الأسبوعية</p>
+                    <p className="font-medium">فواتير المصنع</p>
+                    <p className="text-sm text-muted-foreground">تنبيهات عند وصول فواتير جديدة</p>
                   </div>
                 </div>
                 <Switch
-                  checked={notifications.reports}
-                  onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, reports: checked }))}
+                  checked={notifications.invoices}
+                  onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, invoices: checked }))}
                 />
               </div>
 
@@ -526,7 +566,7 @@ export const SettingsPage = () => {
       {/* Header */}
       <motion.div variants={itemVariants}>
         <h1 className="text-2xl font-bold">الإعدادات</h1>
-        <p className="text-muted-foreground">إدارة حسابك وتفضيلاتك</p>
+        <p className="text-muted-foreground">إدارة حسابك وتفضيلات أمين المخزن</p>
       </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">

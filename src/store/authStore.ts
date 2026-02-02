@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { AuthState, User, UserRole } from '@/types/auth';
 
-const mockUsers: Record<UserRole, User> = {
+const mockUsers: Record<string, User> = {
   admin: {
     id: 'admin-1',
     username: 'admin',
@@ -24,6 +24,13 @@ const mockUsers: Record<UserRole, User> = {
     name: 'المسوق الميداني',
     role: 'marketer',
   },
+  'best-marketer': {
+    id: 'marketer-2',
+    username: 'bestmarketer',
+    email: 'best@taqnia.com',
+    name: 'المسوق الأفضل',
+    role: 'marketer',
+  },
 };
 
 export const useAuthStore = create<AuthState>()(
@@ -38,13 +45,22 @@ export const useAuthStore = create<AuthState>()(
         
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        let role: UserRole | null = null;
-        if (username.toLowerCase().includes('admin')) role = 'admin';
-        else if (username.toLowerCase().includes('warehouse') || username.toLowerCase().includes('keeper')) role = 'keeper';
-        else if (username.toLowerCase().includes('salesman') || username.toLowerCase().includes('marketer')) role = 'marketer';
+        let userKey: string | null = null;
+        const usernameLower = username.toLowerCase();
+        
+        // Check specific usernames first
+        if (usernameLower === 'bestmarketer' || usernameLower === 'المسوق الأفضل') {
+          userKey = 'best-marketer';
+        } else if (usernameLower.includes('admin')) {
+          userKey = 'admin';
+        } else if (usernameLower.includes('warehouse') || usernameLower.includes('keeper')) {
+          userKey = 'keeper';
+        } else if (usernameLower.includes('salesman') || usernameLower.includes('marketer')) {
+          userKey = 'marketer';
+        }
 
-        if (role && password.length >= 6) {
-          const user = mockUsers[role];
+        if (userKey && password.length >= 6) {
+          const user = mockUsers[userKey];
           set({
             user: { ...user, username },
             isAuthenticated: true,

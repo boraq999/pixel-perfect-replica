@@ -1,0 +1,1138 @@
+
+========================================
+جداول أساسية (مشتركة)
+========================================
+
+========================================
+1. جدول: users
+========================================
+
+  • id
+    النوع: bigint unsigned
+    المفتاح: PRIMARY KEY
+    القيمة الافتراضية: AUTO_INCREMENT
+
+  • username
+    النوع: varchar(50)
+    القيمة الافتراضية: —
+
+  • password_hash
+    النوع: varchar(255)
+    القيمة الافتراضية: —
+
+  • full_name
+    النوع: varchar(100)
+    القيمة الافتراضية: —
+
+  • role_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: roles.id
+    القيمة الافتراضية: —
+
+  • commission_rate
+    النوع: decimal(5,2)
+    القيمة الافتراضية: NULL
+
+  • phone
+    النوع: varchar(20)
+    القيمة الافتراضية: NULL
+
+  • is_active
+    النوع: tinyint(1)
+    القيمة الافتراضية: 1
+
+  • created_at
+    النوع: timestamp
+    القيمة الافتراضية: CURRENT_TIMESTAMP
+
+  • updated_at
+    النوع: timestamp
+    القيمة الافتراضية: CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+
+========================================
+2. جدول: roles
+========================================
+
+  • id
+    النوع: bigint unsigned
+    المفتاح: PRIMARY KEY
+    القيمة الافتراضية: AUTO_INCREMENT
+
+  • name
+    النوع: varchar(255)
+    القيمة الافتراضية: —
+
+  • display_name
+    النوع: varchar(255)
+    القيمة الافتراضية: —
+
+  • description
+    النوع: text
+    القيمة الافتراضية: NULL
+
+  • is_active
+    النوع: tinyint(1)
+    القيمة الافتراضية: 1
+
+  • created_at
+    النوع: timestamp
+    القيمة الافتراضية: CURRENT_TIMESTAMP
+
+  • updated_at
+    النوع: timestamp
+    القيمة الافتراضية: CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+
+========================================
+3. جدول: products
+========================================
+
+  • id
+    النوع: bigint unsigned
+    المفتاح: PRIMARY KEY
+    القيمة الافتراضية: AUTO_INCREMENT
+
+  • name
+    النوع: varchar(100)
+    القيمة الافتراضية: —
+
+  • barcode
+    النوع: varchar(50)
+    القيمة الافتراضية: NULL
+
+  • description
+    النوع: text
+    القيمة الافتراضية: NULL
+
+  • current_price
+    النوع: decimal(10,2)
+    القيمة الافتراضية: —
+
+  • is_active
+    النوع: tinyint(1)
+    القيمة الافتراضية: 1
+
+  • created_at
+    النوع: timestamp
+    القيمة الافتراضية: CURRENT_TIMESTAMP
+
+  • updated_at
+    النوع: timestamp
+    القيمة الافتراضية: CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+
+========================================
+4. جدول: main_stock
+========================================
+
+  • product_id
+    النوع: bigint unsigned
+    المفتاح: PRIMARY KEY
+    المفتاح: FOREIGN KEY
+    يشير إلى: products.id
+    القيمة الافتراضية: —
+
+  • quantity
+    النوع: int
+    القيمة الافتراضية: 0
+
+  • updated_at
+    النوع: timestamp
+    القيمة الافتراضية: CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+
+========================================
+A. عملية: طلب بضاعة من المسوق
+========================================
+
+========================================
+5. جدول: marketer_requests
+========================================
+
+  • id
+    النوع: bigint unsigned
+    المفتاح: PRIMARY KEY
+    القيمة الافتراضية: AUTO_INCREMENT
+
+  • invoice_number
+    النوع: varchar(50)
+    المفتاح: UNIQUE
+    القيمة الافتراضية: —
+
+  • marketer_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: users.id
+    القيمة الافتراضية: —
+
+  • status
+    النوع: enum('pending','approved','rejected','cancelled','documented')
+    القيمة الافتراضية: 'pending'
+
+  • notes
+    النوع: text
+    القيمة الافتراضية: NULL
+
+  • approved_by
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: users.id
+    القيمة الافتراضية: NULL
+
+  • approved_at
+    النوع: timestamp
+    القيمة الافتراضية: NULL
+
+  • rejected_by
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: users.id
+    القيمة الافتراضية: NULL
+
+  • rejected_at
+    النوع: timestamp
+    القيمة الافتراضية: NULL
+
+  • documented_by
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: users.id
+    القيمة الافتراضية: NULL
+
+  • documented_at
+    النوع: timestamp
+    القيمة الافتراضية: NULL
+
+  • stamped_image
+    النوع: varchar(255)
+    القيمة الافتراضية: NULL
+
+  • created_at
+    النوع: timestamp
+    القيمة الافتراضية: CURRENT_TIMESTAMP
+
+  • updated_at
+    النوع: timestamp
+    القيمة الافتراضية: CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+
+========================================
+6. جدول: marketer_request_items
+========================================
+
+  • id
+    النوع: bigint unsigned
+    المفتاح: PRIMARY KEY
+    القيمة الافتراضية: AUTO_INCREMENT
+
+  • request_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: marketer_requests.id
+    القيمة الافتراضية: —
+
+  • product_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: products.id
+    القيمة الافتراضية: —
+
+  • quantity
+    النوع: int
+    القيمة الافتراضية: —
+
+========================================
+7. جدول: marketer_reserved_stock
+========================================
+
+  • id
+    النوع: bigint unsigned
+    المفتاح: PRIMARY KEY
+    القيمة الافتراضية: AUTO_INCREMENT
+
+  • marketer_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: users.id
+    القيمة الافتراضية: —
+
+  • product_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: products.id
+    القيمة الافتراضية: —
+
+  • quantity
+    النوع: int
+    القيمة الافتراضية: 0
+
+  • created_at
+    النوع: timestamp
+    القيمة الافتراضية: CURRENT_TIMESTAMP
+
+  • updated_at
+    النوع: timestamp
+    القيمة الافتراضية: CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+
+========================================
+8. جدول: marketer_actual_stock
+========================================
+
+  • id
+    النوع: bigint unsigned
+    المفتاح: PRIMARY KEY
+    القيمة الافتراضية: AUTO_INCREMENT
+
+  • marketer_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: users.id
+    القيمة الافتراضية: —
+
+  • product_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: products.id
+    القيمة الافتراضية: —
+
+  • quantity
+    النوع: int
+    القيمة الافتراضية: 0
+
+========================================
+9. جدول: warehouse_stock_logs
+========================================
+
+  • id
+    النوع: bigint unsigned
+    المفتاح: PRIMARY KEY
+    القيمة الافتراضية: AUTO_INCREMENT
+
+  • invoice_type
+    النوع: enum('factory','marketer_request','sales_return')
+    القيمة الافتراضية: —
+
+  • invoice_id
+    النوع: int
+    القيمة الافتراضية: —
+
+  • keeper_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: users.id
+    القيمة الافتراضية: —
+
+  • action
+    النوع: enum('add','withdraw','return')
+    القيمة الافتراضية: —
+
+  • created_at
+    النوع: timestamp
+    القيمة الافتراضية: CURRENT_TIMESTAMP
+
+========================================
+B. عملية: إرجاع بضاعة من المسوق
+========================================
+
+========================================
+10. جدول: marketer_return_requests
+========================================
+
+  • id
+    النوع: bigint unsigned
+    المفتاح: PRIMARY KEY
+    القيمة الافتراضية: AUTO_INCREMENT
+
+  • invoice_number
+    النوع: varchar(50)
+    المفتاح: UNIQUE
+    القيمة الافتراضية: —
+
+  • marketer_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: users.id
+    القيمة الافتراضية: —
+
+  • status
+    النوع: enum('pending','approved','rejected','cancelled','documented')
+    القيمة الافتراضية: 'pending'
+
+  • notes
+    النوع: text
+    القيمة الافتراضية: NULL
+
+  • approved_by
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: users.id
+    القيمة الافتراضية: NULL
+
+  • approved_at
+    النوع: timestamp
+    القيمة الافتراضية: NULL
+
+  • rejected_by
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: users.id
+    القيمة الافتراضية: NULL
+
+  • rejected_at
+    النوع: timestamp
+    القيمة الافتراضية: NULL
+
+  • documented_by
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: users.id
+    القيمة الافتراضية: NULL
+
+  • documented_at
+    النوع: timestamp
+    القيمة الافتراضية: NULL
+
+  • stamped_image
+    النوع: varchar(255)
+    القيمة الافتراضية: NULL
+
+  • created_at
+    النوع: timestamp
+    القيمة الافتراضية: CURRENT_TIMESTAMP
+
+  • updated_at
+    النوع: timestamp
+    القيمة الافتراضية: CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+
+========================================
+11. جدول: marketer_return_items
+========================================
+
+  • id
+    النوع: bigint unsigned
+    المفتاح: PRIMARY KEY
+    القيمة الافتراضية: AUTO_INCREMENT
+
+  • return_request_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: marketer_return_requests.id
+    القيمة الافتراضية: —
+
+  • product_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: products.id
+    القيمة الافتراضية: —
+
+  • quantity
+    النوع: int
+    القيمة الافتراضية: —
+
+========================================
+C. عملية: بيع بضاعة للمتجر
+========================================
+
+========================================
+12. جدول: stores
+========================================
+
+  • id
+    النوع: bigint unsigned
+    المفتاح: PRIMARY KEY
+    القيمة الافتراضية: AUTO_INCREMENT
+
+  • name
+    النوع: varchar(100)
+    القيمة الافتراضية: —
+
+  • owner_name
+    النوع: varchar(100)
+    القيمة الافتراضية: —
+
+  • phone
+    النوع: varchar(20)
+    القيمة الافتراضية: NULL
+
+  • location
+    النوع: varchar(200)
+    القيمة الافتراضية: NULL
+
+  • address
+    النوع: text
+    القيمة الافتراضية: NULL
+
+  • is_active
+    النوع: tinyint(1)
+    القيمة الافتراضية: 1
+
+  • created_at
+    النوع: timestamp
+    القيمة الافتراضية: CURRENT_TIMESTAMP
+
+========================================
+13. جدول: sales_invoices
+========================================
+
+  • id
+    النوع: bigint unsigned
+    المفتاح: PRIMARY KEY
+    القيمة الافتراضية: AUTO_INCREMENT
+
+  • invoice_number
+    النوع: varchar(50)
+    المفتاح: UNIQUE
+    القيمة الافتراضية: —
+
+  • marketer_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: users.id
+    القيمة الافتراضية: —
+
+  • store_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: stores.id
+    القيمة الافتراضية: —
+
+  • total_amount
+    النوع: decimal(12,2)
+    القيمة الافتراضية: —
+
+  • subtotal
+    النوع: decimal(12,2)
+    القيمة الافتراضية: —
+
+  • product_discount
+    النوع: decimal(12,2)
+    القيمة الافتراضية: 0.00
+
+  • invoice_discount_type
+    النوع: enum('percentage','fixed')
+    القيمة الافتراضية: NULL
+
+  • invoice_discount_value
+    النوع: decimal(10,2)
+    القيمة الافتراضية: NULL
+
+  • invoice_discount_amount
+    النوع: decimal(12,2)
+    القيمة الافتراضية: 0.00
+
+  • status
+    النوع: enum('pending','approved','cancelled')
+    القيمة الافتراضية: 'pending'
+
+  • keeper_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: users.id
+    القيمة الافتراضية: NULL
+
+  • stamped_invoice_image
+    النوع: varchar(255)
+    القيمة الافتراضية: NULL
+
+  • confirmed_at
+    النوع: timestamp
+    القيمة الافتراضية: NULL
+
+  • notes
+    النوع: text
+    القيمة الافتراضية: NULL
+
+  • created_at
+    النوع: timestamp
+    القيمة الافتراضية: CURRENT_TIMESTAMP
+
+  • updated_at
+    النوع: timestamp
+    القيمة الافتراضية: CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+
+========================================
+14. جدول: sales_invoice_items
+========================================
+
+  • id
+    النوع: bigint unsigned
+    المفتاح: PRIMARY KEY
+    القيمة الافتراضية: AUTO_INCREMENT
+
+  • invoice_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: sales_invoices.id
+    القيمة الافتراضية: —
+
+  • product_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: products.id
+    القيمة الافتراضية: —
+
+  • quantity
+    النوع: int
+    القيمة الافتراضية: —
+
+  • free_quantity
+    النوع: int
+    القيمة الافتراضية: 0
+
+  • unit_price
+    النوع: decimal(10,2)
+    القيمة الافتراضية: —
+
+  • total_price
+    النوع: decimal(12,2)
+    القيمة الافتراضية: —
+
+  • promotion_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: product_promotions.id
+    القيمة الافتراضية: NULL
+
+========================================
+15. جدول: store_pending_stock
+========================================
+
+  • id
+    النوع: bigint unsigned
+    المفتاح: PRIMARY KEY
+    القيمة الافتراضية: AUTO_INCREMENT
+
+  • store_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: stores.id
+    القيمة الافتراضية: —
+
+  • sales_invoice_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: sales_invoices.id
+    القيمة الافتراضية: —
+
+  • product_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: products.id
+    القيمة الافتراضية: —
+
+  • quantity
+    النوع: int
+    القيمة الافتراضية: —
+
+  • created_at
+    النوع: timestamp
+    القيمة الافتراضية: CURRENT_TIMESTAMP
+
+========================================
+16. جدول: store_actual_stock
+========================================
+
+  • id
+    النوع: bigint unsigned
+    المفتاح: PRIMARY KEY
+    القيمة الافتراضية: AUTO_INCREMENT
+
+  • store_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: stores.id
+    القيمة الافتراضية: —
+
+  • product_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: products.id
+    القيمة الافتراضية: —
+
+  • quantity
+    النوع: int
+    القيمة الافتراضية: 0
+
+========================================
+17. جدول: store_debt_ledger
+========================================
+
+  • id
+    النوع: bigint unsigned
+    المفتاح: PRIMARY KEY
+    القيمة الافتراضية: AUTO_INCREMENT
+
+  • store_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: stores.id
+    القيمة الافتراضية: —
+
+  • entry_type
+    النوع: enum('sale','return','payment')
+    القيمة الافتراضية: —
+
+  • sales_invoice_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: sales_invoices.id
+    القيمة الافتراضية: NULL
+
+  • return_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: sales_returns.id
+    القيمة الافتراضية: NULL
+
+  • payment_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: store_payments.id
+    القيمة الافتراضية: NULL
+
+  • amount
+    النوع: decimal(12,2)
+    القيمة الافتراضية: —
+
+  • created_at
+    النوع: timestamp
+    القيمة الافتراضية: CURRENT_TIMESTAMP
+
+========================================
+18. جدول: product_promotions
+========================================
+
+وظيفته:
+يحتوي على العروض الترويجية للمنتجات (اشتري X واحصل على Y مجاناً).
+⚠️ ملاحظة مهمة: لا يمكن تعديل شروط العرض بعد الإنشاء (للحفاظ على التتبع التاريخي).
+للتغيير: قم بتعطيل العرض القديم (is_active = false) وأنشئ عرض جديد.
+
+  • id
+    النوع: bigint unsigned
+    المفتاح: PRIMARY KEY
+    القيمة الافتراضية: AUTO_INCREMENT
+
+  • product_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: products.id
+    القيمة الافتراضية: —
+    ملاحظة: ❌ لا يمكن تعديله بعد الإنشاء
+
+  • min_quantity
+    النوع: int
+    القيمة الافتراضية: —
+    ملاحظة: ❌ لا يمكن تعديله بعد الإنشاء
+
+  • free_quantity
+    النوع: int
+    القيمة الافتراضية: —
+    ملاحظة: ❌ لا يمكن تعديله بعد الإنشاء
+
+  • start_date
+    النوع: date
+    القيمة الافتراضية: —
+    ملاحظة: ❌ لا يمكن تعديله بعد الإنشاء
+
+  • end_date
+    النوع: date
+    القيمة الافتراضية: —
+    ملاحظة: ❌ لا يمكن تعديله بعد الإنشاء
+
+  • is_active
+    النوع: tinyint(1)
+    القيمة الافتراضية: 1
+    ملاحظة: ✅ يمكن تعديله (تفعيل/تعطيل)
+
+  • created_by
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: users.id
+    القيمة الافتراضية: —
+
+  • created_at
+    النوع: timestamp
+    القيمة الافتراضية: CURRENT_TIMESTAMP
+
+  • updated_at
+    النوع: timestamp
+    القيمة الافتراضية: CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+
+========================================
+19. جدول: invoice_discount_tiers
+========================================
+
+وظيفته:
+يحتوي على قواعد الخصم التلقائية للفواتير.
+⚠️ ملاحظة مهمة: لا يمكن تعديل قيم الخصم بعد الإنشاء (للحفاظ على التتبع التاريخي).
+للتغيير: قم بتعطيل القاعدة القديمة (is_active = false) وأنشئ قاعدة جديدة.
+
+  • id
+    النوع: bigint unsigned
+    المفتاح: PRIMARY KEY
+    القيمة الافتراضية: AUTO_INCREMENT
+
+  • min_amount
+    النوع: decimal(12,2)
+    القيمة الافتراضية: —
+    ملاحظة: ❌ لا يمكن تعديله بعد الإنشاء
+
+  • discount_type
+    النوع: enum('percentage','fixed')
+    القيمة الافتراضية: —
+    ملاحظة: ❌ لا يمكن تعديله بعد الإنشاء
+
+  • discount_percentage
+    النوع: decimal(5,2)
+    القيمة الافتراضية: NULL
+    ملاحظة: ❌ لا يمكن تعديله بعد الإنشاء
+
+  • discount_amount
+    النوع: decimal(12,2)
+    القيمة الافتراضية: NULL
+    ملاحظة: ❌ لا يمكن تعديله بعد الإنشاء
+
+  • start_date
+    النوع: date
+    القيمة الافتراضية: —
+    ملاحظة: ❌ لا يمكن تعديله بعد الإنشاء
+
+  • end_date
+    النوع: date
+    القيمة الافتراضية: —
+    ملاحظة: ❌ لا يمكن تعديله بعد الإنشاء
+
+  • is_active
+    النوع: tinyint(1)
+    القيمة الافتراضية: 1
+    ملاحظة: ✅ يمكن تعديله (تفعيل/تعطيل)
+
+  • created_by
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: users.id
+    القيمة الافتراضية: —
+
+  • created_at
+    النوع: timestamp
+    القيمة الافتراضية: CURRENT_TIMESTAMP
+
+  • updated_at
+    النوع: timestamp
+    القيمة الافتراضية: CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+
+========================================
+D. عملية: إيصال القبض (تسديد دين المتجر)
+========================================
+
+========================================
+20. جدول: store_payments
+========================================
+
+  • id
+    النوع: bigint unsigned
+    المفتاح: PRIMARY KEY
+    القيمة الافتراضية: AUTO_INCREMENT
+
+  • payment_number
+    النوع: varchar(50)
+    المفتاح: UNIQUE
+    القيمة الافتراضية: —
+
+  • store_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: stores.id
+    القيمة الافتراضية: —
+
+  • marketer_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: users.id
+    القيمة الافتراضية: —
+
+  • keeper_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: users.id
+    القيمة الافتراضية: —
+
+  • amount
+    النوع: decimal(12,2)
+    القيمة الافتراضية: —
+
+  • payment_method
+    النوع: enum('cash','transfer','certified_check')
+    القيمة الافتراضية: —
+
+  • status
+    النوع: enum('pending','approved','rejected','cancelled')
+    القيمة الافتراضية: 'pending'
+
+  • receipt_image
+    النوع: varchar(255)
+    القيمة الافتراضية: NULL
+
+  • confirmed_at
+    النوع: timestamp
+    القيمة الافتراضية: NULL
+
+  • notes
+    النوع: text
+    القيمة الافتراضية: NULL
+
+  • created_at
+    النوع: timestamp
+    القيمة الافتراضية: CURRENT_TIMESTAMP
+
+========================================
+21. جدول: marketer_commissions
+========================================
+
+  • id
+    النوع: bigint unsigned
+    المفتاح: PRIMARY KEY
+    القيمة الافتراضية: AUTO_INCREMENT
+
+  • marketer_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: users.id
+    القيمة الافتراضية: —
+
+  • store_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: stores.id
+    القيمة الافتراضية: —
+
+  • keeper_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: users.id
+    القيمة الافتراضية: —
+
+  • payment_amount
+    النوع: decimal(12,2)
+    القيمة الافتراضية: —
+
+  • payment_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: store_payments.id
+    القيمة الافتراضية: —
+
+  • commission_rate
+    النوع: decimal(5,2)
+    القيمة الافتراضية: —
+
+  • commission_amount
+    النوع: decimal(12,2)
+    القيمة الافتراضية: —
+
+  • created_at
+    النوع: timestamp
+    القيمة الافتراضية: CURRENT_TIMESTAMP
+
+========================================
+E. عملية: سحب أرباح (عمولات) المسوق
+========================================
+
+========================================
+22. جدول: marketer_withdrawal_requests
+========================================
+
+  • id
+    النوع: bigint unsigned
+    المفتاح: PRIMARY KEY
+    القيمة الافتراضية: AUTO_INCREMENT
+
+  • marketer_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: users.id
+    القيمة الافتراضية: —
+
+  • requested_amount
+    النوع: decimal(12,2)
+    القيمة الافتراضية: —
+
+  • status
+    النوع: enum('pending','approved','rejected','cancelled')
+    القيمة الافتراضية: 'pending'
+
+  • approved_by
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: users.id
+    القيمة الافتراضية: NULL
+
+  • approved_at
+    النوع: timestamp
+    القيمة الافتراضية: NULL
+
+  • rejected_by
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: users.id
+    القيمة الافتراضية: NULL
+
+  • rejected_at
+    النوع: timestamp
+    القيمة الافتراضية: NULL
+
+  • signed_receipt_image
+    النوع: varchar(255)
+    القيمة الافتراضية: NULL
+
+  • notes
+    النوع: text
+    القيمة الافتراضية: NULL
+
+  • created_at
+    النوع: timestamp
+    القيمة الافتراضية: CURRENT_TIMESTAMP
+
+  • updated_at
+    النوع: timestamp
+    القيمة الافتراضية: CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+
+========================================
+F. عملية: إرجاع بضاعة من المتجر إلى المسوق
+========================================
+
+========================================
+23. جدول: sales_returns
+========================================
+
+  • id
+    النوع: bigint unsigned
+    المفتاح: PRIMARY KEY
+    القيمة الافتراضية: AUTO_INCREMENT
+
+  • return_number
+    النوع: varchar(50)
+    المفتاح: UNIQUE
+    القيمة الافتراضية: —
+
+  • sales_invoice_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: sales_invoices.id
+    القيمة الافتراضية: —
+
+  • store_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: stores.id
+    القيمة الافتراضية: —
+
+  • marketer_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: users.id
+    القيمة الافتراضية: —
+
+  • total_amount
+    النوع: decimal(12,2)
+    القيمة الافتراضية: —
+
+  • status
+    النوع: enum('pending','approved','rejected','cancelled')
+    القيمة الافتراضية: 'pending'
+
+  • keeper_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: users.id
+    القيمة الافتراضية: NULL
+
+  • stamped_image
+    النوع: varchar(255)
+    القيمة الافتراضية: NULL
+
+  • confirmed_at
+    النوع: timestamp
+    القيمة الافتراضية: NULL
+
+  • notes
+    النوع: text
+    القيمة الافتراضية: NULL
+
+  • created_at
+    النوع: timestamp
+    القيمة الافتراضية: CURRENT_TIMESTAMP
+
+  • updated_at
+    النوع: timestamp
+    القيمة الافتراضية: CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+
+========================================
+24. جدول: sales_return_items
+========================================
+
+  • id
+    النوع: bigint unsigned
+    المفتاح: PRIMARY KEY
+    القيمة الافتراضية: AUTO_INCREMENT
+
+  • return_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: sales_returns.id
+    القيمة الافتراضية: —
+
+  • sales_invoice_item_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: sales_invoice_items.id
+    القيمة الافتراضية: —
+
+  • product_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: products.id
+    القيمة الافتراضية: —
+
+  • quantity
+    النوع: int
+    القيمة الافتراضية: —
+
+  • unit_price
+    النوع: decimal(10,2)
+    القيمة الافتراضية: —
+
+========================================
+25. جدول: store_return_pending_stock
+========================================
+
+  • id
+    النوع: bigint unsigned
+    المفتاح: PRIMARY KEY
+    القيمة الافتراضية: AUTO_INCREMENT
+
+  • return_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: sales_returns.id
+    القيمة الافتراضية: —
+
+  • store_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: stores.id
+    القيمة الافتراضية: —
+
+  • product_id
+    النوع: bigint unsigned
+    المفتاح: FOREIGN KEY
+    يشير إلى: products.id
+    القيمة الافتراضية: —
+
+  • quantity
+    النوع: int
+    القيمة الافتراضية: —
+
+  • created_at
+    النوع: timestamp
+    القيمة الافتراضية: CURRENT_TIMESTAMP
+
+========================================
+انتهى الاستعلام

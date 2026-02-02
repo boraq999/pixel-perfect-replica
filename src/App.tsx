@@ -12,6 +12,9 @@ import { NewOrderPage } from "@/features/marketer/components/NewOrderPage";
 import { ReturnsPage } from "@/features/marketer/components/ReturnsPage";
 import { OperationsPage } from "@/features/marketer/components/OperationsPage";
 import { SettingsPage } from "@/features/marketer/components/SettingsPage";
+import { BestMarketerDashboard } from "@/features/marketer/components/BestMarketerDashboard";
+import { OrderManagementPage } from "@/features/marketer/components/OrderManagementPage";
+import { ProfitsWithdrawalPage } from "@/features/marketer/components/ProfitsWithdrawalPage";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { useAuthStore } from "@/store/authStore";
 import NotFound from "./pages/NotFound";
@@ -22,6 +25,7 @@ import { AdminUsersPage } from "@/features/admin/components/UsersPage";
 import { AdminProductsPage } from "@/features/admin/components/ProductsPage";
 import { AdminStoresPage } from "@/features/admin/components/StoresPage";
 import { AdminWithdrawalsPage } from "@/features/admin/components/WithdrawalsPage";
+import { AdminSettingsPage } from "@/features/admin/components/SettingsPage";
 
 // Keeper Feature Imports
 import { KeeperRequestsPage } from "@/features/keeper/components/RequestsPage";
@@ -31,6 +35,7 @@ import { KeeperDeliveryConfirmationPage } from "@/features/keeper/components/Del
 import { KeeperPaymentConfirmationPage } from "@/features/keeper/components/PaymentConfirmationPage";
 import { KeeperSalesReturnsPage } from "@/features/keeper/components/SalesReturnsPage";
 import { KeeperSalesDocsPage } from "@/features/keeper/components/SalesDocsPage";
+import { KeeperSettingsPage } from "@/features/keeper/components/SettingsPage";
 
 import { ThemeProvider } from "@/components/theme-provider";
 
@@ -41,6 +46,9 @@ const App = () => {
 
   const getDefaultRoute = () => {
     if (!isAuthenticated || !user) return "/";
+    // Check if it's the best marketer
+    if (user.id === 'marketer-2') return "/best-marketer";
+    
     switch (user.role) {
       case 'admin': return "/admin";
       case 'keeper': return "/keeper";
@@ -50,7 +58,7 @@ const App = () => {
   };
 
   return (
-    <ThemeProvider attribute="class" defaultTheme="best" themes={["light", "dark", "best"]} enableSystem={false}>
+    <ThemeProvider attribute="class" defaultTheme="aurora" themes={["aurora", "ocean", "sunset", "forest", "rose", "sunshine", "cloud", "pearl", "mint", "meadow"]} enableSystem={false}>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <Toaster />
@@ -79,6 +87,7 @@ const App = () => {
                 <Route path="stores" element={<AdminStoresPage />} />
                 <Route path="withdrawals" element={<AdminWithdrawalsPage />} />
                 <Route path="reports" element={<div>System Reports</div>} />
+                <Route path="settings" element={<AdminSettingsPage />} />
               </Route>
 
               {/* Keeper Routes */}
@@ -98,6 +107,7 @@ const App = () => {
                 <Route path="payment-confirmation" element={<KeeperPaymentConfirmationPage />} />
                 <Route path="sales-returns" element={<KeeperSalesReturnsPage />} />
                 <Route path="sales-docs" element={<KeeperSalesDocsPage />} />
+                <Route path="settings" element={<KeeperSettingsPage />} />
               </Route>
 
               {/* Marketer Routes */}
@@ -114,6 +124,26 @@ const App = () => {
                 <Route path="stores" element={<StoresPage />} />
                 <Route path="stores/new-order" element={<NewOrderPage />} />
                 <Route path="stores/returns" element={<ReturnsPage />} />
+                <Route path="operations" element={<OperationsPage />} />
+                <Route path="settings" element={<SettingsPage />} />
+              </Route>
+
+              {/* Best Marketer Routes - Special Interface */}
+              <Route
+                path="/best-marketer"
+                element={
+                  <ProtectedRoute allowedRoles={['marketer']}>
+                    <AppLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<BestMarketerDashboard />} />
+                <Route path="orders" element={<OrderManagementPage />} />
+                <Route path="warehouse" element={<WarehousePage />} />
+                <Route path="stores" element={<StoresPage />} />
+                <Route path="stores/new-order" element={<NewOrderPage />} />
+                <Route path="returns" element={<ReturnsPage />} />
+                <Route path="profits" element={<ProfitsWithdrawalPage />} />
                 <Route path="operations" element={<OperationsPage />} />
                 <Route path="settings" element={<SettingsPage />} />
               </Route>

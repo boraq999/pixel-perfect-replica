@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, Loader2, Zap, ShoppingCart, Package, ShieldCheck } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Zap, ShoppingCart, Package, ShieldCheck, Trophy } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { toast } from 'sonner';
 
@@ -52,10 +52,11 @@ export const LoginPage = () => {
     }
   };
 
-  const handleQuickLogin = async (role: 'salesman' | 'warehouse' | 'admin') => {
+  const handleQuickLogin = async (role: 'salesman' | 'warehouse' | 'admin' | 'bestmarketer') => {
     let username = '';
     if (role === 'salesman') username = 'salesman';
     else if (role === 'warehouse') username = 'warehouse';
+    else if (role === 'bestmarketer') username = 'bestmarketer';
     else username = 'admin';
 
     const password = 'password123';
@@ -69,6 +70,7 @@ export const LoginPage = () => {
       
       if (role === 'admin') navigate('/admin');
       else if (role === 'warehouse') navigate('/keeper');
+      else if (role === 'bestmarketer') navigate('/best-marketer');
       else navigate('/dashboard');
 
     } catch (error: any) {
@@ -109,7 +111,7 @@ export const LoginPage = () => {
                 type="text"
                 {...register('username')}
                 className="input-glass text-right"
-                placeholder="admin / salesman / warehouse"
+                placeholder="admin / bestmarketer / salesman / warehouse"
                 disabled={isLoading}
               />
               {errors.username && <p className="text-xs text-destructive text-right">{errors.username.message}</p>}
@@ -175,6 +177,26 @@ export const LoginPage = () => {
                 <div className="text-right">
                   <h3 className="font-bold text-white text-sm">دخول كمسؤول</h3>
                   <p className="text-[10px] text-white/60 uppercase">System Administrator</p>
+                </div>
+              </button>
+
+              {/* Best Marketer Option - Featured */}
+              <button
+                type="button"
+                onClick={() => handleQuickLogin('bestmarketer')}
+                disabled={isLoading}
+                className="w-full flex items-center gap-4 p-3 rounded-2xl bg-gradient-to-r from-yellow-500/30 to-orange-500/30 hover:from-yellow-500/40 hover:to-orange-500/40 border-2 border-yellow-400/50 transition-all group disabled:opacity-50 shadow-lg relative overflow-hidden"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/10 to-orange-400/10 animate-pulse" />
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center group-hover:scale-110 transition-transform relative z-10">
+                  <Trophy className="w-5 h-5 text-white" />
+                </div>
+                <div className="text-right relative z-10">
+                  <h3 className="font-bold text-white text-sm flex items-center gap-1">
+                    المسوق الأفضل
+                    <span className="text-[8px] px-1.5 py-0.5 bg-yellow-400/30 rounded-full">VIP</span>
+                  </h3>
+                  <p className="text-[10px] text-white/80 uppercase font-medium">Best Marketer Account</p>
                 </div>
               </button>
 

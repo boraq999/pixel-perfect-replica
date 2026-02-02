@@ -53,7 +53,7 @@
       radial-gradient(ellipse at bottom, hsl(180, 50%, 15%) 0%, transparent 60%),
       hsl(240, 20%, 8%);
     --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04));
-    --shadow-glow: 0 0 50px -5px hsl(280 90% 60% / 0.6), 0 0 100px -10px hsl(180 90% 50% / 0.3);
+    --shadow-glow: 0 0 20px -8px hsl(280 90% 60% / 0.3), 0 0 40px -15px hsl(180 90% 50% / 0.15);
     --shadow-card: 0 0 30px -5px hsl(280 90% 60% / 0.3), 0 20px 40px -20px rgba(0, 0, 0, 0.5);
     --sidebar-active-bg: 280 90% 60% / 0.2;
     --sidebar-active-text: 280 90% 75%;
@@ -110,7 +110,7 @@
       radial-gradient(ellipse at bottom left, hsl(170, 60%, 12%) 0%, transparent 50%),
       hsl(210, 50%, 8%);
     --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
-    --shadow-glow: 0 0 35px -8px hsl(200 90% 50% / 0.4);
+    --shadow-glow: 0 0 20px -10px hsl(200 90% 50% / 0.25);
     --shadow-card: 0 15px 45px -15px rgba(0, 0, 0, 0.5);
     --sidebar-active-bg: 200 90% 50% / 0.15;
     --sidebar-active-text: 200 90% 65%;
@@ -165,7 +165,7 @@
       radial-gradient(ellipse at bottom left, hsl(340, 50%, 12%) 0%, transparent 50%),
       hsl(20, 30%, 6%);
     --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
-    --shadow-glow: 0 0 35px -8px hsl(15 90% 55% / 0.4);
+    --shadow-glow: 0 0 20px -10px hsl(15 90% 55% / 0.25);
     --shadow-card: 0 15px 45px -15px rgba(0, 0, 0, 0.5);
     --sidebar-active-bg: 15 90% 55% / 0.15;
     --sidebar-active-text: 15 90% 65%;
@@ -220,7 +220,7 @@
       radial-gradient(ellipse at bottom left, hsl(90, 40%, 10%) 0%, transparent 50%),
       hsl(160, 30%, 7%);
     --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
-    --shadow-glow: 0 0 35px -8px hsl(150 70% 40% / 0.35);
+    --shadow-glow: 0 0 20px -10px hsl(150 70% 40% / 0.2);
     --shadow-card: 0 15px 45px -15px rgba(0, 0, 0, 0.5);
     --sidebar-active-bg: 150 70% 40% / 0.15;
     --sidebar-active-text: 150 70% 55%;
@@ -275,11 +275,286 @@
       radial-gradient(ellipse at bottom left, hsl(40, 50%, 12%) 0%, transparent 50%),
       hsl(350, 20%, 8%);
     --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
-    --shadow-glow: 0 0 35px -8px hsl(350 75% 55% / 0.35);
+    --shadow-glow: 0 0 20px -10px hsl(350 75% 55% / 0.2);
     --shadow-card: 0 15px 45px -15px rgba(0, 0, 0, 0.5);
     --sidebar-active-bg: 350 75% 55% / 0.15;
     --sidebar-active-text: 350 75% 65%;
     --sidebar-active-border: 350 75% 55%;
+    --glow-border: none;
+    --glow-intense: none;
+  }
+
+  /* ==========================================
+     THEME 6: SUNSHINE - ضوء النهار
+     Bright light theme with yellow/orange tones
+     ========================================== */
+  .sunshine {
+    --primary: 45 85% 50%;
+    --primary-foreground: 0 0% 0%;
+    --primary-glow: 45 95% 55%;
+    --secondary: 35 90% 55%;
+    --secondary-foreground: 0 0% 0%;
+    --background: 40 40% 95%;
+    --foreground: 0 0% 10%;
+    --card: 40 35% 98%;
+    --card-foreground: 0 0% 10%;
+    --popover: 40 40% 97%;
+    --popover-foreground: 0 0% 10%;
+    --muted: 40 25% 88%;
+    --muted-foreground: 0 0% 40%;
+    --accent: 45 60% 85%;
+    --accent-foreground: 0 0% 10%;
+    --destructive: 0 75% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 150 65% 45%;
+    --success-foreground: 0 0% 100%;
+    --warning: 40 95% 50%;
+    --warning-foreground: 0 0% 0%;
+    --info: 200 90% 50%;
+    --info-foreground: 0 0% 100%;
+    --border: 40 30% 80%;
+    --input: 40 30% 92%;
+    --ring: 45 85% 50%;
+    --radius: 0.75rem;
+    --sidebar-background: 40 35% 93%;
+    --sidebar-foreground: 0 0% 15%;
+    --sidebar-primary: 45 85% 50%;
+    --sidebar-primary-foreground: 0 0% 0%;
+    --sidebar-accent: 45 50% 90%;
+    --sidebar-accent-foreground: 0 0% 10%;
+    --sidebar-border: 40 25% 85%;
+    --sidebar-ring: 45 85% 50%;
+    --gradient-primary: linear-gradient(135deg, hsl(45, 85%, 48%) 0%, hsl(35, 90%, 53%) 100%);
+    --gradient-primary-hover: linear-gradient(135deg, hsl(45, 90%, 43%) 0%, hsl(35, 95%, 48%) 100%);
+    --gradient-hero: radial-gradient(ellipse at top, hsl(45, 60%, 90%) 0%, transparent 60%),
+      radial-gradient(ellipse at bottom, hsl(35, 50%, 88%) 0%, transparent 60%),
+      hsl(40, 40%, 95%);
+    --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.2));
+    --shadow-glow: 0 0 15px -10px hsl(45 85% 50% / 0.2);
+    --shadow-card: 0 10px 30px -10px rgba(0, 0, 0, 0.15);
+    --sidebar-active-bg: 45 85% 50% / 0.2;
+    --sidebar-active-text: 45 85% 35%;
+    --sidebar-active-border: 45 85% 50%;
+    --glow-border: none;
+    --glow-intense: none;
+  }
+
+  /* ==========================================
+     THEME 7: CLOUD CALM - السحاب الهادئ
+     Light theme with gray and blue tones
+     ========================================== */
+  .cloud {
+    --primary: 200 50% 50%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 200 60% 55%;
+    --secondary: 220 45% 60%;
+    --secondary-foreground: 0 0% 0%;
+    --background: 210 20% 96%;
+    --foreground: 210 15% 15%;
+    --card: 210 20% 98%;
+    --card-foreground: 210 15% 15%;
+    --popover: 210 20% 97%;
+    --popover-foreground: 210 15% 15%;
+    --muted: 210 20% 88%;
+    --muted-foreground: 210 10% 45%;
+    --accent: 210 30% 88%;
+    --accent-foreground: 210 15% 15%;
+    --destructive: 0 70% 52%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 150 60% 48%;
+    --success-foreground: 0 0% 100%;
+    --warning: 40 95% 50%;
+    --warning-foreground: 0 0% 0%;
+    --info: 200 90% 55%;
+    --info-foreground: 0 0% 100%;
+    --border: 210 20% 82%;
+    --input: 210 20% 93%;
+    --ring: 200 50% 50%;
+    --radius: 0.875rem;
+    --sidebar-background: 210 20% 94%;
+    --sidebar-foreground: 210 15% 20%;
+    --sidebar-primary: 200 50% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 25% 90%;
+    --sidebar-accent-foreground: 210 15% 15%;
+    --sidebar-border: 210 20% 86%;
+    --sidebar-ring: 200 50% 50%;
+    --gradient-primary: linear-gradient(135deg, hsl(200, 50%, 48%) 0%, hsl(220, 45%, 58%) 100%);
+    --gradient-primary-hover: linear-gradient(135deg, hsl(200, 55%, 43%) 0%, hsl(220, 50%, 53%) 100%);
+    --gradient-hero: radial-gradient(ellipse at top right, hsl(200, 30%, 92%) 0%, transparent 50%),
+      radial-gradient(ellipse at bottom left, hsl(220, 25%, 90%) 0%, transparent 50%),
+      hsl(210, 20%, 96%);
+    --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.3));
+    --shadow-glow: 0 0 15px -10px hsl(200 50% 50% / 0.15);
+    --shadow-card: 0 10px 30px -10px rgba(0, 0, 0, 0.12);
+    --sidebar-active-bg: 200 50% 50% / 0.15;
+    --sidebar-active-text: 200 50% 40%;
+    --sidebar-active-border: 200 50% 50%;
+    --glow-border: none;
+    --glow-intense: none;
+  }
+
+  /* ==========================================
+     THEME 8: PEARL LUXURY - اللؤلؤ الفاخر
+     Elegant light theme with cream and purple
+     ========================================== */
+  .pearl {
+    --primary: 280 60% 55%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 280 70% 60%;
+    --secondary: 340 65% 60%;
+    --secondary-foreground: 0 0% 100%;
+    --background: 30 30% 97%;
+    --foreground: 30 10% 12%;
+    --card: 30 25% 99%;
+    --card-foreground: 30 10% 12%;
+    --popover: 30 30% 98%;
+    --popover-foreground: 30 10% 12%;
+    --muted: 30 20% 90%;
+    --muted-foreground: 30 10% 45%;
+    --accent: 35 25% 90%;
+    --accent-foreground: 30 10% 12%;
+    --destructive: 0 75% 52%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 150 60% 48%;
+    --success-foreground: 0 0% 100%;
+    --warning: 40 95% 50%;
+    --warning-foreground: 0 0% 0%;
+    --info: 200 85% 55%;
+    --info-foreground: 0 0% 100%;
+    --border: 30 20% 85%;
+    --input: 30 20% 94%;
+    --ring: 280 60% 55%;
+    --radius: 1rem;
+    --sidebar-background: 30 25% 95%;
+    --sidebar-foreground: 30 10% 18%;
+    --sidebar-primary: 280 60% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 30 20% 92%;
+    --sidebar-accent-foreground: 30 10% 12%;
+    --sidebar-border: 30 20% 88%;
+    --sidebar-ring: 280 60% 55%;
+    --gradient-primary: linear-gradient(135deg, hsl(280, 60%, 53%) 0%, hsl(340, 65%, 58%) 100%);
+    --gradient-primary-hover: linear-gradient(135deg, hsl(280, 65%, 48%) 0%, hsl(340, 70%, 53%) 100%);
+    --gradient-hero: radial-gradient(ellipse at top right, hsl(280, 40%, 94%) 0%, transparent 50%),
+      radial-gradient(ellipse at bottom left, hsl(340, 35%, 92%) 0%, transparent 50%),
+      hsl(30, 30%, 97%);
+    --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.4));
+    --shadow-glow: 0 0 15px -10px hsl(280 60% 55% / 0.2);
+    --shadow-card: 0 10px 30px -10px rgba(0, 0, 0, 0.1);
+    --sidebar-active-bg: 280 60% 55% / 0.15;
+    --sidebar-active-text: 280 60% 45%;
+    --sidebar-active-border: 280 60% 55%;
+    --glow-border: none;
+    --glow-intense: none;
+  }
+
+  /* ==========================================
+     THEME 9: FRESH MINT - النعناع المنعش
+     Cool mint green, refreshing dark theme
+     ========================================== */
+  .mint {
+    --primary: 160 65% 45%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 160 75% 50%;
+    --secondary: 175 60% 50%;
+    --secondary-foreground: 0 0% 100%;
+    --background: 160 25% 10%;
+    --foreground: 160 15% 93%;
+    --card: 160 22% 13%;
+    --card-foreground: 160 15% 93%;
+    --popover: 160 25% 11%;
+    --popover-foreground: 160 15% 93%;
+    --muted: 160 18% 18%;
+    --muted-foreground: 160 10% 55%;
+    --accent: 160 35% 20%;
+    --accent-foreground: 160 15% 98%;
+    --destructive: 0 75% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 155 75% 48%;
+    --success-foreground: 0 0% 100%;
+    --warning: 45 95% 50%;
+    --warning-foreground: 0 0% 0%;
+    --info: 190 85% 55%;
+    --info-foreground: 0 0% 100%;
+    --border: 160 28% 22%;
+    --input: 160 20% 15%;
+    --ring: 160 65% 45%;
+    --radius: 0.75rem;
+    --sidebar-background: 160 30% 8%;
+    --sidebar-foreground: 160 15% 85%;
+    --sidebar-primary: 160 65% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 160 28% 16%;
+    --sidebar-accent-foreground: 160 15% 98%;
+    --sidebar-border: 160 25% 18%;
+    --sidebar-ring: 160 65% 45%;
+    --gradient-primary: linear-gradient(135deg, hsl(160, 65%, 43%) 0%, hsl(175, 60%, 48%) 100%);
+    --gradient-primary-hover: linear-gradient(135deg, hsl(160, 70%, 38%) 0%, hsl(175, 65%, 43%) 100%);
+    --gradient-hero: radial-gradient(ellipse at top right, hsl(160, 45%, 16%) 0%, transparent 50%),
+      radial-gradient(ellipse at bottom left, hsl(175, 40%, 13%) 0%, transparent 50%),
+      hsl(160, 25%, 10%);
+    --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+    --shadow-glow: 0 0 20px -10px hsl(160 65% 45% / 0.25);
+    --shadow-card: 0 15px 45px -15px rgba(0, 0, 0, 0.5);
+    --sidebar-active-bg: 160 65% 45% / 0.15;
+    --sidebar-active-text: 160 65% 60%;
+    --sidebar-active-border: 160 65% 45%;
+    --glow-border: none;
+    --glow-intense: none;
+  }
+
+  /* ==========================================
+     THEME 10: GREEN MEADOW - المروج الخضراء
+     Natural green, like fields and meadows
+     ========================================== */
+  .meadow {
+    --primary: 120 60% 50%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 120 70% 55%;
+    --secondary: 140 55% 45%;
+    --secondary-foreground: 0 0% 100%;
+    --background: 125 30% 8%;
+    --foreground: 120 15% 93%;
+    --card: 125 28% 12%;
+    --card-foreground: 120 15% 93%;
+    --popover: 125 30% 10%;
+    --popover-foreground: 120 15% 93%;
+    --muted: 125 20% 17%;
+    --muted-foreground: 120 10% 55%;
+    --accent: 125 35% 18%;
+    --accent-foreground: 120 15% 98%;
+    --destructive: 0 75% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 130 75% 48%;
+    --success-foreground: 0 0% 100%;
+    --warning: 45 95% 50%;
+    --warning-foreground: 0 0% 0%;
+    --info: 200 85% 55%;
+    --info-foreground: 0 0% 100%;
+    --border: 125 30% 21%;
+    --input: 125 25% 14%;
+    --ring: 120 60% 50%;
+    --radius: 0.75rem;
+    --sidebar-background: 125 35% 6%;
+    --sidebar-foreground: 120 15% 85%;
+    --sidebar-primary: 120 60% 52%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 125 30% 15%;
+    --sidebar-accent-foreground: 120 15% 98%;
+    --sidebar-border: 125 25% 17%;
+    --sidebar-ring: 120 60% 50%;
+    --gradient-primary: linear-gradient(135deg, hsl(120, 60%, 48%) 0%, hsl(140, 55%, 43%) 100%);
+    --gradient-primary-hover: linear-gradient(135deg, hsl(120, 65%, 43%) 0%, hsl(140, 60%, 38%) 100%);
+    --gradient-hero: radial-gradient(ellipse at top right, hsl(120, 45%, 14%) 0%, transparent 50%),
+      radial-gradient(ellipse at bottom left, hsl(140, 40%, 11%) 0%, transparent 50%),
+      hsl(125, 30%, 8%);
+    --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+    --shadow-glow: 0 0 10px -12px hsl(120 60% 50% / 0.15);
+    --shadow-card: 0 15px 45px -15px rgba(0, 0, 0, 0.5);
+    --sidebar-active-bg: 120 60% 50% / 0.15;
+    --sidebar-active-text: 120 60% 60%;
+    --sidebar-active-border: 120 60% 50%;
     --glow-border: none;
     --glow-intense: none;
   }
@@ -397,7 +672,7 @@
   /* Aurora Glow Theme Nav Link */
   .aurora .nav-link.active,
   :root .nav-link.active {
-    box-shadow: 0 0 15px hsl(var(--primary) / 0.3);
+    box-shadow: 0 0 8px hsl(var(--primary) / 0.2);
   }
 
   /* Theme card preview */
@@ -446,10 +721,10 @@
 
 @keyframes glow {
   from {
-    box-shadow: 0 0 20px -10px hsl(var(--primary) / 0.5);
+    box-shadow: 0 0 12px -10px hsl(var(--primary) / 0.3);
   }
 
   to {
-    box-shadow: 0 0 40px -10px hsl(var(--primary) / 0.8);
+    box-shadow: 0 0 20px -10px hsl(var(--primary) / 0.4);
   }
 }

@@ -22,7 +22,10 @@ import {
     History,
     ReceiptText,
     ArrowDownLeft,
-    ClipboardCheck
+    ClipboardCheck,
+    Wallet,
+    PackageCheck,
+    Trophy
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { UserRole } from '@/types/auth';
@@ -42,6 +45,7 @@ const navItems: Record<UserRole, NavigationItem[]> = {
         { name: 'إدارة المتاجر', href: '/admin/stores', icon: Store },
         { name: 'مراجعة السحوبات', href: '/admin/withdrawals', icon: CreditCard },
         { name: 'التقارير المالية', href: '/admin/reports', icon: BarChart3 },
+        { name: 'الإعدادات', href: '/admin/settings', icon: Settings },
     ],
     keeper: [
         { name: 'لوحة التحكم', href: '/keeper', icon: Home },
@@ -51,6 +55,7 @@ const navItems: Record<UserRole, NavigationItem[]> = {
         { name: 'توثيق البيع', href: '/keeper/sales-docs', icon: ClipboardCheck },
         { name: 'توثيق إيصالات القبض', href: '/keeper/payment-confirmation', icon: ReceiptText },
         { name: 'طلبات الإرجاع', href: '/keeper/sales-returns', icon: ArrowDownLeft },
+        { name: 'الإعدادات', href: '/keeper/settings', icon: Settings },
     ],
     marketer: [
         { name: 'لوحة التحكم', href: '/dashboard', icon: Home },
@@ -72,7 +77,21 @@ export const AppLayout = () => {
         navigate('/');
     };
 
-    const currentNavigation = user ? navItems[user.role] : [];
+    // Special navigation for best marketer
+    const bestMarketerNavItems: NavigationItem[] = [
+        { name: 'لوحة التحكم', href: '/best-marketer', icon: Home },
+        { name: 'إدارة الطلبات', href: '/best-marketer/orders', icon: PackageCheck },
+        { name: 'مخزوني الفعلي', href: '/best-marketer/warehouse', icon: ShoppingCart },
+        { name: 'المتاجر والبيع', href: '/best-marketer/stores', icon: Store },
+        { name: 'الإرجاعات', href: '/best-marketer/returns', icon: ArrowDownLeft },
+        { name: 'الأرباح والسحوبات', href: '/best-marketer/profits', icon: Wallet },
+        { name: 'عملياتي', href: '/best-marketer/operations', icon: History },
+        { name: 'الإعدادات', href: '/best-marketer/settings', icon: Settings },
+    ];
+
+    const currentNavigation = user 
+        ? (user.id === 'marketer-2' ? bestMarketerNavItems : navItems[user.role])
+        : [];
 
     return (
         <div className="min-h-screen bg-background">
@@ -216,7 +235,7 @@ const Sidebar = ({ navigation, userRole, onClose }: SidebarProps) => {
                     <NavLink
                         key={item.name}
                         to={item.href}
-                        end={item.href === '/dashboard' || item.href === '/admin' || item.href === '/keeper'}
+                        end={item.href === '/dashboard' || item.href === '/admin' || item.href === '/keeper' || item.href === '/best-marketer'}
                         onClick={onClose}
                         className={({ isActive }) =>
                             `nav-link ${isActive ? 'active' : ''}`
