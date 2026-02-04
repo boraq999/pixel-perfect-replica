@@ -1,8 +1,8 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { 
-  MarketerRequest, 
-  Product, 
+import {
+  MarketerRequest,
+  Product,
   MarketerActualStock,
   RequestStatus,
   SalesInvoice,
@@ -20,16 +20,16 @@ interface MarketerStore {
   promotions: ProductPromotion[];
   invoices: SalesInvoice[];
   isLoading: boolean;
-  
+
   // Actions
   fetchInitialData: () => Promise<void>;
   createRequest: (marketerId: string, items: { product_id: string; quantity: number }[]) => Promise<void>;
   cancelRequest: (requestId: string) => Promise<void>;
-  
+
   // Sales Actions
   createSalesInvoice: (invoiceData: Partial<SalesInvoice>) => Promise<void>;
   cancelSalesInvoice: (invoiceId: string) => Promise<void>;
-  
+
   // Mock Utils
   fetchProducts: () => Promise<void>;
   fetchRequests: (marketerId: string) => Promise<void>;
@@ -56,11 +56,52 @@ const mockPromotions: ProductPromotion[] = [
   { id: 'p2', product_id: '2', min_quantity: 24, free_quantity: 2, is_active: true }, // صندوق طماطم (24) معه 2 مجانا
 ];
 
+const mockRequests: MarketerRequest[] = [
+  {
+    id: 'req-1',
+    invoice_number: 'REQ-2024-001',
+    marketer_id: 'marketer-2',
+    status: 'approved',
+    created_at: new Date(Date.now() - 3600000).toISOString(),
+    items: [
+      { id: 'item-1', request_id: 'req-1', product_id: '1', quantity: 20, product: mockProducts[0] },
+      { id: 'item-2', request_id: 'req-1', product_id: '2', quantity: 50, product: mockProducts[1] },
+    ]
+  },
+  {
+    id: 'req-2',
+    invoice_number: 'REQ-2024-002',
+    marketer_id: 'marketer-2',
+    status: 'pending',
+    created_at: new Date(Date.now() - 7200000).toISOString(),
+    items: [
+      { id: 'item-3', request_id: 'req-2', product_id: '3', quantity: 15, product: mockProducts[2] },
+    ]
+  }
+];
+
+const mockStock: MarketerActualStock[] = [
+  {
+    id: 'stock-1',
+    marketer_id: 'marketer-2',
+    product_id: '1',
+    quantity: 45,
+    product: mockProducts[0]
+  },
+  {
+    id: 'stock-2',
+    marketer_id: 'marketer-2',
+    product_id: '2',
+    quantity: 120,
+    product: mockProducts[1]
+  }
+];
+
 export const useMarketerStore = create<MarketerStore>()(
   persist(
     (set, get) => ({
-      requests: [],
-      stock: [],
+      requests: mockRequests,
+      stock: mockStock,
       products: mockProducts,
       stores: mockStores,
       promotions: mockPromotions,
@@ -98,18 +139,18 @@ export const useMarketerStore = create<MarketerStore>()(
 
       cancelRequest: async (requestId) => {
         set(state => ({
-          requests: state.requests.map(req => 
+          requests: state.requests.map(req =>
             req.id === requestId ? { ...req, status: 'cancelled' } : req
           )
         }));
       },
 
-      fetchRequests: async (marketerId) => {},
-      fetchStock: async (marketerId) => {},
+      fetchRequests: async (marketerId) => { },
+      fetchStock: async (marketerId) => { },
 
       approveRequest: async (requestId, keeperId) => {
         set(state => ({
-          requests: state.requests.map(req => 
+          requests: state.requests.map(req =>
             req.id === requestId ? { ...req, status: 'approved', keeper_id: keeperId } : req
           )
         }));
@@ -137,7 +178,7 @@ export const useMarketerStore = create<MarketerStore>()(
         });
 
         set(state => ({
-          requests: state.requests.map(req => 
+          requests: state.requests.map(req =>
             req.id === requestId ? { ...req, status: 'documented' } : req
           ),
           stock: updatedStock
@@ -147,7 +188,7 @@ export const useMarketerStore = create<MarketerStore>()(
       createSalesInvoice: async (invoiceData) => {
         set({ isLoading: true });
         await new Promise(resolve => setTimeout(resolve, 1000));
-        
+
         const state = get();
         const newInvoice: SalesInvoice = {
           id: Math.random().toString(36).substr(2, 9),
@@ -188,7 +229,7 @@ export const useMarketerStore = create<MarketerStore>()(
         });
 
         set(state => ({
-          invoices: state.invoices.map(inv => 
+          invoices: state.invoices.map(inv =>
             inv.id === invoiceId ? { ...inv, status: 'cancelled' } : inv
           ),
           stock: updatedStock

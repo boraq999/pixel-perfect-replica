@@ -1,3 +1,4 @@
+// صفحة: إدارة الطلبات (المسوق الأفضل)
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';

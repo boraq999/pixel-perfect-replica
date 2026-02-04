@@ -1,3 +1,4 @@
+// صفحة: المتاجر والبيع (المسوق الأفضل)
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {

@@ -1,9 +1,10 @@
+// صفحة: مخزوني الفعلي (المسوق الأفضل)
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Package, 
-  Plus, 
-  Search, 
+import {
+  Package,
+  Plus,
+  Search,
   ArrowDownToLine,
   Check,
   X,
@@ -14,10 +15,10 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
   DialogTitle,
   DialogFooter,
   DialogDescription
@@ -44,18 +45,18 @@ const itemVariants = {
 export const WarehousePage = () => {
   const navigate = useNavigate();
   const { user } = useAuthStore();
-  const { 
-    requests, 
-    stock, 
-    fetchRequests, 
-    fetchStock, 
-    cancelRequest, 
+  const {
+    requests,
+    stock,
+    fetchRequests,
+    fetchStock,
+    cancelRequest,
     documentRequest,
-    isLoading 
+    isLoading
   } = useMarketerStore();
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState<'my-stock' | 'requests'>('requests');
+  const [activeTab, setActiveTab] = useState<'my-stock' | 'requests'>('my-stock');
   const [selectedRequest, setSelectedRequest] = useState<any>(null);
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -126,24 +127,22 @@ export const WarehousePage = () => {
       {/* Tabs */}
       <motion.div variants={itemVariants} className="flex gap-2 p-1 bg-accent/30 rounded-lg w-fit">
         <button
-          onClick={() => setActiveTab('requests')}
-          className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
-            activeTab === 'requests' 
-              ? 'bg-primary text-primary-foreground' 
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
+          onClick={() => setActiveTab('my-stock')}
+          className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${activeTab === 'my-stock'
+            ? 'bg-primary text-primary-foreground'
+            : 'text-muted-foreground hover:text-foreground'
+            }`}
         >
-          طلباتي
+          المخزون الفعلي
         </button>
         <button
-          onClick={() => setActiveTab('my-stock')}
-          className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
-            activeTab === 'my-stock' 
-              ? 'bg-primary text-primary-foreground' 
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
+          onClick={() => setActiveTab('requests')}
+          className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${activeTab === 'requests'
+            ? 'bg-primary text-primary-foreground'
+            : 'text-muted-foreground hover:text-foreground'
+            }`}
         >
-          مخزوني الحالي
+          المحجوز
         </button>
       </motion.div>
 
@@ -168,65 +167,106 @@ export const WarehousePage = () => {
             exit={{ opacity: 0, x: 20 }}
             className="space-y-4"
           >
-            {requests.length === 0 ? (
+            {requests.filter(r => r.status === 'approved' || r.status === 'pending').length === 0 ? (
               <div className="text-center py-12 glass-card">
                 <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-20" />
-                <p className="text-muted-foreground">لا توجد طلبات سابقة</p>
+                <p className="text-muted-foreground">لا توجد طلبات محجوزة حالياً</p>
               </div>
             ) : (
-              requests.map((request) => (
-                <div key={request.id} className="glass-card p-6 flex flex-col md:flex-row justify-between gap-4">
-                  <div className="flex gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                      <FileText className="w-6 h-6 text-primary" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-bold text-lg">{request.invoice_number}</span>
-                        {getStatusBadge(request.status)}
-                      </div>
-                      <p className="text-sm text-muted-foreground mb-2">
-                        بتاريخ: {new Date(request.created_at).toLocaleDateString('ar-LY')}
-                      </p>
-                      <div className="flex flex-wrap gap-2">
-                        {request.items.map((item, idx) => (
-                          <span key={idx} className="text-xs bg-accent/50 px-2 py-1 rounded">
-                            {item.product?.name} ({item.quantity})
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
+              <div className="space-y-6">
+                {/* Reserved (Approved) Section */}
+                {requests.filter(r => r.status === 'approved').length > 0 && (
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-bold text-primary flex items-center gap-2 px-2">
+                      <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                      بضاعة محجوزة (بانتظار التوثيق)
+                    </h3>
+                    {requests.filter(r => r.status === 'approved').map((request) => (
+                      <div key={request.id} className="glass-card p-6 flex flex-col md:flex-row justify-between gap-4 border-primary/20 shadow-lg shadow-primary/5">
+                        <div className="flex gap-4">
+                          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                            <Package className="w-6 h-6 text-primary" />
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="font-bold text-lg">{request.invoice_number}</span>
+                              {getStatusBadge(request.status)}
+                            </div>
+                            <p className="text-sm text-muted-foreground mb-2">
+                              بتاريخ: {new Date(request.created_at).toLocaleDateString('ar-LY')}
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                              {request.items.map((item, idx) => (
+                                <span key={idx} className="text-xs bg-accent/50 px-2 py-1 rounded">
+                                  {item.product?.name} ({item.quantity})
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
 
-                  <div className="flex items-center gap-2">
-                    {request.status === 'pending' && (
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="text-destructive hover:bg-destructive/10"
-                        onClick={() => handleCancelRequest(request.id)}
-                      >
-                        <X className="w-4 h-4 ml-1" />
-                        إلغاء الطلب
-                      </Button>
-                    )}
-                    
-                    {request.status === 'approved' && (
-                      <Button 
-                        size="sm" 
-                        className="bg-green-600 hover:bg-green-700 text-white"
-                        onClick={() => {
-                          setSelectedRequest(request);
-                          setIsUploadDialogOpen(true);
-                        }}
-                      >
-                        <Upload className="w-4 h-4 ml-1" />
-                        توثيق الاستلام
-                      </Button>
-                    )}
+                        <div className="flex items-center gap-2">
+                          <Button
+                            size="sm"
+                            className="bg-green-600 hover:bg-green-700 text-white shadow-lg shadow-green-600/20"
+                            onClick={() => {
+                              setSelectedRequest(request);
+                              setIsUploadDialogOpen(true);
+                            }}
+                          >
+                            <Upload className="w-4 h-4 ml-1" />
+                            توثيق الاستلام
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                </div>
-              ))
+                )}
+
+                {/* Pending Section */}
+                {requests.filter(r => r.status === 'pending').length > 0 && (
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-bold text-muted-foreground px-2">طلبات قيد المراجعة</h3>
+                    {requests.filter(r => r.status === 'pending').map((request) => (
+                      <div key={request.id} className="glass-card p-6 flex flex-col md:flex-row justify-between gap-4 opacity-80">
+                        <div className="flex gap-4">
+                          <div className="w-12 h-12 rounded-xl bg-accent/20 flex items-center justify-center shrink-0">
+                            <FileText className="w-6 h-6 text-muted-foreground" />
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="font-bold text-lg">{request.invoice_number}</span>
+                              {getStatusBadge(request.status)}
+                            </div>
+                            <p className="text-sm text-muted-foreground mb-2">
+                              بتاريخ: {new Date(request.created_at).toLocaleDateString('ar-LY')}
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                              {request.items.map((item, idx) => (
+                                <span key={idx} className="text-xs bg-accent/50 px-2 py-1 rounded">
+                                  {item.product?.name} ({item.quantity})
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-destructive hover:bg-destructive/10"
+                            onClick={() => handleCancelRequest(request.id)}
+                          >
+                            <X className="w-4 h-4 ml-1" />
+                            إلغاء الطلب
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             )}
           </motion.div>
         ) : (
@@ -269,7 +309,7 @@ export const WarehousePage = () => {
               يجب رفع صورة الفاتورة الموقعة لتأكيد استلامك للبضاعة من أمين المخزن.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="py-8 flex flex-col items-center justify-center border-2 border-dashed border-muted rounded-xl bg-accent/20">
             <Upload className="w-12 h-12 text-muted-foreground mb-4 opacity-50" />
             <p className="text-sm text-muted-foreground">اسحب الصورة هنا أو اضغط للاختيار</p>

@@ -1,3 +1,4 @@
+// صفحة: الإعدادات (المسوق الأفضل)
 import { GeneralSettingsPage } from '@/components/GeneralSettingsPage';
 
 export const SettingsPage = () => {
