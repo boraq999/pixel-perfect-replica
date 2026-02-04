@@ -7,7 +7,7 @@ interface ThemeState {
     isFavorite: (themeId: string) => boolean;
 }
 
-const DEFAULT_FAVORITES = ['aurora', 'ocean', 'sunset'];
+const DEFAULT_FAVORITES = ['cloud', 'ocean', 'aurora'];
 
 export const useThemeStore = create<ThemeState>()(
     persist(

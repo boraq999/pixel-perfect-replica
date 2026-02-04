@@ -98,11 +98,11 @@ export const GeneralSettingsPage = () => {
         setIsSaving(false);
     };
 
-    const renderNotificationItem = (id: string, label: string, desc: string, icon: any, colorClass: string) => (
+    const renderNotificationItem = (id: string, label: string, desc: string, Icon: any, colorClass: string) => (
         <div key={id} className="flex items-center justify-between p-4 rounded-lg bg-accent/30">
             <div className="flex items-center gap-3">
                 <div className={`w-10 h-10 rounded-lg ${colorClass} flex items-center justify-center`}>
-                    <icon className="w-5 h-5" />
+                    <Icon className="w-5 h-5" />
                 </div>
                 <div>
                     <p className="font-medium">{label}</p>

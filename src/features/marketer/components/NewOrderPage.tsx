@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Search, 
-  ShoppingCart, 
-  Plus, 
-  Minus, 
-  Trash2, 
-  Check, 
+import {
+  Search,
+  ShoppingCart,
+  Plus,
+  Minus,
+  Trash2,
+  Check,
   Loader2,
   ArrowRight,
   Package,
@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -29,25 +29,27 @@ import { useMarketerStore } from '@/store/marketerStore';
 import { useAuthStore } from '@/store/authStore';
 import { useNavigate } from 'react-router-dom';
 import { DiscountType, SalesInvoiceItem } from '@/types/marketer';
+import { useCurrency } from '@/store/currencyStore';
 
 export const NewOrderPage = () => {
   const navigate = useNavigate();
   const { user } = useAuthStore();
-  const { 
-    stock, 
-    stores, 
-    promotions, 
-    createSalesInvoice, 
+  const {
+    stock,
+    stores,
+    promotions,
+    createSalesInvoice,
     isLoading,
-    fetchInitialData 
+    fetchInitialData
   } = useMarketerStore();
-  
+
   const [selectedStoreId, setSelectedStoreId] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState('');
   const [cart, setCart] = useState<{ product_id: string; quantity: number }[]>([]);
   const [discountType, setDiscountType] = useState<DiscountType>('percentage');
   const [discountValue, setDiscountValue] = useState<number>(0);
   const [submitting, setSubmitting] = useState(false);
+  const { formatAmount, symbol } = useCurrency();
 
   useEffect(() => {
     fetchInitialData();
@@ -67,7 +69,7 @@ export const NewOrderPage = () => {
           toast.error('لا يمكنك تجاوز الكمية المتوفرة في مخزونك');
           return prev;
         }
-        return prev.map(item => 
+        return prev.map(item =>
           item.product_id === productId ? { ...item, quantity: item.quantity + 1 } : item
         );
       }
@@ -121,8 +123,8 @@ export const NewOrderPage = () => {
   });
 
   const subtotal = cartItems.reduce((acc, item) => acc + item.total_price, 0);
-  const invoiceDiscountAmount = discountType === 'percentage' 
-    ? (subtotal * (discountValue / 100)) 
+  const invoiceDiscountAmount = discountType === 'percentage'
+    ? (subtotal * (discountValue / 100))
     : discountValue;
   const totalAmount = subtotal - invoiceDiscountAmount;
 
@@ -159,7 +161,7 @@ export const NewOrderPage = () => {
     }
   };
 
-  const filteredStock = stock.filter(s => 
+  const filteredStock = stock.filter(s =>
     s.product?.name.includes(searchQuery) || s.product?.barcode.includes(searchQuery)
   );
 
@@ -211,9 +213,9 @@ export const NewOrderPage = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {filteredStock.map(item => (
-                <motion.div 
+                <motion.div
                   layout
-                  key={item.id} 
+                  key={item.id}
                   className={`glass-card p-4 flex gap-4 items-center group transition-colors ${item.quantity <= 0 ? 'opacity-50 grayscale' : 'hover:border-primary/50 cursor-pointer'}`}
                   onClick={() => item.quantity > 0 && addToCart(item.product_id)}
                 >
@@ -223,10 +225,10 @@ export const NewOrderPage = () => {
                   <div className="flex-1 min-w-0 text-right">
                     <h3 className="font-bold truncate">{item.product?.name}</h3>
                     <p className="text-xs text-muted-foreground">متوفر: {item.quantity} قطعة</p>
-                    <p className="text-sm font-bold text-primary mt-1">{item.product?.current_price} د.ل</p>
+                    <p className="text-sm font-bold text-primary mt-1">{formatAmount(item.product?.current_price || 0)}</p>
                   </div>
-                  <Button 
-                    size="icon" 
+                  <Button
+                    size="icon"
                     className="rounded-full gradient-btn"
                     disabled={item.quantity <= 0}
                   >
@@ -265,7 +267,7 @@ export const NewOrderPage = () => {
                       </div>
                       <div className="flex-1 text-right min-w-0">
                         <p className="text-sm font-medium truncate">{item.product?.name}</p>
-                        <p className="text-xs text-muted-foreground">{item.total_price} د.ل</p>
+                        <p className="text-xs text-muted-foreground">{formatAmount(item.total_price)}</p>
                       </div>
                     </div>
                     {item.free_quantity > 0 && (
@@ -282,26 +284,26 @@ export const NewOrderPage = () => {
             <div className="border-t pt-4 space-y-4 mb-6">
               <div className="flex items-center justify-between gap-2">
                 <div className="flex bg-accent/30 rounded-lg p-1">
-                  <button 
+                  <button
                     className={`px-3 py-1 text-xs rounded-md transition-colors ${discountType === 'percentage' ? 'bg-primary text-white' : 'hover:bg-accent'}`}
                     onClick={() => setDiscountType('percentage')}
                   >
                     %
                   </button>
-                  <button 
+                  <button
                     className={`px-3 py-1 text-xs rounded-md transition-colors ${discountType === 'fixed' ? 'bg-primary text-white' : 'hover:bg-accent'}`}
                     onClick={() => setDiscountType('fixed')}
                   >
-                    د.ل
+                    {symbol}
                   </button>
                 </div>
                 <label className="text-sm font-medium flex items-center gap-1">
-                   خصم الفاتورة <Tag className="w-3 h-3" />
+                  خصم الفاتورة <Tag className="w-3 h-3" />
                 </label>
               </div>
-              <Input 
-                type="number" 
-                value={discountValue} 
+              <Input
+                type="number"
+                value={discountValue}
                 onChange={(e) => setDiscountValue(Number(e.target.value))}
                 className="text-right"
                 placeholder="0.00"
@@ -311,20 +313,20 @@ export const NewOrderPage = () => {
             {/* Totals */}
             <div className="space-y-2 mb-8 bg-accent/20 p-4 rounded-xl">
               <div className="flex justify-between text-sm">
-                <span>{subtotal.toFixed(2)} د.ل</span>
+                <span>{formatAmount(subtotal)}</span>
                 <span className="text-muted-foreground">المجموع الفرعي</span>
               </div>
               <div className="flex justify-between text-sm text-red-500">
-                <span>-{invoiceDiscountAmount.toFixed(2)} د.ل</span>
+                <span>-{formatAmount(invoiceDiscountAmount)}</span>
                 <span>خصم الفاتورة</span>
               </div>
               <div className="flex justify-between text-lg font-bold border-t pt-2 mt-2">
-                <span className="text-primary">{totalAmount.toFixed(2)} د.ل</span>
+                <span className="text-primary">{formatAmount(totalAmount)}</span>
                 <span>الإجمالي</span>
               </div>
             </div>
 
-            <Button 
+            <Button
               className="w-full py-7 text-lg font-bold gradient-btn shadow-lg animate-glow"
               disabled={submitting || cart.length === 0 || !selectedStoreId}
               onClick={handleSubmit}
@@ -333,14 +335,14 @@ export const NewOrderPage = () => {
                 <Loader2 className="w-6 h-6 animate-spin" />
               ) : (
                 <div className="flex items-center gap-2">
-                   إتمام عملية البيع
-                   <CircleDollarSign className="w-6 h-6" />
+                  إتمام عملية البيع
+                  <CircleDollarSign className="w-6 h-6" />
                 </div>
               )}
             </Button>
           </div>
         </div>
       </div>
-    </div>
+    </div >
   );
 };

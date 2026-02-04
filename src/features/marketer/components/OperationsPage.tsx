@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  BarChart3, 
-  TrendingUp, 
+import {
+  BarChart3,
+  TrendingUp,
   TrendingDown,
   Calendar,
   Download,
@@ -15,20 +15,20 @@ import {
   Printer
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { 
-  AreaChart, 
-  Area, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
   BarChart,
   Bar,
@@ -38,6 +38,7 @@ import {
   Legend
 } from 'recharts';
 import { toast } from 'sonner';
+import { useCurrency } from '@/store/currencyStore';
 
 // Mock data
 const salesData = [
@@ -87,6 +88,7 @@ const itemVariants = {
 
 export const OperationsPage = () => {
   const [period, setPeriod] = useState('month');
+  const { formatAmount } = useCurrency();
 
   const handleExport = (type: string) => {
     toast.success(`جاري تصدير تقرير ${type}...`);
@@ -140,7 +142,7 @@ export const OperationsPage = () => {
           <div className="flex items-start justify-between">
             <div>
               <p className="text-sm text-muted-foreground">إجمالي المبيعات</p>
-              <p className="text-2xl font-bold">328,000 ر.س</p>
+              <p className="text-2xl font-bold">{formatAmount(328000)}</p>
               <div className="flex items-center gap-1 mt-1 text-success text-sm">
                 <TrendingUp className="w-4 h-4" />
                 <span>+15%</span>
@@ -230,7 +232,7 @@ export const OperationsPage = () => {
                     borderRadius: '8px',
                     color: 'hsl(210, 40%, 98%)',
                   }}
-                  formatter={(value: number) => [`${value.toLocaleString('ar-SA')} ر.س`, 'المبيعات']}
+                  formatter={(value: number) => [formatAmount(value), 'المبيعات']}
                 />
                 <Area
                   type="monotone"
@@ -265,7 +267,7 @@ export const OperationsPage = () => {
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
-                <Legend 
+                <Legend
                   formatter={(value) => <span style={{ color: 'hsl(215, 20%, 65%)' }}>{value}</span>}
                 />
                 <Tooltip
@@ -302,9 +304,8 @@ export const OperationsPage = () => {
                 </div>
                 <div className="flex items-center gap-4">
                   <span className="text-muted-foreground">{product.sales} وحدة</span>
-                  <span className={`flex items-center gap-1 text-sm ${
-                    product.trend >= 0 ? 'text-success' : 'text-destructive'
-                  }`}>
+                  <span className={`flex items-center gap-1 text-sm ${product.trend >= 0 ? 'text-success' : 'text-destructive'
+                    }`}>
                     {product.trend >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
                     {Math.abs(product.trend)}%
                   </span>
@@ -333,7 +334,7 @@ export const OperationsPage = () => {
                   </div>
                 </div>
                 <span className="font-semibold text-success">
-                  {store.amount.toLocaleString('ar-SA')} ر.س
+                  {formatAmount(store.amount)}
                 </span>
               </div>
             ))}

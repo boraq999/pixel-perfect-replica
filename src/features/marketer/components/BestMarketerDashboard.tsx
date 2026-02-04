@@ -1,11 +1,11 @@
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Package, 
-  ShoppingCart, 
-  TrendingUp, 
-  Wallet, 
+import {
+  Package,
+  ShoppingCart,
+  TrendingUp,
+  Wallet,
   ArrowUpRight,
   ArrowDownRight,
   Store,
@@ -14,11 +14,12 @@ import {
   Trophy
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
+import { useCurrency } from '@/store/currencyStore';
 
 const stats = [
   {
     title: 'إجمالي المبيعات',
-    value: '125,500 ر.س',
+    amount: 125500,
     change: '+12.5%',
     trend: 'up',
     icon: DollarSign,
@@ -27,7 +28,8 @@ const stats = [
   },
   {
     title: 'المخزون المتاح',
-    value: '450 منتج',
+    amount: 450,
+    unit: 'منتج',
     change: '+8 منتج',
     trend: 'up',
     icon: Package,
@@ -36,7 +38,8 @@ const stats = [
   },
   {
     title: 'الطلبات النشطة',
-    value: '12 طلب',
+    amount: 12,
+    unit: 'طلب',
     change: '3 جديد',
     trend: 'up',
     icon: ShoppingCart,
@@ -45,8 +48,8 @@ const stats = [
   },
   {
     title: 'الأرباح المتاحة',
-    value: '8,750 ر.س',
-    change: '+2,100 ر.س',
+    amount: 8750,
+    change: 2100,
     trend: 'up',
     icon: TrendingUp,
     color: 'text-yellow-500',
@@ -60,7 +63,7 @@ const recentActivities = [
     type: 'sale',
     title: 'بيع بضاعة للمتجر',
     store: 'متجر النخبة',
-    amount: '2,500 ر.س',
+    amount: 2500,
     time: 'منذ ساعة',
     status: 'completed',
   },
@@ -69,7 +72,7 @@ const recentActivities = [
     type: 'order',
     title: 'طلب بضاعة جديد',
     store: 'المخزن الرئيسي',
-    amount: '5,000 ر.س',
+    amount: 5000,
     time: 'منذ ساعتين',
     status: 'pending',
   },
@@ -78,7 +81,7 @@ const recentActivities = [
     type: 'return',
     title: 'إرجاع بضاعة',
     store: 'متجر الأمل',
-    amount: '800 ر.س',
+    amount: 800,
     time: 'منذ 3 ساعات',
     status: 'completed',
   },
@@ -87,21 +90,22 @@ const recentActivities = [
     type: 'withdrawal',
     title: 'سحب أرباح',
     store: 'حسابي',
-    amount: '3,000 ر.س',
+    amount: 3000,
     time: 'أمس',
     status: 'approved',
   },
 ];
 
 const topProducts = [
-  { id: 1, name: 'منتج A', sold: 120, revenue: '12,000 ر.س', trend: 'up' },
-  { id: 2, name: 'منتج B', sold: 95, revenue: '9,500 ر.س', trend: 'up' },
-  { id: 3, name: 'منتج C', sold: 80, revenue: '8,000 ر.س', trend: 'down' },
-  { id: 4, name: 'منتج D', sold: 65, revenue: '6,500 ر.س', trend: 'up' },
+  { id: 1, name: 'منتج A', sold: 120, revenue: 12000, trend: 'up' },
+  { id: 2, name: 'منتج B', sold: 95, revenue: 9500, trend: 'up' },
+  { id: 3, name: 'منتج C', sold: 80, revenue: 8000, trend: 'down' },
+  { id: 4, name: 'منتج D', sold: 65, revenue: 6500, trend: 'up' },
 ];
 
 export const BestMarketerDashboard = () => {
   const { user } = useAuthStore();
+  const { formatAmount } = useCurrency();
 
   return (
     <div className="space-y-6">
@@ -140,7 +144,9 @@ export const BestMarketerDashboard = () => {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stat.value}</div>
+                <div className="text-2xl font-bold">
+                  {'unit' in stat ? `${stat.amount} ${stat.unit}` : formatAmount(stat.amount)}
+                </div>
                 <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
                   {stat.trend === 'up' ? (
                     <ArrowUpRight className="h-3 w-3 text-green-500" />
@@ -148,7 +154,7 @@ export const BestMarketerDashboard = () => {
                     <ArrowDownRight className="h-3 w-3 text-red-500" />
                   )}
                   <span className={stat.trend === 'up' ? 'text-green-500' : 'text-red-500'}>
-                    {stat.change}
+                    {typeof stat.change === 'number' ? `+${formatAmount(stat.change)}` : stat.change}
                   </span>
                   <span>عن الشهر الماضي</span>
                 </div>
@@ -176,12 +182,11 @@ export const BestMarketerDashboard = () => {
                   className="flex items-center justify-between p-3 rounded-lg border hover:bg-accent/50 transition-colors"
                 >
                   <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-full ${
-                      activity.type === 'sale' ? 'bg-green-500/10' :
+                    <div className={`p-2 rounded-full ${activity.type === 'sale' ? 'bg-green-500/10' :
                       activity.type === 'order' ? 'bg-blue-500/10' :
-                      activity.type === 'return' ? 'bg-orange-500/10' :
-                      'bg-purple-500/10'
-                    }`}>
+                        activity.type === 'return' ? 'bg-orange-500/10' :
+                          'bg-purple-500/10'
+                      }`}>
                       {activity.type === 'sale' && <Store className="h-4 w-4 text-green-500" />}
                       {activity.type === 'order' && <Package className="h-4 w-4 text-blue-500" />}
                       {activity.type === 'return' && <ArrowDownRight className="h-4 w-4 text-orange-500" />}
@@ -193,7 +198,7 @@ export const BestMarketerDashboard = () => {
                     </div>
                   </div>
                   <div className="text-left">
-                    <p className="font-semibold text-sm">{activity.amount}</p>
+                    <p className="font-semibold text-sm">{formatAmount(activity.amount)}</p>
                     <p className="text-xs text-muted-foreground">{activity.time}</p>
                   </div>
                 </div>
@@ -228,7 +233,7 @@ export const BestMarketerDashboard = () => {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <p className="font-semibold text-sm">{product.revenue}</p>
+                    <p className="font-semibold text-sm">{formatAmount(product.revenue)}</p>
                     {product.trend === 'up' ? (
                       <ArrowUpRight className="h-4 w-4 text-green-500" />
                     ) : (

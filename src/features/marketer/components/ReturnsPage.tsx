@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  RotateCcw, 
-  Search, 
+import {
+  RotateCcw,
+  Search,
   Store,
   Package,
   Plus,
@@ -17,7 +17,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import { useCurrency } from '@/store/currencyStore';
 
 // Mock data
 const mockStores = [
@@ -75,13 +76,14 @@ export const ReturnsPage = () => {
   const [items, setItems] = useState<ReturnItem[]>([]);
   const [notes, setNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { formatAmount } = useCurrency();
 
   const addProduct = (productId: string) => {
     const product = mockOrderProducts.find(p => p.id === productId);
     if (!product) return;
 
     const existingIndex = items.findIndex(item => item.productId === productId);
-    
+
     if (existingIndex >= 0) {
       toast.error('المنتج مضاف مسبقاً');
       return;
@@ -127,10 +129,10 @@ export const ReturnsPage = () => {
     }
 
     setIsSubmitting(true);
-    
+
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 2000));
-    
+
     toast.success('تم تسجيل المرتجع بنجاح!');
     setIsSubmitting(false);
     navigate('/dashboard/stores');
@@ -194,7 +196,7 @@ export const ReturnsPage = () => {
                     <div className="text-right">
                       <p className="font-medium text-sm">{product.name}</p>
                       <p className="text-xs text-muted-foreground">الكمية: {product.orderedQty}</p>
-                      <p className="text-sm font-semibold text-warning mt-1">{product.price} ر.س</p>
+                      <p className="text-sm font-semibold text-warning mt-1">{formatAmount(product.price)}</p>
                     </div>
                   </div>
                 </motion.button>
@@ -219,7 +221,7 @@ export const ReturnsPage = () => {
                         </div>
                         <div>
                           <p className="font-medium">{item.productName}</p>
-                          <p className="text-sm text-muted-foreground">{item.price} ر.س للوحدة</p>
+                          <p className="text-sm text-muted-foreground">{formatAmount(item.price)} للوحدة</p>
                         </div>
                       </div>
                       <Button
@@ -231,7 +233,7 @@ export const ReturnsPage = () => {
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
-                    
+
                     <div className="flex flex-wrap items-center gap-4">
                       {/* Quantity */}
                       <div className="flex items-center gap-2">
@@ -273,7 +275,7 @@ export const ReturnsPage = () => {
 
                       {/* Item Total */}
                       <div className="text-left">
-                        <p className="font-semibold text-warning">{(item.quantity * item.price).toFixed(2)} ر.س</p>
+                        <p className="font-semibold text-warning">{formatAmount(item.quantity * item.price)}</p>
                       </div>
                     </div>
                   </div>
@@ -319,14 +321,14 @@ export const ReturnsPage = () => {
               </div>
               <div className="flex justify-between text-lg font-bold pt-2">
                 <span>إجمالي المرتجع</span>
-                <span className="text-warning">{total.toFixed(2)} ر.س</span>
+                <span className="text-warning">{formatAmount(total)}</span>
               </div>
             </div>
 
             {/* Actions */}
             <div className="flex flex-col gap-3 mt-6">
-              <Button 
-                onClick={handleSubmit} 
+              <Button
+                onClick={handleSubmit}
                 disabled={isSubmitting || items.length === 0}
                 className="w-full bg-warning text-warning-foreground hover:bg-warning/90"
               >
@@ -342,8 +344,8 @@ export const ReturnsPage = () => {
                   </>
                 )}
               </Button>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => navigate(-1)}
                 disabled={isSubmitting}
               >

@@ -13,14 +13,15 @@ import {
   Plus,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
-import { 
-  AreaChart, 
-  Area, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer 
+import { useCurrency } from '@/store/currencyStore';
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer
 } from 'recharts';
 
 // Mock data
@@ -80,6 +81,7 @@ export const MarketerDashboard = () => {
   const handleQuickAction = (href: string) => {
     navigate(href);
   };
+  const { formatAmount } = useCurrency();
 
   return (
     <motion.div
@@ -158,14 +160,14 @@ export const MarketerDashboard = () => {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(217, 30%, 25%)" />
-                <XAxis 
-                  dataKey="day" 
-                  stroke="hsl(215, 20%, 65%)" 
+                <XAxis
+                  dataKey="day"
+                  stroke="hsl(215, 20%, 65%)"
                   fontSize={12}
                   tickLine={false}
                 />
-                <YAxis 
-                  stroke="hsl(215, 20%, 65%)" 
+                <YAxis
+                  stroke="hsl(215, 20%, 65%)"
                   fontSize={12}
                   tickLine={false}
                   axisLine={false}
@@ -177,7 +179,7 @@ export const MarketerDashboard = () => {
                     borderRadius: '8px',
                     color: 'hsl(210, 40%, 98%)',
                   }}
-                  formatter={(value: number) => [`${value.toLocaleString('ar-SA')} ر.س`, 'المبيعات']}
+                  formatter={(value: number) => [formatAmount(value), 'المبيعات']}
                 />
                 <Area
                   type="monotone"
@@ -216,7 +218,7 @@ export const MarketerDashboard = () => {
                 </div>
                 <div className="text-left">
                   <p className="font-semibold text-sm">
-                    {order.total.toLocaleString('ar-SA')} ر.س
+                    {formatAmount(order.total)}
                   </p>
                   <StatusBadge status={order.status} />
                 </div>
@@ -241,12 +243,11 @@ export const MarketerDashboard = () => {
               whileTap={{ scale: 0.98 }}
               className="flex flex-col items-center gap-2 p-4 rounded-xl bg-accent/30 hover:bg-accent/50 transition-all group cursor-pointer"
             >
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${
-                action.color === 'primary' ? 'bg-primary/20 text-primary group-hover:bg-primary group-hover:text-primary-foreground' :
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${action.color === 'primary' ? 'bg-primary/20 text-primary group-hover:bg-primary group-hover:text-primary-foreground' :
                 action.color === 'success' ? 'bg-success/20 text-success group-hover:bg-success group-hover:text-success-foreground' :
-                action.color === 'warning' ? 'bg-warning/20 text-warning group-hover:bg-warning group-hover:text-warning-foreground' :
-                'bg-info/20 text-info group-hover:bg-info group-hover:text-info-foreground'
-              }`}>
+                  action.color === 'warning' ? 'bg-warning/20 text-warning group-hover:bg-warning group-hover:text-warning-foreground' :
+                    'bg-info/20 text-info group-hover:bg-info group-hover:text-info-foreground'
+                }`}>
                 <action.icon className="w-6 h-6" />
               </div>
               <span className="text-sm font-medium">{action.label}</span>
@@ -267,11 +268,12 @@ interface StatCardProps {
 }
 
 const StatCard = ({ title, value, icon: Icon, trend, format = 'number' }: StatCardProps) => {
+  const { formatAmount } = useCurrency();
   const formattedValue = format === 'currency'
-    ? `${value.toLocaleString('ar-SA')} ر.س`
+    ? formatAmount(value)
     : format === 'percentage'
-    ? `${value}%`
-    : value.toLocaleString('ar-SA');
+      ? `${value}%`
+      : value.toLocaleString('ar-SA');
 
   return (
     <motion.div
@@ -283,9 +285,8 @@ const StatCard = ({ title, value, icon: Icon, trend, format = 'number' }: StatCa
           <p className="text-sm text-muted-foreground mb-1">{title}</p>
           <p className="text-2xl font-bold">{formattedValue}</p>
           {trend !== undefined && (
-            <div className={`flex items-center gap-1 mt-2 text-sm ${
-              trend >= 0 ? 'text-success' : 'text-destructive'
-            }`}>
+            <div className={`flex items-center gap-1 mt-2 text-sm ${trend >= 0 ? 'text-success' : 'text-destructive'
+              }`}>
               {trend >= 0 ? (
                 <TrendingUp className="w-4 h-4" />
               ) : (

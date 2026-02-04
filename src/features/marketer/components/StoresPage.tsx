@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Store, 
-  Plus, 
-  Search, 
-  Phone, 
+import {
+  Store,
+  Plus,
+  Search,
+  Phone,
   MapPin,
   DollarSign,
   ShoppingCart,
@@ -15,16 +15,17 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
   DialogTitle,
-  DialogFooter 
+  DialogFooter
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import { useCurrency } from '@/store/currencyStore';
 
 // Mock data
 const mockStores = [
@@ -63,6 +64,7 @@ export const StoresPage = () => {
     address: '',
     phone: ''
   });
+  const { formatAmount } = useCurrency();
 
   const handleAddStore = () => {
     if (!formData.name || !formData.phone) {
@@ -85,7 +87,7 @@ export const StoresPage = () => {
   };
 
   const filteredStores = mockStores.filter(store =>
-    store.name.includes(searchQuery) || 
+    store.name.includes(searchQuery) ||
     store.address.includes(searchQuery) ||
     store.phone.includes(searchQuery)
   );
@@ -129,7 +131,7 @@ export const StoresPage = () => {
             </div>
             <div>
               <p className="text-2xl font-bold">
-                {mockStores.reduce((sum, s) => sum + s.balance, 0).toLocaleString('ar-SA')}
+                {formatAmount(mockStores.reduce((sum, s) => sum + s.balance, 0))}
               </p>
               <p className="text-sm text-muted-foreground">إجمالي الأرصدة</p>
             </div>
@@ -205,7 +207,7 @@ export const StoresPage = () => {
               </div>
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">الرصيد</span>
-                <span className="font-semibold text-success">{store.balance.toLocaleString('ar-SA')} ر.س</span>
+                <span className="font-semibold text-success">{formatAmount(store.balance)}</span>
               </div>
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">الطلبات</span>
@@ -214,16 +216,16 @@ export const StoresPage = () => {
             </div>
 
             <div className="flex gap-2 pt-4 border-t border-border">
-              <Button 
-                size="sm" 
+              <Button
+                size="sm"
                 className="flex-1 gradient-btn"
                 onClick={() => handleNewOrder(store.id)}
               >
                 <ShoppingCart className="w-4 h-4 ml-1" />
                 طلب جديد
               </Button>
-              <Button 
-                size="sm" 
+              <Button
+                size="sm"
                 variant="outline"
                 onClick={() => handleWhatsApp(store.phone, store.name)}
               >
@@ -243,7 +245,7 @@ export const StoresPage = () => {
               إضافة متجر جديد
             </DialogTitle>
           </DialogHeader>
-          
+
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label>اسم المتجر *</Label>

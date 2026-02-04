@@ -53,6 +53,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
+import { useCurrency } from '@/store/currencyStore';
 
 interface OrderItem {
   product_id: string;
@@ -156,6 +157,7 @@ export const OrderManagementPage = () => {
   const [isNewOrderOpen, setIsNewOrderOpen] = useState(false);
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { formatAmount } = useCurrency();
 
   // Stats calculation
   const stats = useMemo(() => {
@@ -257,7 +259,7 @@ export const OrderManagementPage = () => {
           { title: 'إجمالي الطلبات', value: stats.total, icon: ShoppingCart, color: 'text-blue-500', bg: 'bg-blue-500/10' },
           { title: 'بانتظار الموافقة', value: stats.pending, icon: Clock, color: 'text-amber-500', bg: 'bg-amber-500/10' },
           { title: 'طلبات مكتملة', value: stats.delivered, icon: CheckCircle, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
-          { title: 'إجمالي القيمة', value: `${stats.totalAmount.toLocaleString()} ر.س`, icon: TrendingUp, color: 'text-purple-500', bg: 'bg-purple-500/10' },
+          { title: 'إجمالي القيمة', value: formatAmount(stats.totalAmount), icon: TrendingUp, color: 'text-purple-500', bg: 'bg-purple-500/10' },
         ].map((stat, i) => (
           <motion.div
             key={i}
@@ -368,7 +370,7 @@ export const OrderManagementPage = () => {
                                 <div className="flex items-center justify-between border-t pt-3 md:border-none md:pt-0 md:gap-6">
                                   <div className="text-right">
                                     <p className="text-[10px] font-medium text-muted-foreground">الإجمالي</p>
-                                    <p className="text-base font-extrabold text-primary md:text-lg font-ar">{order.total_amount.toLocaleString()} ر.س</p>
+                                    <p className="text-base font-extrabold text-primary md:text-lg font-ar">{formatAmount(order.total_amount)}</p>
                                   </div>
                                   <div className="flex items-center gap-3">
                                     <div className={`flex h-7 items-center gap-1 rounded-full px-3 ${status.bg} ${status.color} text-[10px] font-bold border ${status.border} md:h-8 md:px-4 md:text-xs`}>
@@ -596,7 +598,7 @@ export const OrderManagementPage = () => {
             <div className="pt-4 border-t flex flex-col items-center justify-between gap-4 md:flex-row">
               <div>
                 <p className="text-xs text-muted-foreground">الإجمالي الكلي</p>
-                <p className="text-xl font-bold text-primary">{calculateTotal().toLocaleString()} ر.س</p>
+                <p className="text-xl font-bold text-primary">{formatAmount(calculateTotal())}</p>
               </div>
               <div className="flex w-full gap-2 md:w-auto">
                 <Button variant="outline" className="flex-1 px-8" onClick={() => setIsNewOrderOpen(false)}>
@@ -725,18 +727,18 @@ export const OrderManagementPage = () => {
                       <div className="flex justify-between items-center text-xs pt-2 border-t border-muted">
                         <div>
                           <p className="text-muted-foreground">سعر الوحدة</p>
-                          <p className="font-medium">{item.unit_price.toFixed(2)} ر.س</p>
+                          <p className="font-medium">{formatAmount(item.unit_price)}</p>
                         </div>
                         <div className="text-left">
                           <p className="text-muted-foreground">الإجمالي</p>
-                          <p className="font-bold text-primary">{item.total.toFixed(2)} ر.س</p>
+                          <p className="font-bold text-primary">{formatAmount(item.total)}</p>
                         </div>
                       </div>
                     </div>
                   ))}
                   <div className="rounded-xl bg-primary/5 p-4 flex justify-between items-center border border-primary/10">
                     <span className="font-bold">الإجمالي الكلي</span>
-                    <span className="text-lg font-black text-primary">{selectedOrder.total_amount.toLocaleString(undefined, { minimumFractionDigits: 2 })} ر.س</span>
+                    <span className="text-lg font-black text-primary">{formatAmount(selectedOrder.total_amount)}</span>
                   </div>
                 </div>
 
@@ -758,15 +760,15 @@ export const OrderManagementPage = () => {
                           <td className="p-3 text-center">
                             <Badge variant="secondary">{item.quantity}</Badge>
                           </td>
-                          <td className="p-3 text-left text-muted-foreground">{item.unit_price.toFixed(2)}</td>
-                          <td className="p-3 text-left font-bold text-primary">{item.total.toFixed(2)}</td>
+                          <td className="p-3 text-left text-muted-foreground">{formatAmount(item.unit_price)}</td>
+                          <td className="p-3 text-left font-bold text-primary">{formatAmount(item.total)}</td>
                         </tr>
                       ))}
                     </tbody>
                     <tfoot className="bg-muted/30">
                       <tr>
                         <td colSpan={3} className="p-3 text-left font-bold">الإجمالي الكلي</td>
-                        <td className="p-3 text-left font-bold text-primary text-lg">{selectedOrder.total_amount.toLocaleString(undefined, { minimumFractionDigits: 2 })} ر.س</td>
+                        <td className="p-3 text-left font-bold text-primary text-lg">{formatAmount(selectedOrder.total_amount)}</td>
                       </tr>
                     </tfoot>
                   </table>

@@ -4,10 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Wallet, 
-  DollarSign, 
-  TrendingUp, 
+import {
+  Wallet,
+  DollarSign,
+  TrendingUp,
   ArrowUpRight,
   Clock,
   CheckCircle,
@@ -27,6 +27,7 @@ import {
 } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useCurrency } from '@/store/currencyStore';
 
 interface WithdrawalRequest {
   id: string;
@@ -132,6 +133,7 @@ export const ProfitsWithdrawalPage = () => {
   const [withdrawalAmount, setWithdrawalAmount] = useState<string>('');
   const [withdrawalNotes, setWithdrawalNotes] = useState<string>('');
   const [selectedWithdrawal, setSelectedWithdrawal] = useState<WithdrawalRequest | null>(null);
+  const { formatAmount } = useCurrency();
 
   const handleNewWithdrawal = () => {
     // Handle new withdrawal request
@@ -141,8 +143,8 @@ export const ProfitsWithdrawalPage = () => {
     setWithdrawalNotes('');
   };
 
-  const canWithdraw = parseFloat(withdrawalAmount) > 0 && 
-                      parseFloat(withdrawalAmount) <= profitDetails.available_balance;
+  const canWithdraw = parseFloat(withdrawalAmount) > 0 &&
+    parseFloat(withdrawalAmount) <= profitDetails.available_balance;
 
   return (
     <div className="space-y-6">
@@ -170,7 +172,7 @@ export const ProfitsWithdrawalPage = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-500">
-              {profitDetails.total_commissions.toFixed(2)} ر.س
+              {formatAmount(profitDetails.total_commissions)}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               جميع العمولات المكتسبة
@@ -187,7 +189,7 @@ export const ProfitsWithdrawalPage = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-500">
-              {profitDetails.available_balance.toFixed(2)} ر.س
+              {formatAmount(profitDetails.available_balance)}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               المبلغ المتاح للسحب
@@ -204,7 +206,7 @@ export const ProfitsWithdrawalPage = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-purple-500">
-              {profitDetails.total_withdrawals.toFixed(2)} ر.س
+              {formatAmount(profitDetails.total_withdrawals)}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               المبالغ المسحوبة
@@ -221,7 +223,7 @@ export const ProfitsWithdrawalPage = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-yellow-500">
-              {profitDetails.pending_withdrawals.toFixed(2)} ر.س
+              {formatAmount(profitDetails.pending_withdrawals)}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               قيد المراجعة
@@ -287,7 +289,7 @@ export const ProfitsWithdrawalPage = () => {
             <div>
               <h3 className="text-lg font-bold mb-1">هل تريد سحب أرباحك؟</h3>
               <p className="text-sm text-muted-foreground">
-                الرصيد المتاح للسحب: <span className="font-bold text-primary">{profitDetails.available_balance.toFixed(2)} ر.س</span>
+                الرصيد المتاح للسحب: <span className="font-bold text-primary">{formatAmount(profitDetails.available_balance)}</span>
               </p>
             </div>
             <Dialog open={isNewWithdrawalOpen} onOpenChange={setIsNewWithdrawalOpen}>
@@ -308,7 +310,7 @@ export const ProfitsWithdrawalPage = () => {
                   <Alert>
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription>
-                      الرصيد المتاح للسحب: <span className="font-bold">{profitDetails.available_balance.toFixed(2)} ر.س</span>
+                      الرصيد المتاح للسحب: <span className="font-bold">{formatAmount(profitDetails.available_balance)}</span>
                     </AlertDescription>
                   </Alert>
 
@@ -341,12 +343,12 @@ export const ProfitsWithdrawalPage = () => {
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">المبلغ المطلوب:</span>
-                        <span className="font-bold">{parseFloat(withdrawalAmount || '0').toFixed(2)} ر.س</span>
+                        <span className="font-bold">{formatAmount(parseFloat(withdrawalAmount || '0'))}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">الرصيد المتبقي:</span>
                         <span className="font-bold">
-                          {(profitDetails.available_balance - parseFloat(withdrawalAmount || '0')).toFixed(2)} ر.س
+                          {formatAmount(profitDetails.available_balance - parseFloat(withdrawalAmount || '0'))}
                         </span>
                       </div>
                     </div>
@@ -386,8 +388,8 @@ export const ProfitsWithdrawalPage = () => {
 
             <TabsContent value="all" className="space-y-4 mt-6">
               {withdrawals.map((withdrawal) => (
-                <Card 
-                  key={withdrawal.id} 
+                <Card
+                  key={withdrawal.id}
                   className="hover:shadow-md transition-shadow cursor-pointer"
                   onClick={() => setSelectedWithdrawal(withdrawal)}
                 >
@@ -415,7 +417,7 @@ export const ProfitsWithdrawalPage = () => {
                             {getStatusText(withdrawal.status)}
                           </span>
                         </Badge>
-                        <p className="text-xl font-bold">{withdrawal.amount.toFixed(2)} ر.س</p>
+                        <p className="text-xl font-bold">{formatAmount(withdrawal.amount)}</p>
                         {withdrawal.approved_date && (
                           <p className="text-xs text-muted-foreground mt-1">
                             تمت الموافقة: {withdrawal.approved_date}
@@ -449,7 +451,7 @@ export const ProfitsWithdrawalPage = () => {
                             <p className="text-sm text-muted-foreground">{withdrawal.request_date}</p>
                           </div>
                           <div>
-                            <p className="text-xl font-bold">{withdrawal.amount.toFixed(2)} ر.س</p>
+                            <p className="text-xl font-bold">{formatAmount(withdrawal.amount)}</p>
                           </div>
                         </div>
                       </CardContent>
@@ -485,7 +487,7 @@ export const ProfitsWithdrawalPage = () => {
 
               <div>
                 <Label>المبلغ المطلوب</Label>
-                <p className="text-2xl font-bold mt-1">{selectedWithdrawal.amount.toFixed(2)} ر.س</p>
+                <p className="text-2xl font-bold mt-1">{formatAmount(selectedWithdrawal.amount)}</p>
               </div>
 
               {selectedWithdrawal.notes && (
