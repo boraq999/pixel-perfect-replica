@@ -30,17 +30,18 @@ export const StatCard = ({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay }}
       whileHover={{ scale: 1.02 }}
+      className="h-full"
     >
-      <Card className="border-none shadow-sm transition-all hover:shadow-md">
+      <Card className="border-none shadow-sm transition-all hover:shadow-md h-full">
         <CardContent className="flex items-center gap-4 p-4 md:p-6">
-          <div className={`rounded-xl md:rounded-2xl ${bgColor} p-3 md:p-4`}>
+          <div className={`rounded-xl md:rounded-2xl ${bgColor} p-3 md:p-4 flex-shrink-0`}>
             <Icon className={`h-5 w-5 md:h-6 md:w-6 ${color}`} />
           </div>
-          <div className="flex-1">
-            <p className="text-[10px] md:text-sm font-medium text-muted-foreground">
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] md:text-sm font-medium text-muted-foreground truncate">
               {title}
             </p>
-            <h3 className="text-lg md:text-2xl font-bold font-ar">{value}</h3>
+            <h3 className="text-lg md:text-2xl font-bold font-ar truncate">{value}</h3>
             {trend && (
               <div
                 className={`flex items-center gap-1 mt-1 text-xs ${

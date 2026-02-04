@@ -1,17 +1,13 @@
 // صفحة: المتاجر والبيع (المسوق الأفضل)
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useMemo } from 'react';
+import { motion } from 'framer-motion';
 import {
   Store,
   Plus,
-  Search,
   Phone,
   MapPin,
   DollarSign,
   ShoppingCart,
-  Eye,
-  Edit,
-  Trash2,
   MessageCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -27,8 +23,9 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { useCurrency } from '@/store/currencyStore';
+import { StatCard, SearchBar } from './shared';
+import { useFilteredData } from '../hooks';
 
-// Mock data
 const mockStores = [
   { id: '1', name: 'متجر الرياض', address: 'حي النزهة، الرياض', phone: '0501234567', balance: 5000, ordersCount: 25 },
   { id: '2', name: 'سوبرماركت النور', address: 'حي العليا، الرياض', phone: '0507654321', balance: 3200, ordersCount: 18 },
@@ -67,6 +64,39 @@ export const StoresPage = () => {
   });
   const { formatAmount } = useCurrency();
 
+  const filteredStores = useFilteredData(mockStores, searchQuery, ['name', 'address', 'phone']);
+
+  const statsData = useMemo(() => [
+    { 
+      title: 'إجمالي المتاجر', 
+      value: mockStores.length, 
+      icon: Store, 
+      color: 'text-primary', 
+      bgColor: 'bg-primary/10' 
+    },
+    { 
+      title: 'إجمالي الأرصدة', 
+      value: formatAmount(mockStores.reduce((sum, s) => sum + s.balance, 0)), 
+      icon: DollarSign, 
+      color: 'text-green-500', 
+      bgColor: 'bg-green-500/10' 
+    },
+    { 
+      title: 'إجمالي الطلبات', 
+      value: mockStores.reduce((sum, s) => sum + s.ordersCount, 0), 
+      icon: ShoppingCart, 
+      color: 'text-blue-500', 
+      bgColor: 'bg-blue-500/10' 
+    },
+    { 
+      title: 'متاجر جديدة', 
+      value: 3, 
+      icon: Store, 
+      color: 'text-amber-500', 
+      bgColor: 'bg-amber-500/10' 
+    },
+  ], [formatAmount]);
+
   const handleAddStore = () => {
     if (!formData.name || !formData.phone) {
       toast.error('يرجى إدخال اسم المتجر ورقم الهاتف');
@@ -86,12 +116,6 @@ export const StoresPage = () => {
     window.open(`https://wa.me/966${phone.slice(1)}?text=${message}`, '_blank');
     toast.success('جاري فتح واتساب...');
   };
-
-  const filteredStores = mockStores.filter(store =>
-    store.name.includes(searchQuery) ||
-    store.address.includes(searchQuery) ||
-    store.phone.includes(searchQuery)
-  );
 
   return (
     <motion.div
@@ -113,65 +137,20 @@ export const StoresPage = () => {
       </motion.div>
 
       {/* Stats */}
-      <motion.div variants={itemVariants} className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="stat-card">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
-              <Store className="w-5 h-5 text-primary" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{mockStores.length}</p>
-              <p className="text-sm text-muted-foreground">إجمالي المتاجر</p>
-            </div>
+      <motion.div variants={itemVariants} className="hide-scrollbar flex gap-4 overflow-x-auto pb-2 -mx-2 px-2">
+        {statsData.map((stat, i) => (
+          <div key={i} className="min-w-[200px] flex-shrink-0">
+            <StatCard {...stat} delay={i * 0.1} />
           </div>
-        </div>
-        <div className="stat-card">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-success/20 flex items-center justify-center">
-              <DollarSign className="w-5 h-5 text-success" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">
-                {formatAmount(mockStores.reduce((sum, s) => sum + s.balance, 0))}
-              </p>
-              <p className="text-sm text-muted-foreground">إجمالي الأرصدة</p>
-            </div>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-info/20 flex items-center justify-center">
-              <ShoppingCart className="w-5 h-5 text-info" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">
-                {mockStores.reduce((sum, s) => sum + s.ordersCount, 0)}
-              </p>
-              <p className="text-sm text-muted-foreground">إجمالي الطلبات</p>
-            </div>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-warning/20 flex items-center justify-center">
-              <Store className="w-5 h-5 text-warning" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">3</p>
-              <p className="text-sm text-muted-foreground">متاجر جديدة</p>
-            </div>
-          </div>
-        </div>
+        ))}
       </motion.div>
 
       {/* Search */}
-      <motion.div variants={itemVariants} className="relative max-w-md">
-        <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <Input
-          placeholder="بحث عن متجر..."
+      <motion.div variants={itemVariants} className="max-w-md">
+        <SearchBar
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pr-10"
+          onChange={setSearchQuery}
+          placeholder="بحث عن متجر..."
         />
       </motion.div>
 
