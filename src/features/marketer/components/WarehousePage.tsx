@@ -49,7 +49,7 @@ export const WarehousePage = () => {
   } = useMarketerStore();
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState<'my-stock' | 'requests'>('my-stock');
+  const [activeTab, setActiveTab] = useState<'my-stock' | 'requests' | 'pending'>('my-stock');
   const [selectedRequest, setSelectedRequest] = useState<any>(null);
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -74,7 +74,20 @@ export const WarehousePage = () => {
   // Flatten items from requests for the "Reserved" tab
   const reservedItems = useMemo(() => {
     return requests
-      .filter(r => r.status === 'approved' || r.status === 'pending')
+      .filter(r => r.status === 'approved')
+      .flatMap(r => r.items.map(item => ({
+        ...item,
+        status: r.status,
+        invoice_number: r.invoice_number,
+        date: r.created_at,
+        request_id: r.id
+      })));
+  }, [requests]);
+
+  // Pending items for "Under Review" tab
+  const pendingItems = useMemo(() => {
+    return requests
+      .filter(r => r.status === 'pending')
       .flatMap(r => r.items.map(item => ({
         ...item,
         status: r.status,
@@ -86,6 +99,11 @@ export const WarehousePage = () => {
 
   // Filter based on search query
   const filteredReservedItems = reservedItems.filter(item =>
+    item.product?.name.includes(searchQuery) ||
+    item.invoice_number.includes(searchQuery)
+  );
+
+  const filteredPendingItems = pendingItems.filter(item =>
     item.product?.name.includes(searchQuery) ||
     item.invoice_number.includes(searchQuery)
   );
@@ -250,8 +268,18 @@ export const WarehousePage = () => {
                   className={`pb-4 text-sm font-bold transition-all relative ${activeTab === 'requests' ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
                     }`}
                 >
-                  المحجوز (بانتظار التوثيق)
+                  محجوزة
                   {activeTab === 'requests' && (
+                    <motion.div layoutId="tab-indicator" className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
+                  )}
+                </button>
+                <button
+                  onClick={() => setActiveTab('pending')}
+                  className={`pb-4 text-sm font-bold transition-all relative ${activeTab === 'pending' ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                >
+                  انتظار
+                  {activeTab === 'pending' && (
                     <motion.div layoutId="tab-indicator" className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
                   )}
                 </button>
@@ -260,7 +288,70 @@ export const WarehousePage = () => {
 
             <div className="p-6">
               <AnimatePresence mode="wait">
-                {activeTab === 'requests' ? (
+                {activeTab === 'pending' ? (
+                  <motion.div
+                    key="pending"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                    className={viewMode === 'grid'
+                      ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+                      : "flex flex-col gap-3"
+                    }
+                  >
+                    {filteredPendingItems.length === 0 ? (
+                      <div className="col-span-full flex flex-col items-center justify-center py-20 text-center">
+                        <div className="rounded-full bg-muted p-6 mb-4">
+                          <Clock className="h-12 w-12 text-muted-foreground/30" />
+                        </div>
+                        <h3 className="text-lg font-bold">لا توجد طلبات قيد المراجعة</h3>
+                        <p className="text-muted-foreground">جميع طلباتك تمت مراجعتها</p>
+                      </div>
+                    ) : (
+                      filteredPendingItems.map((item, idx) => (
+                        <motion.div
+                          key={`${item.id}-${idx}`}
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: idx * 0.05 }}
+                          className={`group rounded-2xl border bg-card transition-all hover:border-amber-500/50 hover:shadow-lg ${viewMode === 'grid' ? 'p-6 flex flex-col items-center text-center' : 'p-4 flex items-center justify-between'
+                            }`}
+                        >
+                          <div className={`flex items-center gap-4 ${viewMode === 'grid' ? 'flex-col mb-4' : ''}`}>
+                            <div className="h-14 w-14 rounded-full flex items-center justify-center transition-transform duration-300 group-hover:scale-110 bg-amber-500/10 text-amber-600">
+                              <Clock className="h-7 w-7" />
+                            </div>
+                            <div className={viewMode === 'grid' ? '' : 'text-right flex-1'}>
+                              <div className="flex items-center gap-2 justify-center md:justify-start mb-1">
+                                <h3 className="font-bold text-lg">{item.product?.name}</h3>
+                              </div>
+                              <p className="text-xs text-muted-foreground mb-2">
+                                رقم الطلب: {item.invoice_number}
+                              </p>
+                              {getStatusBadge(item.status)}
+                            </div>
+                          </div>
+
+                          <div className={viewMode === 'grid' ? 'w-full pt-4 border-t' : 'text-left pl-4 border-l'}>
+                            <div className="flex flex-col items-center">
+                              <span className="text-xs text-muted-foreground font-medium mb-1">الكمية المطلوبة</span>
+                              <span className="text-3xl font-black font-ar text-amber-500">
+                                {item.quantity}
+                              </span>
+                            </div>
+                          </div>
+
+                          {viewMode === 'list' && (
+                            <div className="mr-6 flex items-center gap-2 text-xs text-muted-foreground min-w-[120px]">
+                              <Calendar className="w-3 h-3" />
+                              {new Date(item.date).toLocaleDateString('ar-LY')}
+                            </div>
+                          )}
+                        </motion.div>
+                      ))
+                    )}
+                  </motion.div>
+                ) : activeTab === 'requests' ? (
                   <motion.div
                     key="requests"
                     initial={{ opacity: 0, x: -20 }}
@@ -364,18 +455,20 @@ export const WarehousePage = () => {
                             }`}
                         >
                           <div className={`flex items-center gap-4 ${viewMode === 'grid' ? 'flex-col mb-4' : ''}`}>
-                            <div className="h-14 w-14 rounded-full bg-primary/5 flex items-center justify-center text-primary group-hover:scale-110 transition-transform duration-300">
+                            <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform duration-300">
                               <Package className="h-7 w-7" />
                             </div>
-                            <div className={viewMode === 'grid' ? '' : 'text-right'}>
-                              <h3 className="font-bold text-lg mb-1">{item.product?.name}</h3>
+                            <div className={viewMode === 'grid' ? '' : 'text-right flex-1'}>
+                              <div className="flex items-center gap-2 justify-center md:justify-start mb-1">
+                                <h3 className="font-bold text-lg">{item.product?.name}</h3>
+                              </div>
                               <p className="text-xs text-muted-foreground bg-secondary px-2 py-1 rounded-md inline-block">
                                 {item.product?.barcode}
                               </p>
                             </div>
                           </div>
 
-                          <div className={viewMode === 'grid' ? 'w-full pt-4 border-t' : ''}>
+                          <div className={viewMode === 'grid' ? 'w-full pt-4 border-t' : 'text-left pl-4 border-l'}>
                             <div className="flex flex-col items-center">
                               <span className="text-xs text-muted-foreground font-medium mb-1">الكمية المتوفرة</span>
                               <span className="text-3xl font-black text-primary font-ar">{item.quantity}</span>
