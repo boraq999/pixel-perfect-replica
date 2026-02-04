@@ -250,7 +250,7 @@ export const ReturnsPage = () => {
                 value={invoiceNumber}
                 onChange={(e) => setInvoiceNumber(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && searchInvoice()}
-                className="flex-1"
+                className="flex-1 border border-border"
               />
               <Button onClick={searchInvoice} disabled={isSearching}>
                 {isSearching ? (
