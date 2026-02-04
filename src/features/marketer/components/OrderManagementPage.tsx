@@ -55,6 +55,8 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
 import { useCurrency } from '@/store/currencyStore';
+import { StatCard, SearchBar } from './shared';
+import { useFilteredData } from '../hooks';
 
 interface OrderItem {
   product_id: string;
@@ -170,9 +172,14 @@ export const OrderManagementPage = () => {
     };
   }, [orders]);
 
-  const filteredOrders = orders.filter(order =>
-    order.order_number.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredOrders = useFilteredData(orders, searchTerm, ['order_number']);
+
+  const statsData = useMemo(() => [
+    { title: 'إجمالي الطلبات', value: stats.total, icon: ShoppingCart, color: 'text-blue-500', bgColor: 'bg-blue-500/10' },
+    { title: 'بانتظار الموافقة', value: stats.pending, icon: Clock, color: 'text-amber-500', bgColor: 'bg-amber-500/10' },
+    { title: 'طلبات مكتملة', value: stats.delivered, icon: CheckCircle, color: 'text-emerald-500', bgColor: 'bg-emerald-500/10' },
+    { title: 'إجمالي القيمة', value: formatAmount(stats.totalAmount), icon: TrendingUp, color: 'text-purple-500', bgColor: 'bg-purple-500/10' },
+  ], [stats, formatAmount]);
 
   const addOrderItem = () => {
     setOrderItems([
@@ -254,33 +261,12 @@ export const OrderManagementPage = () => {
         </div>
       </div>
 
-      {/* Stats - Horizontal Scroll on Mobile */}
-      <div className="hide-scrollbar flex gap-4 overflow-x-auto pb-2 -mx-2 px-2 md:mx-0 md:px-0 md:grid md:grid-cols-4 md:overflow-visible">
-        {[
-          { title: 'إجمالي الطلبات', value: stats.total, icon: ShoppingCart, color: 'text-blue-500', bg: 'bg-blue-500/10' },
-          { title: 'بانتظار الموافقة', value: stats.pending, icon: Clock, color: 'text-amber-500', bg: 'bg-amber-500/10' },
-          { title: 'طلبات مكتملة', value: stats.delivered, icon: CheckCircle, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
-          { title: 'إجمالي القيمة', value: formatAmount(stats.totalAmount), icon: TrendingUp, color: 'text-purple-500', bg: 'bg-purple-500/10' },
-        ].map((stat, i) => (
-          <motion.div
-            key={i}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: i * 0.1 }}
-            className="min-w-[200px] flex-shrink-0 md:min-w-0"
-          >
-            <Card className="border-none shadow-sm transition-all hover:shadow-md">
-              <CardContent className="flex items-center gap-4 p-4 md:p-6">
-                <div className={`rounded-xl md:rounded-2xl ${stat.bg} p-3 md:p-4`}>
-                  <stat.icon className={`h-5 w-5 md:h-6 md:w-6 ${stat.color}`} />
-                </div>
-                <div>
-                  <p className="text-[10px] md:text-sm font-medium text-muted-foreground">{stat.title}</p>
-                  <h3 className="text-lg md:text-2xl font-bold font-ar">{stat.value}</h3>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
+      {/* Stats */}
+      <div className="hide-scrollbar flex gap-4 overflow-x-auto pb-2 -mx-2 px-2">
+        {statsData.map((stat, i) => (
+          <div key={i} className="min-w-[200px] flex-shrink-0">
+            <StatCard {...stat} delay={i * 0.1} />
+          </div>
         ))}
       </div>
 
@@ -292,15 +278,12 @@ export const OrderManagementPage = () => {
             <CardHeader className="bg-muted/30 p-4 md:pb-0">
               <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between pb-4">
                 <div className="flex w-full items-center gap-2">
-                  <div className="relative flex-1 sm:max-w-xs">
-                    <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                      placeholder="ابحث..."
-                      className="pr-10 h-11 border-none bg-background shadow-none rounded-xl text-sm"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                  </div>
+                  <SearchBar
+                    value={searchTerm}
+                    onChange={setSearchTerm}
+                    placeholder="ابحث..."
+                    className="flex-1 sm:max-w-xs"
+                  />
                   <Button variant="ghost" className="h-11 rounded-xl px-4 gap-2 text-muted-foreground hover:bg-background text-sm">
                     <Filter className="h-4 w-4" />
                     تصفية
