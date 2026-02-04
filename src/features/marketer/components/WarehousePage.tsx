@@ -1,17 +1,23 @@
 // صفحة: مخزوني الفعلي (المسوق الأفضل)
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Package,
   Plus,
   Search,
-  ArrowDownToLine,
   Check,
   X,
   Loader2,
   FileText,
   Upload,
-  AlertCircle
+  AlertCircle,
+  Boxes,
+  Clock,
+  CheckCircle,
+  TrendingUp,
+  LayoutGrid,
+  List,
+  Calendar
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,24 +29,12 @@ import {
   DialogFooter,
   DialogDescription
 } from '@/components/ui/dialog';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { useMarketerStore } from '@/store/marketerStore';
 import { useAuthStore } from '@/store/authStore';
-import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
-
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.1 },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 },
-};
 
 export const WarehousePage = () => {
   const navigate = useNavigate();
@@ -51,8 +45,7 @@ export const WarehousePage = () => {
     fetchRequests,
     fetchStock,
     cancelRequest,
-    documentRequest,
-    isLoading
+    documentRequest
   } = useMarketerStore();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -60,6 +53,7 @@ export const WarehousePage = () => {
   const [selectedRequest, setSelectedRequest] = useState<any>(null);
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   useEffect(() => {
     if (user?.id) {
@@ -67,6 +61,39 @@ export const WarehousePage = () => {
       fetchStock(user.id);
     }
   }, [user?.id]);
+
+  const stats = useMemo(() => {
+    return {
+      totalStockItems: stock.reduce((acc, item) => acc + item.quantity, 0),
+      reservedRequests: requests.filter(r => r.status === 'approved' || r.status === 'pending').length,
+      pendingRequests: requests.filter(r => r.status === 'pending').length,
+      approvedRequests: requests.filter(r => r.status === 'approved').length,
+    };
+  }, [stock, requests]);
+
+  // Flatten items from requests for the "Reserved" tab
+  const reservedItems = useMemo(() => {
+    return requests
+      .filter(r => r.status === 'approved' || r.status === 'pending')
+      .flatMap(r => r.items.map(item => ({
+        ...item,
+        status: r.status,
+        invoice_number: r.invoice_number,
+        date: r.created_at,
+        request_id: r.id
+      })));
+  }, [requests]);
+
+  // Filter based on search query
+  const filteredReservedItems = reservedItems.filter(item =>
+    item.product?.name.includes(searchQuery) ||
+    item.invoice_number.includes(searchQuery)
+  );
+
+  const filteredStock = stock.filter(item =>
+    item.product?.name.includes(searchQuery) ||
+    item.product?.barcode?.includes(searchQuery)
+  );
 
   const handleCancelRequest = async (id: string) => {
     try {
@@ -81,7 +108,6 @@ export const WarehousePage = () => {
     if (!selectedRequest) return;
     setUploading(true);
     try {
-      // Simulate image upload
       await new Promise(resolve => setTimeout(resolve, 1500));
       await documentRequest(selectedRequest.id, 'keeper-1', 'path/to/signed-image.jpg');
       toast.success('تم توثيق استلام البضاعة وتحديث المخزون');
@@ -96,209 +122,291 @@ export const WarehousePage = () => {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'pending': return <Badge variant="outline" className="bg-yellow-500/10 text-yellow-500 border-yellow-500/20">قيد الانتظار</Badge>;
-      case 'approved': return <Badge variant="outline" className="bg-blue-500/10 text-blue-500 border-blue-500/20">تمت الموافقة</Badge>;
-      case 'rejected': return <Badge variant="outline" className="bg-red-500/10 text-red-500 border-red-500/20">مرفوض</Badge>;
-      case 'documented': return <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20">تم الاستلام</Badge>;
-      case 'cancelled': return <Badge variant="outline" className="bg-gray-500/10 text-gray-500 border-gray-500/20">ملغي</Badge>;
+      case 'pending': return <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-600 border border-amber-500/20"><Clock className="w-3.5 h-3.5" /> قيد المراجعة</span>;
+      case 'approved': return <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"><Boxes className="w-3.5 h-3.5" /> بانتظار التوثيق</span>;
       default: return null;
     }
   };
 
   return (
-    <motion.div
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-      className="space-y-6"
-    >
-      {/* Header */}
-      <motion.div variants={itemVariants} className="flex flex-col sm:flex-row justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">المخزن وطلبات البضاعة</h1>
-          <p className="text-muted-foreground">إدارة مخزونك وطلباتك من المخزن الرئيسي</p>
-        </div>
-        <Button onClick={() => navigate('receive')} className="gradient-btn">
-          <Plus className="w-4 h-4 ml-2" />
-          طلب بضاعة جديد
-        </Button>
-      </motion.div>
-
-      {/* Tabs */}
-      <motion.div variants={itemVariants} className="flex gap-2 p-1 bg-accent/30 rounded-lg w-fit">
-        <button
-          onClick={() => setActiveTab('my-stock')}
-          className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${activeTab === 'my-stock'
-            ? 'bg-primary text-primary-foreground'
-            : 'text-muted-foreground hover:text-foreground'
-            }`}
-        >
-          المخزون الفعلي
-        </button>
-        <button
-          onClick={() => setActiveTab('requests')}
-          className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${activeTab === 'requests'
-            ? 'bg-primary text-primary-foreground'
-            : 'text-muted-foreground hover:text-foreground'
-            }`}
-        >
-          المحجوز
-        </button>
-      </motion.div>
-
-      {/* Search */}
-      <motion.div variants={itemVariants} className="relative max-w-md">
-        <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <Input
-          placeholder="بحث..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pr-10"
-        />
-      </motion.div>
-
-      {/* Content */}
-      <AnimatePresence mode="wait">
-        {activeTab === 'requests' ? (
+    <div className="space-y-8 pb-12">
+      {/* Premium Header */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-primary/95 to-primary p-6 text-white shadow-2xl md:p-8">
+        <div className="absolute top-0 right-0 h-full w-1/2 bg-[url('/pattern.svg')] opacity-10 mix-blend-overlay" />
+        <div className="relative z-10 flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
           <motion.div
-            key="requests"
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 20 }}
-            className="space-y-4"
+            transition={{ duration: 0.5 }}
           >
-            {requests.filter(r => r.status === 'approved' || r.status === 'pending').length === 0 ? (
-              <div className="text-center py-12 glass-card">
-                <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-20" />
-                <p className="text-muted-foreground">لا توجد طلبات محجوزة حالياً</p>
+            <div className="flex items-center gap-3">
+              <div className="rounded-2xl bg-white/20 p-2 backdrop-blur-md md:p-3">
+                <Boxes className="h-6 w-6 md:h-8 md:w-8" />
               </div>
-            ) : (
-              <div className="space-y-6">
-                {/* Reserved (Approved) Section */}
-                {requests.filter(r => r.status === 'approved').length > 0 && (
-                  <div className="space-y-4">
-                    <h3 className="text-sm font-bold text-primary flex items-center gap-2 px-2">
-                      <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                      بضاعة محجوزة (بانتظار التوثيق)
-                    </h3>
-                    {requests.filter(r => r.status === 'approved').map((request) => (
-                      <div key={request.id} className="glass-card p-6 flex flex-col md:flex-row justify-between gap-4 border-primary/20 shadow-lg shadow-primary/5">
-                        <div className="flex gap-4">
-                          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                            <Package className="w-6 h-6 text-primary" />
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="font-bold text-lg">{request.invoice_number}</span>
-                              {getStatusBadge(request.status)}
-                            </div>
-                            <p className="text-sm text-muted-foreground mb-2">
-                              بتاريخ: {new Date(request.created_at).toLocaleDateString('ar-LY')}
-                            </p>
-                            <div className="flex flex-wrap gap-2">
-                              {request.items.map((item, idx) => (
-                                <span key={idx} className="text-xs bg-accent/50 px-2 py-1 rounded">
-                                  {item.product?.name} ({item.quantity})
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          <Button
-                            size="sm"
-                            className="bg-green-600 hover:bg-green-700 text-white shadow-lg shadow-green-600/20"
-                            onClick={() => {
-                              setSelectedRequest(request);
-                              setIsUploadDialogOpen(true);
-                            }}
-                          >
-                            <Upload className="w-4 h-4 ml-1" />
-                            توثيق الاستلام
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Pending Section */}
-                {requests.filter(r => r.status === 'pending').length > 0 && (
-                  <div className="space-y-4">
-                    <h3 className="text-sm font-bold text-muted-foreground px-2">طلبات قيد المراجعة</h3>
-                    {requests.filter(r => r.status === 'pending').map((request) => (
-                      <div key={request.id} className="glass-card p-6 flex flex-col md:flex-row justify-between gap-4 opacity-80">
-                        <div className="flex gap-4">
-                          <div className="w-12 h-12 rounded-xl bg-accent/20 flex items-center justify-center shrink-0">
-                            <FileText className="w-6 h-6 text-muted-foreground" />
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="font-bold text-lg">{request.invoice_number}</span>
-                              {getStatusBadge(request.status)}
-                            </div>
-                            <p className="text-sm text-muted-foreground mb-2">
-                              بتاريخ: {new Date(request.created_at).toLocaleDateString('ar-LY')}
-                            </p>
-                            <div className="flex flex-wrap gap-2">
-                              {request.items.map((item, idx) => (
-                                <span key={idx} className="text-xs bg-accent/50 px-2 py-1 rounded">
-                                  {item.product?.name} ({item.quantity})
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-destructive hover:bg-destructive/10"
-                            onClick={() => handleCancelRequest(request.id)}
-                          >
-                            <X className="w-4 h-4 ml-1" />
-                            إلغاء الطلب
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+              <div>
+                <h1 className="text-2xl font-extrabold tracking-tight md:text-4xl text-white">مخزوني الفعلي</h1>
+                <p className="mt-0.5 text-xs md:mt-1 md:text-base text-white/80">إدارة البضاعة ومتابعة حالة الطلبات</p>
               </div>
-            )}
+            </div>
           </motion.div>
-        ) : (
           <motion.div
-            key="stock"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="hidden md:block"
           >
-            {stock.length === 0 ? (
-              <div className="col-span-full text-center py-12 glass-card">
-                <Package className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-20" />
-                <p className="text-muted-foreground">مخزنك فارغ حالياً</p>
-              </div>
-            ) : (
-              stock.map((item) => (
-                <div key={item.id} className="glass-card p-4 hover:shadow-lg transition-shadow">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
-                      <Package className="w-5 h-5 text-primary" />
-                    </div>
-                    <span className="text-2xl font-bold">{item.quantity}</span>
-                  </div>
-                  <h3 className="font-bold">{item.product?.name}</h3>
-                  <p className="text-sm text-muted-foreground">{item.product?.barcode}</p>
-                </div>
-              ))
-            )}
+            <Button
+              onClick={() => navigate('receive')}
+              size="lg"
+              className="h-14 gap-2 rounded-2xl bg-white px-8 font-bold text-primary shadow-xl hover:bg-white/90 font-ar"
+            >
+              <Plus className="h-5 w-5" />
+              طلب بضاعة جديد
+            </Button>
           </motion.div>
-        )}
-      </AnimatePresence>
+        </div>
+      </div>
+
+      {/* Stats - Horizontal Scroll on Mobile */}
+      <div className="hide-scrollbar flex gap-4 overflow-x-auto pb-2 -mx-2 px-2 md:mx-0 md:px-0 md:grid md:grid-cols-4 md:overflow-visible">
+        {[
+          { title: 'إجمالي المخزون', value: stats.totalStockItems + ' قطعة', icon: Boxes, color: 'text-blue-500', bg: 'bg-blue-500/10' },
+          { title: 'محجوز (موافق عليه)', value: stats.approvedRequests, icon: CheckCircle, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
+          { title: 'قيد المراجعة', value: stats.pendingRequests, icon: Clock, color: 'text-amber-500', bg: 'bg-amber-500/10' },
+          { title: 'إجمالي الحركات', value: requests.length, icon: TrendingUp, color: 'text-purple-500', bg: 'bg-purple-500/10' },
+        ].map((stat, i) => (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: i * 0.1 }}
+            className="min-w-[200px] flex-shrink-0 md:min-w-0"
+          >
+            <Card className="border-none shadow-sm transition-all hover:shadow-md">
+              <CardContent className="flex items-center gap-4 p-4 md:p-6">
+                <div className={`rounded-xl md:rounded-2xl ${stat.bg} p-3 md:p-4`}>
+                  <stat.icon className={`h-5 w-5 md:h-6 md:w-6 ${stat.color}`} />
+                </div>
+                <div>
+                  <p className="text-[10px] md:text-sm font-medium text-muted-foreground">{stat.title}</p>
+                  <h3 className="text-lg md:text-2xl font-bold font-ar">{stat.value}</h3>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Main Content Area */}
+      <div className="lg:grid lg:grid-cols-1 gap-8">
+        <div className="space-y-6">
+          <Card className="border-none shadow-md overflow-hidden min-h-[500px]">
+            <CardHeader className="bg-muted/30 p-4 md:pb-0">
+              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between pb-4">
+                <div className="flex w-full items-center gap-2">
+                  <div className="relative flex-1 sm:max-w-xs">
+                    <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      placeholder="بحث عن منتج..."
+                      className="pr-10 h-11 border-none bg-background shadow-none rounded-xl text-sm"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                  </div>
+                  <div className="flex bg-background rounded-lg p-1 shadow-sm border">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className={`h-9 w-9 rounded-md transition-all ${viewMode === 'grid' ? 'bg-primary/10 text-primary' : 'text-muted-foreground'}`}
+                      onClick={() => setViewMode('grid')}
+                    >
+                      <LayoutGrid className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className={`h-9 w-9 rounded-md transition-all ${viewMode === 'list' ? 'bg-primary/10 text-primary' : 'text-muted-foreground'}`}
+                      onClick={() => setViewMode('list')}
+                    >
+                      <List className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-6 border-b">
+                <button
+                  onClick={() => setActiveTab('my-stock')}
+                  className={`pb-4 text-sm font-bold transition-all relative ${activeTab === 'my-stock' ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                >
+                  المخزون الفعلي
+                  {activeTab === 'my-stock' && (
+                    <motion.div layoutId="tab-indicator" className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
+                  )}
+                </button>
+                <button
+                  onClick={() => setActiveTab('requests')}
+                  className={`pb-4 text-sm font-bold transition-all relative ${activeTab === 'requests' ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                >
+                  المحجوز (بانتظار التوثيق)
+                  {activeTab === 'requests' && (
+                    <motion.div layoutId="tab-indicator" className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
+                  )}
+                </button>
+              </div>
+            </CardHeader>
+
+            <div className="p-6">
+              <AnimatePresence mode="wait">
+                {activeTab === 'requests' ? (
+                  <motion.div
+                    key="requests"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                    className={viewMode === 'grid'
+                      ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+                      : "flex flex-col gap-3"
+                    }
+                  >
+                    {filteredReservedItems.length === 0 ? (
+                      <div className="col-span-full flex flex-col items-center justify-center py-20 text-center">
+                        <div className="rounded-full bg-muted p-6 mb-4">
+                          <FileText className="h-12 w-12 text-muted-foreground/30" />
+                        </div>
+                        <h3 className="text-lg font-bold">لا توجد بضاعة محجوزة</h3>
+                        <p className="text-muted-foreground">جميع طلباتك تمت معالجتها أو لم تقم بطلب بضاعة بعد</p>
+                      </div>
+                    ) : (
+                      filteredReservedItems.map((item, idx) => (
+                        <motion.div
+                          key={`${item.id}-${idx}`}
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: idx * 0.05 }}
+                          className={`group rounded-2xl border bg-card transition-all hover:border-primary/50 hover:shadow-lg ${viewMode === 'grid' ? 'p-6 flex flex-col items-center text-center' : 'p-4 flex items-center justify-between'
+                            }`}
+                        >
+                          <div className={`flex items-center gap-4 ${viewMode === 'grid' ? 'flex-col mb-4' : ''}`}>
+                            <div className={`h-14 w-14 rounded-full flex items-center justify-center transition-transform duration-300 group-hover:scale-110 ${item.status === 'approved'
+                                ? 'bg-emerald-500/10 text-emerald-600'
+                                : 'bg-amber-500/10 text-amber-600'
+                              }`}>
+                              <Package className="h-7 w-7" />
+                            </div>
+                            <div className={viewMode === 'grid' ? '' : 'text-right flex-1'}>
+                              <div className="flex items-center gap-2 justify-center md:justify-start mb-1">
+                                <h3 className="font-bold text-lg">{item.product?.name}</h3>
+                              </div>
+                              <p className="text-xs text-muted-foreground mb-2">
+                                رقم الطلب: {item.invoice_number}
+                              </p>
+                              {getStatusBadge(item.status)}
+                            </div>
+                          </div>
+
+                          <div className={viewMode === 'grid' ? 'w-full pt-4 border-t' : 'text-left pl-4 border-l'}>
+                            <div className="flex flex-col items-center">
+                              <span className="text-xs text-muted-foreground font-medium mb-1">الكمية المحجوزة</span>
+                              <span className={`text-3xl font-black font-ar ${item.status === 'approved' ? 'text-emerald-600' : 'text-amber-500'
+                                }`}>
+                                {item.quantity}
+                              </span>
+                            </div>
+                          </div>
+
+                          {viewMode === 'list' && (
+                            <div className="mr-6 flex items-center gap-2 text-xs text-muted-foreground min-w-[120px]">
+                              <Calendar className="w-3 h-3" />
+                              {new Date(item.date).toLocaleDateString('ar-LY')}
+                            </div>
+                          )}
+                        </motion.div>
+                      ))
+                    )}
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="stock"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    className={viewMode === 'grid'
+                      ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+                      : "flex flex-col gap-3"
+                    }
+                  >
+                    {filteredStock.length === 0 ? (
+                      <div className="col-span-full flex flex-col items-center justify-center py-20 text-center">
+                        <div className="rounded-full bg-muted p-6 mb-4">
+                          <Package className="h-12 w-12 text-muted-foreground/30" />
+                        </div>
+                        <h3 className="text-lg font-bold">مخزنك فارغ حالياً</h3>
+                        <p className="text-muted-foreground">لم يتم إضافة أي بضاعة لمخزونك الفعلي بعد</p>
+                        <Button
+                          variant="outline"
+                          className="mt-4"
+                          onClick={() => navigate('receive')}
+                        >
+                          طلب بضاعة من المخزن
+                        </Button>
+                      </div>
+                    ) : (
+                      filteredStock.map((item, idx) => (
+                        <motion.div
+                          key={item.id}
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: idx * 0.05 }}
+                          className={`group rounded-2xl border bg-card transition-all hover:border-primary/50 hover:shadow-lg ${viewMode === 'grid' ? 'p-6 flex flex-col items-center text-center' : 'p-4 flex items-center justify-between'
+                            }`}
+                        >
+                          <div className={`flex items-center gap-4 ${viewMode === 'grid' ? 'flex-col mb-4' : ''}`}>
+                            <div className="h-14 w-14 rounded-full bg-primary/5 flex items-center justify-center text-primary group-hover:scale-110 transition-transform duration-300">
+                              <Package className="h-7 w-7" />
+                            </div>
+                            <div className={viewMode === 'grid' ? '' : 'text-right'}>
+                              <h3 className="font-bold text-lg mb-1">{item.product?.name}</h3>
+                              <p className="text-xs text-muted-foreground bg-secondary px-2 py-1 rounded-md inline-block">
+                                {item.product?.barcode}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className={viewMode === 'grid' ? 'w-full pt-4 border-t' : ''}>
+                            <div className="flex flex-col items-center">
+                              <span className="text-xs text-muted-foreground font-medium mb-1">الكمية المتوفرة</span>
+                              <span className="text-3xl font-black text-primary font-ar">{item.quantity}</span>
+                            </div>
+                          </div>
+                        </motion.div>
+                      ))
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </Card>
+        </div>
+      </div>
+
+      {/* Mobile Floating Action Button (FAB) */}
+      <motion.div
+        className="fixed bottom-6 right-6 z-50 md:hidden"
+        initial={{ scale: 0, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.5 }}
+      >
+        <Button
+          onClick={() => navigate('receive')}
+          size="icon"
+          className="h-16 w-16 rounded-full bg-primary text-white shadow-2xl shadow-primary/40 flex items-center justify-center active:scale-90 transition-transform"
+        >
+          <Plus className="h-8 w-8" />
+        </Button>
+      </motion.div>
 
       {/* Upload Confirmation Dialog */}
       <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
@@ -335,6 +443,6 @@ export const WarehousePage = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </motion.div>
+    </div>
   );
 };

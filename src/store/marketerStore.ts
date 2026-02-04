@@ -145,8 +145,24 @@ export const useMarketerStore = create<MarketerStore>()(
         }));
       },
 
-      fetchRequests: async (marketerId) => { },
-      fetchStock: async (marketerId) => { },
+      fetchRequests: async (marketerId) => {
+        // Simulate API fetch
+        set({ isLoading: true });
+        await new Promise(resolve => setTimeout(resolve, 500));
+        set({
+          requests: mockRequests.filter(r => r.marketer_id === marketerId),
+          isLoading: false
+        });
+      },
+      fetchStock: async (marketerId) => {
+        // Simulate API fetch
+        set({ isLoading: true });
+        await new Promise(resolve => setTimeout(resolve, 500));
+        set({
+          stock: mockStock.filter(s => s.marketer_id === marketerId),
+          isLoading: false
+        });
+      },
 
       approveRequest: async (requestId, keeperId) => {
         set(state => ({
