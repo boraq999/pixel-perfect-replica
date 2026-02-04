@@ -1,10 +1,8 @@
 // صفحة: إرجاعات (المسوق الأفضل)
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import {
   RotateCcw,
-  Search,
-  Store,
   Package,
   Plus,
   Minus,
@@ -12,7 +10,11 @@ import {
   Check,
   Loader2,
   ArrowRight,
-  AlertCircle
+  AlertCircle,
+  ShoppingBag,
+  TrendingDown,
+  FileText,
+  Search
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,19 +30,28 @@ import {
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { useCurrency } from '@/store/currencyStore';
+import { StatCard, SearchBar } from './shared';
 
-// Mock data
-const mockStores = [
-  { id: '1', name: 'متجر الرياض' },
-  { id: '2', name: 'سوبرماركت النور' },
-  { id: '3', name: 'مركز السلام' },
-];
-
-const mockOrderProducts = [
-  { id: '1', name: 'حليب كامل الدسم', orderedQty: 20, price: 8 },
-  { id: '2', name: 'زبادي طبيعي', orderedQty: 15, price: 5 },
-  { id: '3', name: 'عصير برتقال', orderedQty: 30, price: 12 },
-];
+// Mock data - فواتير وهمية
+const mockInvoices: Record<string, { invoiceNumber: string; storeName: string; products: Array<{ id: string; name: string; orderedQty: number; price: number }> }> = {
+  'INV-001': {
+    invoiceNumber: 'INV-001',
+    storeName: 'متجر الرياض',
+    products: [
+      { id: '1', name: 'حليب كامل الدسم', orderedQty: 20, price: 8 },
+      { id: '2', name: 'زبادي طبيعي', orderedQty: 15, price: 5 },
+      { id: '3', name: 'عصير برتقال', orderedQty: 30, price: 12 },
+    ]
+  },
+  'INV-002': {
+    invoiceNumber: 'INV-002',
+    storeName: 'سوبرماركت النور',
+    products: [
+      { id: '4', name: 'عجينة تمر فاخرة', orderedQty: 10, price: 212 },
+      { id: '5', name: 'قهوة عربية', orderedQty: 25, price: 150 },
+    ]
+  },
+};
 
 interface ReturnItem {
   productId: string;
@@ -73,14 +84,62 @@ const returnReasons = [
 
 export const ReturnsPage = () => {
   const navigate = useNavigate();
-  const [storeId, setStoreId] = useState('');
+  const [invoiceNumber, setInvoiceNumber] = useState('');
+  const [invoiceData, setInvoiceData] = useState<typeof mockInvoices[string] | null>(null);
   const [items, setItems] = useState<ReturnItem[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [notes, setNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
   const { formatAmount } = useCurrency();
 
+  // Stats calculation
+  const stats = useMemo(() => ({
+    totalProducts: items.length,
+    totalQuantity: items.reduce((sum, item) => sum + item.quantity, 0),
+    totalAmount: items.reduce((sum, item) => sum + (item.quantity * item.price), 0),
+  }), [items]);
+
+  const statsData = useMemo(() => [
+    { title: 'عدد المنتجات', value: stats.totalProducts, icon: Package, color: 'text-blue-500', bgColor: 'bg-blue-500/10' },
+    { title: 'إجمالي الكمية', value: stats.totalQuantity, icon: ShoppingBag, color: 'text-amber-500', bgColor: 'bg-amber-500/10' },
+    { title: 'قيمة المرتجع', value: formatAmount(stats.totalAmount), icon: TrendingDown, color: 'text-rose-500', bgColor: 'bg-rose-500/10' },
+  ], [stats, formatAmount]);
+
+  const searchInvoice = async () => {
+    if (!invoiceNumber.trim()) {
+      toast.error('يرجى إدخال رقم الفاتورة');
+      return;
+    }
+
+    setIsSearching(true);
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    const invoice = mockInvoices[invoiceNumber.toUpperCase()];
+    if (invoice) {
+      setInvoiceData(invoice);
+      setItems([]);
+      toast.success('تم العثور على الفاتورة');
+    } else {
+      setInvoiceData(null);
+      toast.error('لم يتم العثور على الفاتورة');
+    }
+    setIsSearching(false);
+  };
+
+  // Filter products based on search query
+  const filteredProducts = useMemo(() => {
+    if (!invoiceData) return [];
+    if (!searchQuery.trim()) return invoiceData.products;
+    return invoiceData.products.filter(product =>
+      product.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [invoiceData, searchQuery]);
+
   const addProduct = (productId: string) => {
-    const product = mockOrderProducts.find(p => p.id === productId);
+    if (!invoiceData) return;
+    const product = invoiceData.products.find(p => p.id === productId);
     if (!product) return;
 
     const existingIndex = items.findIndex(item => item.productId === productId);
@@ -99,11 +158,13 @@ export const ReturnsPage = () => {
     }]);
   };
 
-  const updateQuantity = (index: number, change: number) => {
+  const updateQuantity = (index: number, value: number) => {
+    if (!invoiceData) return;
     const newItems = [...items];
-    const product = mockOrderProducts.find(p => p.id === newItems[index].productId);
+    const product = invoiceData.products.find(p => p.id === newItems[index].productId);
     const maxQty = product?.orderedQty || 1;
-    newItems[index].quantity = Math.min(maxQty, Math.max(1, newItems[index].quantity + change));
+    const validValue = Math.min(maxQty, Math.max(1, value));
+    newItems[index].quantity = validValue;
     setItems(newItems);
   };
 
@@ -117,11 +178,9 @@ export const ReturnsPage = () => {
     setItems(items.filter((_, i) => i !== index));
   };
 
-  const total = items.reduce((sum, item) => sum + (item.quantity * item.price), 0);
-
   const handleSubmit = async () => {
-    if (!storeId) {
-      toast.error('يرجى اختيار المتجر');
+    if (!invoiceData) {
+      toast.error('يرجى البحث عن الفاتورة أولاً');
       return;
     }
     if (items.length === 0) {
@@ -147,63 +206,117 @@ export const ReturnsPage = () => {
       className="space-y-6"
     >
       {/* Header */}
-      <motion.div variants={itemVariants} className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-          <ArrowRight className="w-5 h-5" />
-        </Button>
-        <div>
-          <h1 className="text-2xl font-bold">تسجيل مرتجع</h1>
-          <p className="text-muted-foreground">تسجيل المنتجات المرتجعة من المتجر</p>
+      <motion.div variants={itemVariants} className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-primary/95 to-primary p-6 text-white shadow-2xl md:p-8">
+        <div className="absolute top-0 right-0 h-full w-1/2 bg-[url('/pattern.svg')] opacity-10 mix-blend-overlay" />
+        <div className="relative z-10 flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="text-white hover:bg-white/20">
+            <ArrowRight className="w-5 h-5" />
+          </Button>
+          <div className="flex items-center gap-3">
+            <div className="rounded-2xl bg-white/20 p-2 backdrop-blur-md md:p-3">
+              <RotateCcw className="h-6 w-6 md:h-8 md:w-8" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-extrabold tracking-tight md:text-4xl">تسجيل مرتجع</h1>
+              <p className="mt-0.5 text-xs md:mt-1 md:text-base text-primary-foreground/80">تسجيل المنتجات المرتجعة من المتجر</p>
+            </div>
+          </div>
         </div>
       </motion.div>
+
+      {/* Stats */}
+      {items.length > 0 && (
+        <motion.div variants={itemVariants} className="hide-scrollbar flex gap-4 overflow-x-auto pb-2 -mx-2 px-2">
+          {statsData.map((stat, i) => (
+            <div key={i} className="min-w-[200px] flex-shrink-0">
+              <StatCard {...stat} delay={i * 0.1} />
+            </div>
+          ))}
+        </motion.div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Return Form */}
         <motion.div variants={itemVariants} className="lg:col-span-2 space-y-6">
-          {/* Store Selection */}
+          {/* Invoice Search */}
           <div className="stat-card">
-            <Label className="text-base font-semibold mb-3 block">اختر المتجر</Label>
-            <Select value={storeId} onValueChange={setStoreId}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="اختر المتجر" />
-              </SelectTrigger>
-              <SelectContent>
-                {mockStores.map(store => (
-                  <SelectItem key={store.id} value={store.id}>
-                    <div className="flex items-center gap-2">
-                      <Store className="w-4 h-4" />
-                      {store.name}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label className="text-base font-semibold mb-3 block flex items-center gap-2">
+              <FileText className="w-5 h-5 text-primary" />
+              رقم الفاتورة
+            </Label>
+            <div className="flex gap-2">
+              <Input
+                placeholder="أدخل رقم الفاتورة (مثال: INV-001)"
+                value={invoiceNumber}
+                onChange={(e) => setInvoiceNumber(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && searchInvoice()}
+                className="flex-1"
+              />
+              <Button onClick={searchInvoice} disabled={isSearching}>
+                {isSearching ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Search className="w-4 h-4" />
+                )}
+              </Button>
+            </div>
+            {invoiceData && (
+              <div className="mt-3 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                <p className="text-sm font-medium text-emerald-700">
+                  المتجر: {invoiceData.storeName}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  عدد المنتجات: {invoiceData.products.length}
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Products */}
-          <div className="stat-card">
-            <Label className="text-base font-semibold mb-3 block">المنتجات المتاحة للإرجاع</Label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-              {mockOrderProducts.map(product => (
-                <motion.button
-                  key={product.id}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => addProduct(product.id)}
-                  className="p-3 rounded-lg bg-accent/30 hover:bg-accent/50 transition-colors text-right"
-                >
-                  <div className="flex items-start justify-between">
-                    <Package className="w-4 h-4 text-muted-foreground" />
-                    <div className="text-right">
-                      <p className="font-medium text-sm">{product.name}</p>
-                      <p className="text-xs text-muted-foreground">الكمية: {product.orderedQty}</p>
-                      <p className="text-sm font-semibold text-warning mt-1">{formatAmount(product.price)}</p>
+          {invoiceData && (
+            <div className="stat-card">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-3">
+                <Label className="text-base font-semibold flex items-center gap-2">
+                  <Package className="w-5 h-5 text-primary" />
+                  المنتجات المتاحة للإرجاع
+                </Label>
+                <SearchBar
+                  value={searchQuery}
+                  onChange={setSearchQuery}
+                  placeholder="بحث عن منتج..."
+                  className="w-full sm:max-w-xs"
+                />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {filteredProducts.map(product => (
+                  <motion.button
+                    key={product.id}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => addProduct(product.id)}
+                    className="group relative p-4 rounded-xl bg-gradient-to-br from-accent/40 to-accent/20 hover:from-primary/10 hover:to-primary/5 border border-border hover:border-primary/30 transition-all text-right overflow-hidden"
+                  >
+                    <div className="absolute top-2 left-2 w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                      <Package className="w-4 h-4 text-primary" />
                     </div>
-                  </div>
-                </motion.button>
-              ))}
+                    <div className="space-y-2 pr-2">
+                      <p className="font-bold text-sm leading-tight">{product.name}</p>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                          <span>متوفر: {product.orderedQty}</span>
+                        </div>
+                        <div className="px-2 py-1 rounded-md bg-primary/10 border border-primary/20">
+                          <p className="text-sm font-bold text-primary">{formatAmount(product.price)}</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-primary/0 via-primary/50 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </motion.button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Return Items */}
           {items.length > 0 && (
@@ -243,16 +356,23 @@ export const ReturnsPage = () => {
                           size="icon"
                           variant="outline"
                           className="h-8 w-8"
-                          onClick={() => updateQuantity(index, -1)}
+                          onClick={() => updateQuantity(index, item.quantity - 1)}
                         >
                           <Minus className="w-3 h-3" />
                         </Button>
-                        <span className="w-8 text-center font-medium">{item.quantity}</span>
+                        <Input
+                          type="number"
+                          min="1"
+                          max={invoiceData?.products.find(p => p.id === item.productId)?.orderedQty || 1}
+                          value={item.quantity}
+                          onChange={(e) => updateQuantity(index, parseInt(e.target.value) || 1)}
+                          className="w-16 h-8 text-center font-medium"
+                        />
                         <Button
                           size="icon"
                           variant="outline"
                           className="h-8 w-8"
-                          onClick={() => updateQuantity(index, 1)}
+                          onClick={() => updateQuantity(index, item.quantity + 1)}
                         >
                           <Plus className="w-3 h-3" />
                         </Button>
@@ -314,15 +434,15 @@ export const ReturnsPage = () => {
             <div className="space-y-2 pt-4 border-t border-border">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">عدد المنتجات</span>
-                <span>{items.length}</span>
+                <span>{stats.totalProducts}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">إجمالي الكمية</span>
-                <span>{items.reduce((sum, item) => sum + item.quantity, 0)}</span>
+                <span>{stats.totalQuantity}</span>
               </div>
               <div className="flex justify-between text-lg font-bold pt-2">
                 <span>إجمالي المرتجع</span>
-                <span className="text-warning">{formatAmount(total)}</span>
+                <span className="text-warning">{formatAmount(stats.totalAmount)}</span>
               </div>
             </div>
 
