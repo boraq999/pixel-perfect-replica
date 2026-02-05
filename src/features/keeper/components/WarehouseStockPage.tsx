@@ -1,23 +1,23 @@
 import { useState } from 'react';
-import { 
-  Package, 
-  History, 
-  Search, 
-  ArrowUpRight, 
-  ArrowDownLeft, 
+import {
+  Package,
+  History,
+  Search,
+  ArrowUpRight,
+  ArrowDownLeft,
   Filter,
   Download
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';

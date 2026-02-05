@@ -48,7 +48,7 @@ const App = () => {
     if (!isAuthenticated || !user) return "/";
     // Check if it's the best marketer
     if (user.id === 'marketer-2') return "/best-marketer";
-    
+
     switch (user.role) {
       case 'admin': return "/admin";
       case 'keeper': return "/keeper";

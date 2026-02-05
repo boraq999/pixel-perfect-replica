@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { 
-  FilePlus, 
-  FileText, 
-  Plus, 
-  Trash2, 
-  Save, 
+import {
+  FilePlus,
+  FileText,
+  Plus,
+  Trash2,
+  Save,
   Image as ImageIcon,
   CheckCircle2,
   Package
@@ -148,8 +148,8 @@ export const FactoryInvoicesPage = () => {
           </Card>
 
           <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 flex gap-3">
-             <CheckCircle2 className="w-5 h-5 text-amber-600 shrink-0" />
-             <p className="text-xs text-amber-800">بمجرد الضغط على حفظ، سيتم إضافة الكميات مباشرة إلى المخزن الرئيسي (Main Stock) وتسجيل الحركة في السجلات.</p>
+            <CheckCircle2 className="w-5 h-5 text-amber-600 shrink-0" />
+            <p className="text-xs text-amber-800">بمجرد الضغط على حفظ، سيتم إضافة الكميات مباشرة إلى المخزن الرئيسي (Main Stock) وتسجيل الحركة في السجلات.</p>
           </div>
         </div>
       </div>

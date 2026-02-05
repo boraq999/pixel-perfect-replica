@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { 
-  ClipboardCheck, 
-  Camera, 
-  Search, 
-  ChevronRight, 
+import {
+  ClipboardCheck,
+  Camera,
+  Search,
+  ChevronRight,
   FileText,
   UploadCloud,
   Package
@@ -95,7 +95,7 @@ export const KeeperDeliveryConfirmationPage = () => {
             </div>
 
             <div className="space-y-2 border-t pt-4">
-              <h3 className="font-bold flex items-center gap-2 text-right"><Package className="w-4 h-4"/> الأصناف المطلوبة</h3>
+              <h3 className="font-bold flex items-center gap-2 text-right"><Package className="w-4 h-4" /> الأصناف المطلوبة</h3>
               <div className="divide-y border rounded-xl">
                 {selectedRequest.items.map((item, index) => (
                   <div key={index} className="flex justify-between items-center p-3 text-sm">
@@ -141,5 +141,5 @@ export const KeeperDeliveryConfirmationPage = () => {
 };
 
 const Loader2 = ({ className }: { className?: string }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M21 12a9 9 0 0 1-9 9 9 9 0 0 1-9-9zm-3 0a6 6 0 0 0-6-6v6h6z"/></svg>
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M21 12a9 9 0 0 1-9 9 9 9 0 0 1-9-9zm-3 0a6 6 0 0 0-6-6v6h6z" /></svg>
 );

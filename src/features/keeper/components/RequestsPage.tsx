@@ -2,8 +2,6 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ClipboardList,
-  Check,
-  X,
   Search,
   Eye,
   User,
@@ -17,7 +15,10 @@ import {
   FileText,
   Printer,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Truck,
+  Package2,
+  CheckCircle
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,6 +26,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
+import { RequestStatusBadge } from './shared/RequestStatusBadge';
 
 interface RequestItem {
   product_id: number;
@@ -40,6 +42,7 @@ interface MarketerRequest {
   status: 'pending' | 'approved' | 'documented' | 'rejected' | 'cancelled';
   created_at: string;
   items: RequestItem[];
+  total: number;
   approved_by?: string;
   documented_by?: string;
   keeper_name?: string; // Used for single-action responsibly like reject/cancel
@@ -49,11 +52,12 @@ interface MarketerRequest {
 const mockRequests: MarketerRequest[] = [
   {
     id: 1,
-    invoice_number: 'REQ-2024-001',
+    invoice_number: 'ORD-2024-001',
     marketer_name: 'أحمد محمد',
     marketer_id: 5,
-    status: 'pending',
-    created_at: '2024-03-20 10:30',
+    status: 'approved',
+    created_at: '2024-01-15',
+    total: 15600.50,
     items: [
       { product_id: 1, name: 'عطر الفارس 100مل', quantity: 10 },
       { product_id: 2, name: 'بخور ملكي', quantity: 5 },
@@ -61,11 +65,12 @@ const mockRequests: MarketerRequest[] = [
   },
   {
     id: 2,
-    invoice_number: 'REQ-2024-002',
+    invoice_number: 'ORD-2024-002',
     marketer_name: 'سارة علي',
     marketer_id: 6,
     status: 'pending',
-    created_at: '2024-03-20 09:15',
+    created_at: '2024-01-16',
+    total: 8500.00,
     items: [
       { product_id: 1, name: 'عطر الفارس 100مل', quantity: 20 },
       { product_id: 3, name: 'دخون فاخر', quantity: 15 },
@@ -73,24 +78,24 @@ const mockRequests: MarketerRequest[] = [
   },
   {
     id: 3,
-    invoice_number: 'REQ-2024-003',
+    invoice_number: 'ORD-2024-003',
     marketer_name: 'محمد عبدالله',
     marketer_id: 7,
-    status: 'approved',
-    created_at: '2024-03-19 14:20',
-    approved_by: 'مسعود (أمين مخزن)',
+    status: 'documented',
+    created_at: '2024-01-17',
+    total: 12000.00,
     items: [
       { product_id: 2, name: 'بخور ملكي', quantity: 8 },
     ]
   },
   {
     id: 4,
-    invoice_number: 'REQ-2024-004',
+    invoice_number: 'ORD-2024-004',
     marketer_name: 'فاطمة أحمد',
     marketer_id: 8,
     status: 'approved',
-    created_at: '2024-03-19 11:00',
-    approved_by: 'مسعود (أمين مخزن)',
+    created_at: '2024-01-19',
+    total: 9250.75,
     items: [
       { product_id: 1, name: 'عطر الفارس 100مل', quantity: 15 },
       { product_id: 2, name: 'بخور ملكي', quantity: 10 },
@@ -98,36 +103,24 @@ const mockRequests: MarketerRequest[] = [
   },
   {
     id: 5,
-    invoice_number: 'REQ-2024-005',
+    invoice_number: 'ORD-2024-005',
     marketer_name: 'حسن خالد',
     marketer_id: 9,
-    status: 'documented',
-    created_at: '2024-03-18 16:45',
-    approved_by: 'مسعود (أمين مخزن)',
-    documented_by: 'همام (المسؤول الحالي)',
-    items: [
-      { product_id: 3, name: 'دخون فاخر', quantity: 25 },
-    ]
-  },
-  {
-    id: 6,
-    invoice_number: 'REQ-2024-006',
-    marketer_name: 'نور الدين',
-    marketer_id: 10,
     status: 'rejected',
-    created_at: '2024-03-18 13:30',
-    keeper_name: 'أحمد (مسؤول المخزن الرئيسي)',
+    created_at: '2024-01-20',
+    total: 3500.00,
     items: [
-      { product_id: 1, name: 'عطر الفارس 100مل', quantity: 50 },
+      { product_id: 3, name: 'دخون فاخر', quantity: 5 },
     ]
-  },
+  }
 ];
 
 type RequestStatus = MarketerRequest['status'];
 
 export const KeeperRequestsPage = () => {
   const [filter, setFilter] = useState<RequestStatus | 'rejected-cancelled'>('pending');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [invoiceSearch, setInvoiceSearch] = useState('');
+  const [marketerSearch, setMarketerSearch] = useState('');
   const [selectedRequest, setSelectedRequest] = useState<MarketerRequest | null>(null);
   const [documentingRequest, setDocumentingRequest] = useState<MarketerRequest | null>(null);
   const [requests, setRequests] = useState<MarketerRequest[]>(mockRequests);
@@ -180,11 +173,13 @@ export const KeeperRequestsPage = () => {
       statusMatch = req.status === filter;
     }
 
-    const searchMatch = !searchQuery ||
-      req.invoice_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      req.marketer_name.toLowerCase().includes(searchQuery.toLowerCase());
+    const invoiceMatch = !invoiceSearch ||
+      req.invoice_number.toLowerCase().includes(invoiceSearch.toLowerCase());
 
-    return statusMatch && searchMatch;
+    const marketerMatch = !marketerSearch ||
+      req.marketer_name.toLowerCase().includes(marketerSearch.toLowerCase());
+
+    return statusMatch && invoiceMatch && marketerMatch;
   });
 
   const getStatusCount = (status: RequestStatus | 'rejected-cancelled') => {
@@ -192,23 +187,6 @@ export const KeeperRequestsPage = () => {
       return requests.filter(r => r.status === 'rejected' || r.status === 'cancelled').length;
     }
     return requests.filter(r => r.status === status).length;
-  };
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return <Badge variant="outline" className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20">قيد الانتظار</Badge>;
-      case 'approved':
-        return <Badge variant="outline" className="bg-blue-500/10 text-blue-600 border-blue-500/20">بانتظار التوثيق</Badge>;
-      case 'documented':
-        return <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/20">تم التوثيق</Badge>;
-      case 'rejected':
-        return <Badge variant="outline" className="bg-red-500/10 text-red-600 border-red-500/20">مرفوض</Badge>;
-      case 'cancelled':
-        return <Badge variant="outline" className="bg-gray-500/10 text-gray-600 border-gray-500/20">ملغى</Badge>;
-      default:
-        return null;
-    }
   };
 
   return (
@@ -247,83 +225,118 @@ export const KeeperRequestsPage = () => {
         </div>
       </div>
 
-      <Card className="glass-card">
-        <div className="p-4 border-b">
-          <div className="relative max-w-md">
-            <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
-            <Input
-              className="pr-10"
-              placeholder="بحث برقم الطلب أو اسم المسوق..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
+      <div className="space-y-4">
+        <div className="glass-card p-4 rounded-xl">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="relative">
+              <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
+              <Input
+                className="pr-10 bg-background/50 border-none shadow-sm h-12 rounded-xl"
+                placeholder="رقم الفاتورة..."
+                value={invoiceSearch}
+                onChange={(e) => setInvoiceSearch(e.target.value)}
+              />
+            </div>
+            <div className="relative">
+              <User className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
+              <Input
+                className="pr-10 bg-background/50 border-none shadow-sm h-12 rounded-xl"
+                placeholder="اسم المسوق..."
+                value={marketerSearch}
+                onChange={(e) => setMarketerSearch(e.target.value)}
+              />
+            </div>
           </div>
         </div>
-        <CardContent className="p-0">
-          <div className="divide-y divide-border">
-            <AnimatePresence mode="popLayout">
-              {filteredRequests.map((request) => (
-                <motion.div
-                  key={request.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="p-6 hover:bg-muted/30 transition-colors flex flex-col md:flex-row items-center gap-6"
-                >
-                  <div className="flex items-center gap-4 flex-1">
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${request.status === 'documented'
-                      ? 'bg-green-500/10 text-green-600'
-                      : request.status === 'rejected' || request.status === 'cancelled'
-                        ? 'bg-red-500/10 text-red-600'
-                        : 'bg-yellow-500/10 text-yellow-600'
+
+        <div className="space-y-4">
+          <AnimatePresence mode="popLayout">
+            {filteredRequests.map((request) => (
+              <motion.div
+                key={request.id}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="group relative cursor-pointer"
+                onClick={() => setSelectedRequest(request)}
+              >
+                <div className="bg-card border border-border rounded-[1.5rem] p-5 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 hover:-translate-y-0.5">
+                  <div className="flex flex-col md:flex-row items-center gap-5">
+                    {/* Status Icon */}
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${request.status === 'approved'
+                      ? 'bg-success/10 text-success'
+                      : request.status === 'pending'
+                        ? 'bg-warning/10 text-warning'
+                        : request.status === 'documented'
+                          ? 'bg-info/10 text-info'
+                          : 'bg-muted text-muted-foreground'
                       }`}>
-                      <ClipboardList className="w-6 h-6" />
+                      {request.status === 'approved' && <CheckCircle2 className="w-6 h-6" />}
+                      {request.status === 'pending' && <Clock className="w-6 h-6" />}
+                      {request.status === 'documented' && <Truck className="w-6 h-6" />}
+                      {(request.status === 'rejected' || request.status === 'cancelled') && <XCircle className="w-6 h-6" />}
                     </div>
-                    <div>
-                      <h3 className="font-bold text-lg">{request.invoice_number}</h3>
-                      <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-sm text-muted-foreground">
-                        <span className="flex items-center gap-1"><User className="w-3 h-3" /> {request.marketer_name}</span>
-                        <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {request.created_at}</span>
-                        <span className="flex items-center gap-1"><Package className="w-3 h-3" /> {request.items.length} أصناف</span>
+
+                    {/* Basic Info */}
+                    <div className="flex-1 text-center md:text-right">
+                      <h3 className="text-lg font-black text-foreground tracking-tight mb-1">
+                        {request.invoice_number}
+                      </h3>
+                      <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-4 gap-y-1 text-[13px] text-muted-foreground font-medium">
+                        <span className="flex items-center gap-1.5">
+                          <Calendar className="w-3.5 h-3.5 opacity-70" />
+                          {request.created_at}
+                        </span>
+                        <span className="w-1 h-1 rounded-full bg-border hidden md:block" />
+                        <span className="flex items-center gap-1.5 text-primary/80">
+                          <User className="w-3.5 h-3.5" />
+                          {request.marketer_name}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Status Badge & Arrow */}
+                    <div className="flex items-center gap-4">
+                      <div className={`flex items-center gap-2 px-4 py-2 rounded-full font-bold text-xs border ${request.status === 'approved'
+                        ? 'bg-success/10 text-success border-success/20'
+                        : request.status === 'pending'
+                          ? 'bg-warning/10 text-warning border-warning/20'
+                          : request.status === 'documented'
+                            ? 'bg-info/10 text-info border-info/20'
+                            : 'bg-muted text-muted-foreground border-border'
+                        }`}>
+                        {request.status === 'approved' && <CheckCircle2 className="w-3.5 h-3.5" />}
+                        {request.status === 'pending' && <Clock className="w-3.5 h-3.5" />}
+                        {request.status === 'documented' && <Truck className="w-3.5 h-3.5" />}
+                        {(request.status === 'rejected' || request.status === 'cancelled') && <XCircle className="w-3.5 h-3.5" />}
+                        {request.status === 'approved' && "تمت الموافقة"}
+                        {request.status === 'pending' && "قيد الانتظار"}
+                        {request.status === 'documented' && "تم التسليم"}
+                        {request.status === 'rejected' && "مرفوض"}
+                        {request.status === 'cancelled' && "ملغى"}
+                      </div>
+
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center text-muted-foreground group-hover:text-primary transition-colors">
+                        <ChevronRight className="w-5 h-5" />
                       </div>
                     </div>
                   </div>
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
 
-                  <div className="flex flex-wrap items-center gap-4 w-full md:w-auto justify-between md:justify-end">
-                    {getStatusBadge(request.status)}
-
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="hidden md:flex items-center gap-2"
-                        onClick={() => setSelectedRequest(request)}
-                      >
-                        <Eye className="w-4 h-4" />
-                        مراجعة الطلب
-                      </Button>
-
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => setSelectedRequest(request)}
-                      >
-                        <ChevronRight className="w-5 h-5" />
-                      </Button>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </AnimatePresence>
-
-            {filteredRequests.length === 0 && (
-              <div className="p-8 text-center text-muted-foreground">
-                لا توجد طلبات في هذه الحالة حالياً.
+          {filteredRequests.length === 0 && (
+            <div className="p-12 text-center bg-white dark:bg-zinc-900 rounded-[2rem] border-2 border-dashed border-zinc-200 dark:border-zinc-800">
+              <div className="w-20 h-20 bg-zinc-100 dark:bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Search className="w-10 h-10 text-zinc-400" />
               </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+              <p className="text-zinc-500 font-bold text-lg">لا توجد طلبات في هذه الحالة حالياً.</p>
+              <p className="text-zinc-400 text-sm">حاول تغيير الفلتر أو البحث عن طلب آخر</p>
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Request Details Dialog */}
       <AnimatePresence>
@@ -348,8 +361,24 @@ export const KeeperRequestsPage = () => {
                     <p className="font-medium">{selectedRequest.created_at}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground mb-1">الحالة</p>
-                    <div>{getStatusBadge(selectedRequest.status)}</div>
+                    <p className="text-xs text-muted-foreground mb-1.5">الحالة</p>
+                    <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full font-bold text-[10px] border w-fit ${selectedRequest.status === 'approved'
+                      ? 'bg-success/10 text-success border-success/10'
+                      : selectedRequest.status === 'pending'
+                        ? 'bg-warning/10 text-warning border-warning/10'
+                        : selectedRequest.status === 'documented'
+                          ? 'bg-info/10 text-info border-info/10'
+                          : 'bg-muted text-muted-foreground border-border'
+                      }`}>
+                      {selectedRequest.status === 'approved' && <CheckCircle2 className="w-3 h-3" />}
+                      {selectedRequest.status === 'pending' && <Clock className="w-3 h-3" />}
+                      {selectedRequest.status === 'documented' && <Truck className="w-3 h-3" />}
+                      {selectedRequest.status === 'approved' && "تمت الموافقة"}
+                      {selectedRequest.status === 'pending' && "قيد الانتظار"}
+                      {selectedRequest.status === 'documented' && "تم التسليم"}
+                      {selectedRequest.status === 'rejected' && "مرفوض"}
+                      {selectedRequest.status === 'cancelled' && "ملغى"}
+                    </div>
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground mb-1">عدد الأصناف</p>
@@ -412,8 +441,8 @@ export const KeeperRequestsPage = () => {
 
                 <div className="flex flex-wrap gap-2 pt-4 border-t">
                   <Button
-                    variant="outline"
-                    className="flex-1 order-1"
+                    variant="secondary"
+                    className="flex-1 font-bold"
                     onClick={() => setSelectedRequest(null)}
                   >
                     <ChevronLeft className="w-4 h-4 ml-2" />
@@ -434,7 +463,7 @@ export const KeeperRequestsPage = () => {
                         إلغاء الطلب
                       </Button>
                       <Button
-                        className="flex-1 bg-green-600 hover:bg-green-700"
+                        className="flex-1 bg-success text-success-foreground hover:bg-success/90 font-bold"
                         onClick={() => {
                           handleApprove(selectedRequest.id);
                           setSelectedRequest(null);
@@ -449,8 +478,8 @@ export const KeeperRequestsPage = () => {
                   {selectedRequest.status === 'approved' && (
                     <>
                       <Button
-                        variant="secondary"
-                        className="flex-1 order-2"
+                        variant="ghost"
+                        className="flex-1 border hover:bg-accent"
                         onClick={() => {
                           toast.info('جاري تجهيز الفاتورة للطباعة...');
                           window.print();
@@ -471,7 +500,7 @@ export const KeeperRequestsPage = () => {
                         إلغاء الطلب
                       </Button>
                       <Button
-                        className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
+                        className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 font-bold"
                         onClick={() => {
                           setDocumentingRequest(selectedRequest);
                           setSelectedRequest(null);
@@ -485,8 +514,8 @@ export const KeeperRequestsPage = () => {
 
                   {(selectedRequest.status === 'rejected' || selectedRequest.status === 'cancelled') && (
                     <Button
-                      variant="secondary"
-                      className="flex-1 order-2"
+                      variant="ghost"
+                      className="flex-1 border hover:bg-accent"
                       onClick={() => {
                         toast.info('جاري تجهيز الفاتورة للطباعة...');
                         window.print();
@@ -499,8 +528,8 @@ export const KeeperRequestsPage = () => {
 
                   {selectedRequest.status === 'documented' && (
                     <Button
-                      variant="secondary"
-                      className="flex-1 order-2"
+                      variant="ghost"
+                      className="flex-1 border hover:bg-accent"
                       onClick={() => {
                         toast.info('جاري عرض الفاتورة الموثقة...');
                         // Logic to view the invoice/image would go here
@@ -586,7 +615,7 @@ export const KeeperRequestsPage = () => {
                     إلغاء
                   </Button>
                   <Button
-                    className="flex-1 bg-purple-600 hover:bg-purple-700"
+                    className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 font-bold shadow-lg shadow-primary/20"
                     disabled={!documentImage}
                     onClick={handleDocument}
                   >
