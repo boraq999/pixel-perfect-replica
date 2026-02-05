@@ -16,7 +16,12 @@ import {
   XCircle,
   Calendar,
   FileText,
-  AlertCircle
+  AlertCircle,
+  ChevronRight,
+  Plus,
+  Search,
+  History,
+  Info
 } from 'lucide-react';
 import {
   Dialog,
@@ -41,6 +46,7 @@ interface WithdrawalRequest {
   notes?: string;
   admin_notes?: string;
   approved_date?: string;
+  approved_by?: string;
 }
 
 interface ProfitDetails {
@@ -67,6 +73,7 @@ const mockWithdrawals: WithdrawalRequest[] = [
     notes: 'سحب الأرباح الشهرية',
     admin_notes: 'تمت الموافقة',
     approved_date: '2024-01-16',
+    approved_by: 'أحمد المحسن',
   },
   {
     id: '2',
@@ -76,6 +83,7 @@ const mockWithdrawals: WithdrawalRequest[] = [
     status: 'approved',
     notes: 'سحب جزئي',
     approved_date: '2024-01-21',
+    approved_by: 'محمد علي',
   },
   {
     id: '3',
@@ -339,167 +347,356 @@ export const ProfitsWithdrawalPage = () => {
         </CardContent>
       </Card>
 
-      {/* Withdrawals History */}
-      <Card>
-        <CardHeader>
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <CardTitle className="text-xl flex items-center gap-2">
-                <Calendar className="h-5 w-5" />
-                سجل طلبات السحب
-              </CardTitle>
-              <CardDescription>جميع طلبات السحب السابقة والحالية</CardDescription>
-            </div>
-            <SearchBar
-              value={searchQuery}
-              onChange={setSearchQuery}
-              placeholder="بحث عن طلب..."
-              className="w-full sm:max-w-xs"
-            />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="all" className="w-full">
-            <div className="overflow-x-auto">
-              <TabsList className="inline-flex w-auto min-w-full md:grid md:w-full md:grid-cols-5">
-                <TabsTrigger value="all" className="whitespace-nowrap">كل الطلبات</TabsTrigger>
-                <TabsTrigger value="pending" className="whitespace-nowrap">قيد الانتظار</TabsTrigger>
-                <TabsTrigger value="approved" className="whitespace-nowrap">معتمد</TabsTrigger>
-                <TabsTrigger value="rejected" className="whitespace-nowrap">مرفوض</TabsTrigger>
-                <TabsTrigger value="cancelled" className="whitespace-nowrap">ملغي</TabsTrigger>
-              </TabsList>
-            </div>
-
-            <TabsContent value="all" className="space-y-4 mt-6">
-              {filteredWithdrawals.map((withdrawal) => (
-                <Card
-                  key={withdrawal.id}
-                  className="hover:shadow-md transition-shadow cursor-pointer"
-                  onClick={() => setSelectedWithdrawal(withdrawal)}
-                >
-                  <CardContent className="pt-6">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className="p-3 bg-primary/10 rounded-lg">
-                          <Wallet className="h-6 w-6 text-primary" />
-                        </div>
-                        <div>
-                          <h3 className="font-bold">{withdrawal.request_number}</h3>
-                          <p className="text-sm text-muted-foreground flex items-center gap-2 mt-1">
-                            <Calendar className="h-3 w-3" />
-                            {withdrawal.request_date}
-                          </p>
-                          {withdrawal.notes && (
-                            <p className="text-sm text-muted-foreground mt-1">{withdrawal.notes}</p>
-                          )}
-                        </div>
-                      </div>
-                      <div className="text-left">
-                        <Badge className={`${getStatusColor(withdrawal.status)} mb-2`}>
-                          <span className="flex items-center gap-1">
-                            {getStatusIcon(withdrawal.status)}
-                            {getStatusText(withdrawal.status)}
-                          </span>
-                        </Badge>
-                        <p className="text-xl font-bold">{formatAmount(withdrawal.amount)}</p>
-                        {withdrawal.approved_date && (
-                          <p className="text-xs text-muted-foreground mt-1">
-                            تمت الموافقة: {withdrawal.approved_date}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-
-                    {withdrawal.admin_notes && (
-                      <div className="mt-4 p-3 bg-muted/50 rounded-lg">
-                        <p className="text-sm">
-                          <span className="font-semibold">ملاحظة الإدارة:</span> {withdrawal.admin_notes}
-                        </p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
-            </TabsContent>
-
-            {['pending', 'approved', 'rejected', 'cancelled'].map((status) => (
-              <TabsContent key={status} value={status} className="space-y-4 mt-6">
-                {filteredWithdrawals
-                  .filter((w) => w.status === status)
-                  .map((withdrawal) => (
-                    <Card key={withdrawal.id} className="hover:shadow-md transition-shadow">
-                      <CardContent className="pt-6">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h3 className="font-bold">{withdrawal.request_number}</h3>
-                            <p className="text-sm text-muted-foreground">{withdrawal.request_date}</p>
-                          </div>
-                          <div>
-                            <p className="text-xl font-bold">{formatAmount(withdrawal.amount)}</p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
+      {/* Main Content Area */}
+      <div className="lg:grid lg:grid-cols-12 lg:gap-8">
+        {/* Left Column: Withdrawals History */}
+        <div className="lg:col-span-8 space-y-6">
+          <Card className="border-none shadow-md overflow-hidden">
+            <CardHeader className="bg-muted/30 p-4 md:pb-0">
+              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between pb-4">
+                <div>
+                  <CardTitle className="text-xl flex items-center gap-2">
+                    <Calendar className="h-5 w-5" />
+                    سجل طلبات السحب
+                  </CardTitle>
+                  <CardDescription>جميع طلبات السحب السابقة والحالية</CardDescription>
+                </div>
+                <SearchBar
+                  value={searchQuery}
+                  onChange={setSearchQuery}
+                  placeholder="بحث عن طلب..."
+                  className="w-full sm:max-w-xs"
+                />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <Tabs defaultValue="all" className="w-full">
+                <TabsList className="h-12 w-full justify-start gap-2 bg-transparent p-0 border-b rounded-none overflow-x-auto hide-scrollbar flex-nowrap">
+                  {[
+                    { id: 'all', label: 'كل الطلبات' },
+                    { id: 'pending', label: 'قيد الانتظار' },
+                    { id: 'approved', label: 'معتمد' },
+                    { id: 'rejected', label: 'مرفوض' },
+                    { id: 'cancelled', label: 'ملغي' },
+                  ].map(tab => (
+                    <TabsTrigger
+                      key={tab.id}
+                      value={tab.id}
+                      className="rounded-none border-b-2 border-transparent px-4 pb-3 pt-2 text-sm font-semibold transition-all data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-primary flex-shrink-0"
+                    >
+                      {tab.label}
+                    </TabsTrigger>
                   ))}
-              </TabsContent>
-            ))}
-          </Tabs>
-        </CardContent>
-      </Card>
+                </TabsList>
+
+                <TabsContent value="all" className="space-y-4 mt-6">
+                  {filteredWithdrawals.map((withdrawal) => (
+                    <motion.div
+                      key={withdrawal.id}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.3 }}
+                      onClick={() => setSelectedWithdrawal(withdrawal)}
+                      className="group cursor-pointer rounded-2xl border bg-card p-4 transition-all hover:border-primary/30 hover:shadow-lg active:scale-[0.98] md:p-5"
+                    >
+                      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                        <div className="flex items-center gap-4 md:gap-5">
+                          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl md:h-12 md:w-12 md:rounded-2xl bg-primary/10 transition-colors group-hover:scale-110">
+                            <Wallet className="h-5 w-5 md:h-6 md:w-6 text-primary" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex flex-wrap items-center gap-2 text-xs">
+                              <span className="flex items-center gap-1 text-muted-foreground">
+                                <Calendar className="h-3 w-3" />
+                                {withdrawal.request_date}
+                              </span>
+                              <div className={`flex h-6 items-center gap-1 rounded-full px-2 md:hidden ${getStatusColor(withdrawal.status)} text-[10px] font-bold`}>
+                                {getStatusIcon(withdrawal.status)}
+                                {getStatusText(withdrawal.status)}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-center md:justify-end md:gap-6">
+                          <div className="text-center md:text-right">
+                            <p className="text-[10px] font-medium text-muted-foreground">المبلغ</p>
+                            <p className="text-base font-extrabold text-primary md:text-lg font-ar">{formatAmount(withdrawal.amount)}</p>
+                            {withdrawal.approved_date && (
+                              <p className="text-[10px] text-muted-foreground mt-1">
+                                تمت الموافقة: {withdrawal.approved_date}
+                              </p>
+                            )}
+                          </div>
+                          <div className="hidden md:flex items-center gap-3">
+                            <div className={`flex h-7 items-center gap-1 rounded-full px-3 ${getStatusColor(withdrawal.status)} text-[10px] font-bold md:h-8 md:px-4 md:text-xs`}>
+                              {getStatusIcon(withdrawal.status)}
+                              {getStatusText(withdrawal.status)}
+                            </div>
+                            <div className="rounded-full p-1.5 transition-colors group-hover:bg-accent md:p-2">
+                              <ChevronRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-1 md:h-5 md:w-5" />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </TabsContent>
+
+                {['pending', 'approved', 'rejected', 'cancelled'].map((status) => (
+                  <TabsContent key={status} value={status} className="space-y-4 mt-6">
+                    {filteredWithdrawals
+                      .filter((w) => w.status === status)
+                      .map((withdrawal) => (
+                        <motion.div
+                          key={withdrawal.id}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ duration: 0.3 }}
+                          onClick={() => setSelectedWithdrawal(withdrawal)}
+                          className="group cursor-pointer rounded-2xl border bg-card p-4 transition-all hover:border-primary/30 hover:shadow-lg active:scale-[0.98] md:p-5"
+                        >
+                          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                            <div className="flex items-center gap-4 md:gap-5">
+                              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl md:h-12 md:w-12 md:rounded-2xl bg-primary/10 transition-colors group-hover:scale-110">
+                                <Wallet className="h-5 w-5 md:h-6 md:w-6 text-primary" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex flex-wrap items-center gap-2 text-xs">
+                                  <span className="flex items-center gap-1 text-muted-foreground">
+                                    <Calendar className="h-3 w-3" />
+                                    {withdrawal.request_date}
+                                  </span>
+                                  <div className={`flex h-6 items-center gap-1 rounded-full px-2 md:hidden ${getStatusColor(withdrawal.status)} text-[10px] font-bold`}>
+                                    {getStatusIcon(withdrawal.status)}
+                                    {getStatusText(withdrawal.status)}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center justify-center md:justify-end md:gap-6">
+                              <div className="text-center md:text-right">
+                                <p className="text-[10px] font-medium text-muted-foreground">المبلغ</p>
+                                <p className="text-base font-extrabold text-primary md:text-lg font-ar">{formatAmount(withdrawal.amount)}</p>
+                                {withdrawal.approved_date && (
+                                  <p className="text-[10px] text-muted-foreground mt-1">
+                                    تمت الموافقة: {withdrawal.approved_date}
+                                  </p>
+                                )}
+                              </div>
+                              <div className="hidden md:flex items-center gap-3">
+                                <div className={`flex h-7 items-center gap-1 rounded-full px-3 ${getStatusColor(withdrawal.status)} text-[10px] font-bold md:h-8 md:px-4 md:text-xs`}>
+                                  {getStatusIcon(withdrawal.status)}
+                                  {getStatusText(withdrawal.status)}
+                                </div>
+                                <div className="rounded-full p-1.5 transition-colors group-hover:bg-accent md:p-2">
+                                  <ChevronRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-1 md:h-5 md:w-5" />
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </motion.div>
+                      ))}
+                  </TabsContent>
+                ))}
+              </Tabs>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Mobile: Process & Help Sections (Stacked) */}
+        <div className="mt-8 space-y-6 lg:hidden">
+          <div className="grid gap-6 md:grid-cols-2">
+            <Card className="border-none shadow-md">
+              <CardHeader className="p-4 pb-2">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <History className="h-4 w-4 text-primary" />
+                  دورة حياة طلب السحب
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 pt-0">
+                <div className="flex flex-col gap-4">
+                  {[
+                    { title: 'طلب', icon: Plus, color: 'blue' },
+                    { title: 'مراجعة', icon: Search, color: 'amber' },
+                    { title: 'اعتماد', icon: CheckCircle, color: 'emerald' },
+                    { title: 'تحويل', icon: Wallet, color: 'indigo' },
+                  ].map((step, i) => (
+                    <div key={i} className="flex items-center gap-3">
+                      <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-${step.color}-500/10 text-${step.color}-600`}>
+                        <step.icon className="h-3.5 w-3.5" />
+                      </div>
+                      <span className="text-xs font-bold">{step.title}</span>
+                      {i < 3 && <ChevronRight className="h-3 w-3 text-muted-foreground/30" />}
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-none shadow-md bg-gradient-to-br from-indigo-500/10 to-purple-500/10">
+              <CardHeader className="p-4 pb-2">
+                <CardTitle className="flex items-center gap-2 text-base text-indigo-700">
+                  <Info className="h-4 w-4" />
+                  المساعدة
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 pt-0">
+                <p className="text-xs text-indigo-600/80 mb-3 font-medium">
+                  هل واجهت مشكلة؟ تواصل مع إدارة المالية مباشرة.
+                </p>
+                <Button variant="outline" size="sm" className="w-full rounded-xl border-indigo-200 bg-white/50 text-indigo-700 text-xs">
+                  تواصل مع الدعم
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* Right Column: Process & Help (Desktop Only) */}
+        <div className="hidden lg:block lg:col-span-4 space-y-6">
+          <Card className="border-none shadow-md">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <History className="h-5 w-5 text-primary" />
+                تتبع الخطوات
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6 pt-0">
+              {[
+                { title: 'طلب السحب', desc: 'تحديد المبلغ المطلوب سحبه من الأرباح المتاحة', icon: Plus, color: 'blue' },
+                { title: 'مراجعة الطلب', desc: 'يتم مراجعة الطلب والتأكد من صحة البيانات', icon: Search, color: 'amber' },
+                { title: 'الموافقة', desc: 'اعتماد الطلب من قبل الإدارة المالية', icon: CheckCircle, color: 'emerald' },
+                { title: 'التحويل', desc: 'تحويل المبلغ إلى حسابك البنكي المسجل', icon: Wallet, color: 'indigo' },
+              ].map((step, i) => (
+                <div key={i} className="relative flex gap-4">
+                  {i < 3 && (
+                    <div className="absolute top-10 right-4 h-full w-[2px] bg-muted" />
+                  )}
+                  <div className={`relative z-10 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-${step.color}-500/10 text-${step.color}-600`}>
+                    <step.icon className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <h5 className="font-bold text-sm leading-none mb-1">{step.title}</h5>
+                    <p className="text-xs text-muted-foreground">{step.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          <Card className="border-none shadow-md bg-gradient-to-br from-indigo-500/10 to-purple-500/10 border-indigo-500/10">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg text-indigo-700">
+                <Info className="h-5 w-5" />
+                هل تحتاج مساعدة؟
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 pt-0">
+              <p className="text-sm text-indigo-600/80 leading-relaxed font-medium">
+                إذا كان لديك أي استفسار بخصوص طلبات السحب أو واجهت مشكلة في التحويل، يمكنك التواصل مباشرة مع الإدارة المالية.
+              </p>
+              <Button variant="outline" className="w-full rounded-xl border-indigo-200 bg-white/50 text-indigo-700 hover:bg-white hover:text-indigo-800">
+                تواصل مع الدعم
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
 
       {/* Withdrawal Details Dialog */}
       <Dialog open={!!selectedWithdrawal} onOpenChange={() => setSelectedWithdrawal(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="text-2xl">تفاصيل طلب السحب</DialogTitle>
-            <DialogDescription>رقم الطلب: {selectedWithdrawal?.request_number}</DialogDescription>
-          </DialogHeader>
+        <DialogContent className="max-w-2xl [&>button]:bg-muted/80 [&>button]:hover:bg-muted [&>button]:rounded-full [&>button]:h-8 [&>button]:w-8 [&>button]:flex [&>button]:items-center [&>button]:justify-center">
           {selectedWithdrawal && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>تاريخ الطلب</Label>
-                  <p className="text-sm font-medium mt-1">{selectedWithdrawal.request_date}</p>
+            <div className="space-y-6">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2 text-2xl">
+                  <Wallet className="w-6 h-6 text-primary" />
+                  تفاصيل طلب السحب
+                </DialogTitle>
+              </DialogHeader>
+
+              {/* Status and Date Card */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-5 bg-muted/30 rounded-2xl border">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <div className="p-1.5 rounded-lg bg-primary/10">
+                      <Calendar className="h-4 w-4 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">تاريخ الطلب</p>
+                      <p className="font-bold text-sm">{selectedWithdrawal.request_date}</p>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <Label>الحالة</Label>
-                  <Badge className={`${getStatusColor(selectedWithdrawal.status)} mt-1`}>
-                    {getStatusText(selectedWithdrawal.status)}
-                  </Badge>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <div className="p-1.5 rounded-lg bg-primary/10">
+                      {getStatusIcon(selectedWithdrawal.status)}
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">الحالة</p>
+                      <Badge className={`${getStatusColor(selectedWithdrawal.status)} border-none px-3 py-1 text-xs font-bold`}>
+                        {getStatusText(selectedWithdrawal.status)}
+                      </Badge>
+                    </div>
+                  </div>
                 </div>
+                {selectedWithdrawal.approved_by && (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <div className="p-1.5 rounded-lg bg-green-500/10">
+                        <CheckCircle className="h-4 w-4 text-green-600" />
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">اعتمد بواسطة</p>
+                        <p className="font-bold text-sm text-green-700">{selectedWithdrawal.approved_by}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
-              <div>
-                <Label>المبلغ المطلوب</Label>
-                <p className="text-2xl font-bold mt-1">{formatAmount(selectedWithdrawal.amount)}</p>
+              {/* Amount Card */}
+              <div className="p-6 bg-gradient-to-br from-primary/5 to-primary/10 rounded-2xl border border-primary/20 text-center">
+                <p className="text-sm text-muted-foreground mb-2">المبلغ المطلوب</p>
+                <p className="text-4xl font-black text-primary">{formatAmount(selectedWithdrawal.amount)}</p>
               </div>
 
-              {selectedWithdrawal.notes && (
-                <div>
-                  <Label>ملاحظات الطلب</Label>
-                  <p className="text-sm mt-1 p-3 bg-muted rounded">{selectedWithdrawal.notes}</p>
-                </div>
-              )}
-
-              {selectedWithdrawal.admin_notes && (
-                <div>
-                  <Label>ملاحظة الإدارة</Label>
-                  <p className="text-sm mt-1 p-3 bg-yellow-500/10 rounded border border-yellow-500/20">
-                    {selectedWithdrawal.admin_notes}
-                  </p>
-                </div>
-              )}
-
-              {selectedWithdrawal.approved_date && (
-                <div>
-                  <Label>تاريخ الموافقة</Label>
-                  <p className="text-sm font-medium mt-1">{selectedWithdrawal.approved_date}</p>
+              {/* Additional Info */}
+              {selectedWithdrawal.status === 'approved' && selectedWithdrawal.approved_date && (
+                <div className="p-4 bg-green-500/10 rounded-xl border border-green-500/20">
+                  <div className="flex items-center gap-3">
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                    <div>
+                      <p className="text-xs text-green-700 font-bold">تمت الموافقة</p>
+                      <p className="text-sm text-green-800 font-medium">{selectedWithdrawal.approved_date}</p>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
           )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setSelectedWithdrawal(null)}>
+          <DialogFooter className="gap-2">
+            {selectedWithdrawal?.status === 'pending' && (
+              <Button 
+                variant="destructive" 
+                onClick={() => {
+                  // Handle cancel logic here
+                  console.log('Cancel withdrawal:', selectedWithdrawal.id);
+                  setSelectedWithdrawal(null);
+                }} 
+                className="flex-1"
+              >
+                <XCircle className="h-4 w-4 ml-2" />
+                إلغاء الطلب
+              </Button>
+            )}
+            <Button 
+              onClick={() => setSelectedWithdrawal(null)} 
+              className="flex-1 bg-muted hover:bg-muted/80 border-2 border-border"
+            >
               إغلاق
             </Button>
           </DialogFooter>
