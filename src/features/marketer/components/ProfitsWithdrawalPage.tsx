@@ -1,5 +1,6 @@
 // صفحة: الأرباح والسحوبات (المسوق الأفضل)
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,6 +30,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useCurrency } from '@/store/currencyStore';
+import { StatCard, SearchBar } from './shared';
 
 interface WithdrawalRequest {
   id: string;
@@ -134,10 +136,27 @@ export const ProfitsWithdrawalPage = () => {
   const [withdrawalAmount, setWithdrawalAmount] = useState<string>('');
   const [withdrawalNotes, setWithdrawalNotes] = useState<string>('');
   const [selectedWithdrawal, setSelectedWithdrawal] = useState<WithdrawalRequest | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const { formatAmount } = useCurrency();
 
+  // Stats data
+  const statsData = useMemo(() => [
+    { title: 'إجمالي العمولات', value: formatAmount(profitDetails.total_commissions), icon: TrendingUp, color: 'text-green-500', bgColor: 'bg-green-500/10' },
+    { title: 'الرصيد المتاح', value: formatAmount(profitDetails.available_balance), icon: DollarSign, color: 'text-blue-500', bgColor: 'bg-blue-500/10' },
+    { title: 'إجمالي السحوبات', value: formatAmount(profitDetails.total_withdrawals), icon: ArrowUpRight, color: 'text-purple-500', bgColor: 'bg-purple-500/10' },
+    { title: 'سحوبات معلقة', value: formatAmount(profitDetails.pending_withdrawals), icon: Clock, color: 'text-amber-500', bgColor: 'bg-amber-500/10' },
+  ], [profitDetails, formatAmount]);
+
+  // Filter withdrawals
+  const filteredWithdrawals = useMemo(() => {
+    if (!searchQuery.trim()) return withdrawals;
+    return withdrawals.filter(w =>
+      w.request_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      w.notes?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [withdrawals, searchQuery]);
+
   const handleNewWithdrawal = () => {
-    // Handle new withdrawal request
     console.log('New withdrawal:', { amount: withdrawalAmount, notes: withdrawalNotes });
     setIsNewWithdrawalOpen(false);
     setWithdrawalAmount('');
@@ -148,90 +167,42 @@ export const ProfitsWithdrawalPage = () => {
     parseFloat(withdrawalAmount) <= profitDetails.available_balance;
 
   return (
-    <div className="space-y-6">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="space-y-6"
+    >
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
-            <Wallet className="h-8 w-8" />
-            إدارة الأرباح والسحوبات
-          </h1>
-          <p className="text-muted-foreground mt-2">
-            عرض وإدارة أرباحك وطلبات السحب
-          </p>
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-primary/95 to-primary p-6 text-white shadow-2xl md:p-8"
+      >
+        <div className="absolute top-0 right-0 h-full w-1/2 bg-[url('/pattern.svg')] opacity-10 mix-blend-overlay" />
+        <div className="relative z-10 flex items-center gap-3">
+          <div className="rounded-2xl bg-white/20 p-2 backdrop-blur-md md:p-3">
+            <Wallet className="h-6 w-6 md:h-8 md:w-8" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-extrabold tracking-tight md:text-4xl">إدارة الأرباح والسحوبات</h1>
+            <p className="mt-0.5 text-xs md:mt-1 md:text-base text-primary-foreground/80">عرض وإدارة أرباحك وطلبات السحب</p>
+          </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Profit Summary Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card className="border-green-500/20 bg-green-500/5">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <TrendingUp className="h-4 w-4 text-green-500" />
-              إجمالي العمولات
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-500">
-              {formatAmount(profitDetails.total_commissions)}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              جميع العمولات المكتسبة
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-blue-500/20 bg-blue-500/5">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <DollarSign className="h-4 w-4 text-blue-500" />
-              الرصيد المتاح
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-500">
-              {formatAmount(profitDetails.available_balance)}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              المبلغ المتاح للسحب
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-purple-500/20 bg-purple-500/5">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <ArrowUpRight className="h-4 w-4 text-purple-500" />
-              إجمالي السحوبات
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-purple-500">
-              {formatAmount(profitDetails.total_withdrawals)}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              المبالغ المسحوبة
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-yellow-500/20 bg-yellow-500/5">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <Clock className="h-4 w-4 text-yellow-500" />
-              سحوبات معلقة
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-yellow-500">
-              {formatAmount(profitDetails.pending_withdrawals)}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              قيد المراجعة
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="hide-scrollbar flex gap-4 overflow-x-auto pb-2 -mx-2 px-2"
+      >
+        {statsData.map((stat, i) => (
+          <div key={i} className="min-w-[200px] flex-shrink-0">
+            <StatCard {...stat} delay={i * 0.1} />
+          </div>
+        ))}
+      </motion.div>
 
       {/* Process Flow Info */}
       <Card className="bg-gradient-to-br from-green-500/5 via-blue-500/5 to-purple-500/5 border-green-500/20">
@@ -372,11 +343,21 @@ export const ProfitsWithdrawalPage = () => {
       {/* Withdrawals History */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-xl flex items-center gap-2">
-            <Calendar className="h-5 w-5" />
-            سجل طلبات السحب
-          </CardTitle>
-          <CardDescription>جميع طلبات السحب السابقة والحالية</CardDescription>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <CardTitle className="text-xl flex items-center gap-2">
+                <Calendar className="h-5 w-5" />
+                سجل طلبات السحب
+              </CardTitle>
+              <CardDescription>جميع طلبات السحب السابقة والحالية</CardDescription>
+            </div>
+            <SearchBar
+              value={searchQuery}
+              onChange={setSearchQuery}
+              placeholder="بحث عن طلب..."
+              className="w-full sm:max-w-xs"
+            />
+          </div>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="all" className="w-full">
@@ -388,7 +369,7 @@ export const ProfitsWithdrawalPage = () => {
             </TabsList>
 
             <TabsContent value="all" className="space-y-4 mt-6">
-              {withdrawals.map((withdrawal) => (
+              {filteredWithdrawals.map((withdrawal) => (
                 <Card
                   key={withdrawal.id}
                   className="hover:shadow-md transition-shadow cursor-pointer"
@@ -441,7 +422,7 @@ export const ProfitsWithdrawalPage = () => {
 
             {['pending', 'approved', 'rejected'].map((status) => (
               <TabsContent key={status} value={status} className="space-y-4 mt-6">
-                {withdrawals
+                {filteredWithdrawals
                   .filter((w) => w.status === status)
                   .map((withdrawal) => (
                     <Card key={withdrawal.id} className="hover:shadow-md transition-shadow">
@@ -522,6 +503,6 @@ export const ProfitsWithdrawalPage = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </motion.div>
   );
 };
