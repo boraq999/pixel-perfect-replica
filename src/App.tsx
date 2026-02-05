@@ -46,9 +46,7 @@ const App = () => {
 
   const getDefaultRoute = () => {
     if (!isAuthenticated || !user) return "/";
-    // Check if it's the best marketer
-    if (user.id === 'marketer-2') return "/best-marketer";
-
+    
     switch (user.role) {
       case 'admin': return "/admin";
       case 'keeper': return "/keeper";
@@ -63,7 +61,7 @@ const App = () => {
         <TooltipProvider>
           <Toaster />
           <Sonner position="top-center" richColors />
-          <BrowserRouter>
+          <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
             <Routes>
               <Route
                 path="/"
@@ -110,27 +108,9 @@ const App = () => {
                 <Route path="settings" element={<KeeperSettingsPage />} />
               </Route>
 
-              {/* Marketer Routes */}
+              {/* Marketer Routes - Using Best Marketer Dashboard */}
               <Route
                 path="/dashboard"
-                element={
-                  <ProtectedRoute allowedRoles={['marketer']}>
-                    <AppLayout />
-                  </ProtectedRoute>
-                }
-              >
-                <Route index element={<MarketerDashboard />} />
-                <Route path="warehouse" element={<WarehousePage />} />
-                <Route path="stores" element={<StoresPage />} />
-                <Route path="stores/new-order" element={<NewOrderPage />} />
-                <Route path="stores/returns" element={<ReturnsPage />} />
-                <Route path="operations" element={<OperationsPage />} />
-                <Route path="settings" element={<SettingsPage />} />
-              </Route>
-
-              {/* Best Marketer Routes - Special Interface */}
-              <Route
-                path="/best-marketer"
                 element={
                   <ProtectedRoute allowedRoles={['marketer']}>
                     <AppLayout />

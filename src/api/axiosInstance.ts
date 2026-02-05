@@ -1,7 +1,9 @@
 import axios from 'axios';
+import { API_CONFIG } from '@/config/api';
 
 const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://api-demo.taqnia.com/api',
+  baseURL: API_CONFIG.BASE_URL,
+  timeout: API_CONFIG.TIMEOUT,
   headers: {
     'Content-Type': 'application/json',
   },

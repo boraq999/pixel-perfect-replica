@@ -1,37 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { AuthState, User, UserRole } from '@/types/auth';
-
-const mockUsers: Record<string, User> = {
-  admin: {
-    id: 'admin-1',
-    username: 'admin',
-    email: 'admin@taqnia.com',
-    name: 'مدير النظام',
-    role: 'admin',
-  },
-  keeper: {
-    id: 'keeper-1',
-    username: 'warehouse',
-    email: 'keeper@taqnia.com',
-    name: 'أمين المخزن',
-    role: 'keeper',
-  },
-  marketer: {
-    id: 'marketer-1',
-    username: 'salesman',
-    email: 'marketer@taqnia.com',
-    name: 'المسوق الميداني',
-    role: 'marketer',
-  },
-  'best-marketer': {
-    id: 'marketer-2',
-    username: 'bestmarketer',
-    email: 'best@taqnia.com',
-    name: 'المسوق الأفضل',
-    role: 'marketer',
-  },
-};
+import { authApi } from '@/api';
 
 export const useAuthStore = create<AuthState>()(
   persist(
@@ -40,46 +10,50 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       isLoading: false,
 
-      login: async (username: string, password: string, rememberMe = false) => {
+      login: async (username: string, password: string) => {
         set({ isLoading: true });
         
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        let userKey: string | null = null;
-        const usernameLower = username.toLowerCase();
-        
-        // Check specific usernames first
-        if (usernameLower === 'bestmarketer' || usernameLower === 'المسوق الأفضل') {
-          userKey = 'best-marketer';
-        } else if (usernameLower.includes('admin')) {
-          userKey = 'admin';
-        } else if (usernameLower.includes('warehouse') || usernameLower.includes('keeper')) {
-          userKey = 'keeper';
-        } else if (usernameLower.includes('salesman') || usernameLower.includes('marketer')) {
-          userKey = 'marketer';
-        }
-
-        if (userKey && password.length >= 6) {
-          const user = mockUsers[userKey];
+        try {
+          const response = await authApi.login({ username, password });
+          const { token, user } = response.data;
+          
+          localStorage.setItem('auth-token', token);
+          
+          // Map API role to app role
+          let role: UserRole = user.role;
+          if (user.role === 'warehouse_keeper') role = 'keeper';
+          if (user.role === 'salesman') role = 'marketer';
+          
           set({
-            user: { ...user, username },
+            user: {
+              id: user.id.toString(),
+              username: user.username,
+              name: user.full_name,
+              role,
+              email: `${user.username}@taqnia.com`,
+            },
             isAuthenticated: true,
             isLoading: false,
           });
-          // Save token for axiosInstance
-          localStorage.setItem('auth-token', 'mock-jwt-token');
-        } else {
+        } catch (error: any) {
           set({ isLoading: false });
-          throw new Error('بيانات الدخول غير صحيحة. يرجى التأكد من اسم المستخدم وكلمة المرور.');
+          const message = error.response?.data?.message || 'فشل تسجيل الدخول';
+          throw new Error(message);
         }
       },
 
-      logout: () => {
-        localStorage.removeItem('auth-token');
-        set({
-          user: null,
-          isAuthenticated: false,
-        });
+      logout: async () => {
+        try {
+          await authApi.logout();
+        } catch (error) {
+          console.error('Logout error:', error);
+        } finally {
+          localStorage.removeItem('auth-token');
+          set({
+            user: null,
+            isAuthenticated: false,
+          });
+        }
       },
 
       setUser: (user: User) => set({ user }),

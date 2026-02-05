@@ -59,8 +59,11 @@ const navItems: Record<UserRole, NavigationItem[]> = {
     ],
     marketer: [
         { name: 'لوحة التحكم', href: '/dashboard', icon: Home },
+        { name: 'إدارة الطلبات', href: '/dashboard/orders', icon: PackageCheck },
         { name: 'مخزوني الفعلي', href: '/dashboard/warehouse', icon: ShoppingCart },
         { name: 'المتاجر والبيع', href: '/dashboard/stores', icon: Store },
+        { name: 'الإرجاعات', href: '/dashboard/returns', icon: ArrowDownLeft },
+        { name: 'الأرباح والسحوبات', href: '/dashboard/profits', icon: Wallet },
         { name: 'عملياتي', href: '/dashboard/operations', icon: History },
         { name: 'الإعدادات', href: '/dashboard/settings', icon: Settings },
     ],
@@ -77,21 +80,7 @@ export const AppLayout = () => {
         navigate('/');
     };
 
-    // Special navigation for best marketer
-    const bestMarketerNavItems: NavigationItem[] = [
-        { name: 'لوحة التحكم', href: '/best-marketer', icon: Home },
-        { name: 'إدارة الطلبات', href: '/best-marketer/orders', icon: PackageCheck },
-        { name: 'مخزوني الفعلي', href: '/best-marketer/warehouse', icon: ShoppingCart },
-        { name: 'المتاجر والبيع', href: '/best-marketer/stores', icon: Store },
-        { name: 'الإرجاعات', href: '/best-marketer/returns', icon: ArrowDownLeft },
-        { name: 'الأرباح والسحوبات', href: '/best-marketer/profits', icon: Wallet },
-        { name: 'عملياتي', href: '/best-marketer/operations', icon: History },
-        { name: 'الإعدادات', href: '/best-marketer/settings', icon: Settings },
-    ];
-
-    const currentNavigation = user 
-        ? (user.id === 'marketer-2' ? bestMarketerNavItems : navItems[user.role])
-        : [];
+    const currentNavigation = user ? navItems[user.role] : [];
 
     return (
         <div className="min-h-screen bg-background">
@@ -235,7 +224,7 @@ const Sidebar = ({ navigation, userRole, onClose }: SidebarProps) => {
                     <NavLink
                         key={item.name}
                         to={item.href}
-                        end={item.href === '/dashboard' || item.href === '/admin' || item.href === '/keeper' || item.href === '/best-marketer'}
+                        end={item.href === '/dashboard' || item.href === '/admin' || item.href === '/keeper'}
                         onClick={onClose}
                         className={({ isActive }) =>
                             `nav-link ${isActive ? 'active' : ''}`

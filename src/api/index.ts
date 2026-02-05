@@ -1,8 +1,10 @@
 import axiosInstance from './axiosInstance';
 
 export const authApi = {
-  login: (credentials: any) => axiosInstance.post('/auth/login', credentials),
-  getMe: () => axiosInstance.get('/auth/me'),
+  login: (credentials: { username: string; password: string }) => 
+    axiosInstance.post('/auth/login', credentials),
+  getUser: () => axiosInstance.get('/auth/user'),
+  logout: () => axiosInstance.post('/auth/logout'),
 };
 
 export const productsApi = {

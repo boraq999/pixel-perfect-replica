@@ -35,13 +35,14 @@ export const LoginPage = () => {
 
   const onSubmit = async (data: LoginFormData) => {
     try {
-      await login(data.username, data.password, false);
+      await login(data.username, data.password);
       toast.success('تم تسجيل الدخول بنجاح');
       
-      // Determine navigation based on username (demo logic)
-      if (data.username.toLowerCase().includes('admin')) {
+      // Navigation will be handled based on API response role
+      const { user } = useAuthStore.getState();
+      if (user?.role === 'admin') {
         navigate('/admin');
-      } else if (data.username.toLowerCase().includes('warehouse') || data.username.toLowerCase().includes('keeper')) {
+      } else if (user?.role === 'keeper' || user?.role === 'warehouse_keeper') {
         navigate('/keeper');
       } else {
         navigate('/dashboard');
@@ -52,25 +53,24 @@ export const LoginPage = () => {
     }
   };
 
-  const handleQuickLogin = async (role: 'salesman' | 'warehouse' | 'admin' | 'bestmarketer') => {
+  const handleQuickLogin = async (role: 'salesman' | 'warehouse' | 'admin') => {
     let username = '';
-    if (role === 'salesman') username = 'salesman';
-    else if (role === 'warehouse') username = 'warehouse';
-    else if (role === 'bestmarketer') username = 'bestmarketer';
+    if (role === 'salesman') username = 'salesman1';
+    else if (role === 'warehouse') username = 'keeper1';
     else username = 'admin';
 
-    const password = 'password123';
+    const password = role === 'admin' ? 'admin123' : role === 'warehouse' ? 'keeper123' : 'sales123';
     
     setValue('username', username);
     setValue('password', password);
     
     try {
-      await login(username, password, false);
+      await login(username, password);
       toast.success('تم تسجيل الدخول بنجاح');
       
-      if (role === 'admin') navigate('/admin');
-      else if (role === 'warehouse') navigate('/keeper');
-      else if (role === 'bestmarketer') navigate('/best-marketer');
+      const { user } = useAuthStore.getState();
+      if (user?.role === 'admin') navigate('/admin');
+      else if (user?.role === 'keeper' || user?.role === 'warehouse_keeper') navigate('/keeper');
       else navigate('/dashboard');
 
     } catch (error: any) {
@@ -111,7 +111,7 @@ export const LoginPage = () => {
                 type="text"
                 {...register('username')}
                 className="input-glass text-right"
-                placeholder="admin / bestmarketer / salesman / warehouse"
+                placeholder="admin / salesman1 / keeper1"
                 disabled={isLoading}
               />
               {errors.username && <p className="text-xs text-destructive text-right">{errors.username.message}</p>}
@@ -183,7 +183,7 @@ export const LoginPage = () => {
               {/* Best Marketer Option - Featured */}
               <button
                 type="button"
-                onClick={() => handleQuickLogin('bestmarketer')}
+                onClick={() => handleQuickLogin('salesman')}
                 disabled={isLoading}
                 className="w-full flex items-center gap-4 p-3 rounded-2xl bg-gradient-to-r from-yellow-500/30 to-orange-500/30 hover:from-yellow-500/40 hover:to-orange-500/40 border-2 border-yellow-400/50 transition-all group disabled:opacity-50 shadow-lg relative overflow-hidden"
               >
@@ -193,25 +193,10 @@ export const LoginPage = () => {
                 </div>
                 <div className="text-right relative z-10">
                   <h3 className="font-bold text-white text-sm flex items-center gap-1">
-                    المسوق الأفضل
-                    <span className="text-[8px] px-1.5 py-0.5 bg-yellow-400/30 rounded-full">VIP</span>
+                    دخول كمسوق
+                    <span className="text-[8px] px-1.5 py-0.5 bg-yellow-400/30 rounded-full">PRO</span>
                   </h3>
-                  <p className="text-[10px] text-white/80 uppercase font-medium">Best Marketer Account</p>
-                </div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleQuickLogin('salesman')}
-                disabled={isLoading}
-                className="w-full flex items-center gap-4 p-3 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/10 transition-all group disabled:opacity-50"
-              >
-                <div className="w-10 h-10 rounded-xl bg-blue-500/50 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <ShoppingCart className="w-5 h-5 text-white" />
-                </div>
-                <div className="text-right">
-                  <h3 className="font-bold text-white text-sm">دخول كمسوق</h3>
-                  <p className="text-[10px] text-white/60 uppercase">Salesman Account</p>
+                  <p className="text-[10px] text-white/80 uppercase font-medium">Marketer Account</p>
                 </div>
               </button>
 
