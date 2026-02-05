@@ -141,10 +141,9 @@ export const ProfitsWithdrawalPage = () => {
 
   // Stats data
   const statsData = useMemo(() => [
-    { title: 'إجمالي العمولات', value: formatAmount(profitDetails.total_commissions), icon: TrendingUp, color: 'text-green-500', bgColor: 'bg-green-500/10' },
-    { title: 'الرصيد المتاح', value: formatAmount(profitDetails.available_balance), icon: DollarSign, color: 'text-blue-500', bgColor: 'bg-blue-500/10' },
-    { title: 'إجمالي السحوبات', value: formatAmount(profitDetails.total_withdrawals), icon: ArrowUpRight, color: 'text-purple-500', bgColor: 'bg-purple-500/10' },
-    { title: 'سحوبات معلقة', value: formatAmount(profitDetails.pending_withdrawals), icon: Clock, color: 'text-amber-500', bgColor: 'bg-amber-500/10' },
+    { title: 'إجمالي الأرباح', value: formatAmount(profitDetails.total_commissions), icon: TrendingUp, color: 'text-green-500', bgColor: 'bg-green-500/10' },
+    { title: 'إجمالي المسحوب', value: formatAmount(profitDetails.total_withdrawals), icon: ArrowUpRight, color: 'text-purple-500', bgColor: 'bg-purple-500/10' },
+    { title: 'الرصيد المتاح للسحب', value: formatAmount(profitDetails.available_balance), icon: DollarSign, color: 'text-blue-500', bgColor: 'bg-blue-500/10' },
   ], [profitDetails, formatAmount]);
 
   // Filter withdrawals
@@ -257,7 +256,7 @@ export const ProfitsWithdrawalPage = () => {
       {/* New Withdrawal Button */}
       <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
         <CardContent className="pt-6">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
               <h3 className="text-lg font-bold mb-1">هل تريد سحب أرباحك؟</h3>
               <p className="text-sm text-muted-foreground">
@@ -266,7 +265,7 @@ export const ProfitsWithdrawalPage = () => {
             </div>
             <Dialog open={isNewWithdrawalOpen} onOpenChange={setIsNewWithdrawalOpen}>
               <DialogTrigger asChild>
-                <Button size="lg" className="gap-2">
+                <Button size="lg" className="gap-2 w-full md:w-auto">
                   <Wallet className="h-5 w-5" />
                   طلب سحب جديد
                 </Button>
@@ -361,12 +360,15 @@ export const ProfitsWithdrawalPage = () => {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="all" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="all">الكل</TabsTrigger>
-              <TabsTrigger value="pending">قيد المراجعة</TabsTrigger>
-              <TabsTrigger value="approved">موافق عليها</TabsTrigger>
-              <TabsTrigger value="rejected">مرفوضة</TabsTrigger>
-            </TabsList>
+            <div className="overflow-x-auto">
+              <TabsList className="inline-flex w-auto min-w-full md:grid md:w-full md:grid-cols-5">
+                <TabsTrigger value="all" className="whitespace-nowrap">كل الطلبات</TabsTrigger>
+                <TabsTrigger value="pending" className="whitespace-nowrap">قيد الانتظار</TabsTrigger>
+                <TabsTrigger value="approved" className="whitespace-nowrap">معتمد</TabsTrigger>
+                <TabsTrigger value="rejected" className="whitespace-nowrap">مرفوض</TabsTrigger>
+                <TabsTrigger value="cancelled" className="whitespace-nowrap">ملغي</TabsTrigger>
+              </TabsList>
+            </div>
 
             <TabsContent value="all" className="space-y-4 mt-6">
               {filteredWithdrawals.map((withdrawal) => (
@@ -420,7 +422,7 @@ export const ProfitsWithdrawalPage = () => {
               ))}
             </TabsContent>
 
-            {['pending', 'approved', 'rejected'].map((status) => (
+            {['pending', 'approved', 'rejected', 'cancelled'].map((status) => (
               <TabsContent key={status} value={status} className="space-y-4 mt-6">
                 {filteredWithdrawals
                   .filter((w) => w.status === status)
@@ -503,6 +505,22 @@ export const ProfitsWithdrawalPage = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Mobile Floating Action Button (FAB) */}
+      <motion.div
+        className="fixed bottom-6 right-6 z-50 md:hidden"
+        initial={{ scale: 0, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.5 }}
+      >
+        <Button
+          onClick={() => setIsNewWithdrawalOpen(true)}
+          size="icon"
+          className="h-16 w-16 rounded-full bg-primary text-white shadow-2xl shadow-primary/40 p-0 active:scale-90 transition-transform"
+        >
+          <Wallet className="h-16 w-16" />
+        </Button>
+      </motion.div>
     </motion.div>
   );
 };
