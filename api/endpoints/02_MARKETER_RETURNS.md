@@ -64,11 +64,13 @@ Authorization: Bearer {token}
 - `status`: pending, approved, documented, rejected, cancelled
 - `from_date`: YYYY-MM-DD
 - `to_date`: YYYY-MM-DD
+- `page`: رقم الصفحة (اختياري، افتراضي: 1)
 
 **Examples:**
 ```http
 GET /api/marketer/returns?status=pending
-GET /api/marketer/returns?from_date=2024-01-01&to_date=2024-01-31
+GET /api/marketer/returns?status=pending&page=2
+GET /api/marketer/returns?from_date=2024-01-01&to_date=2024-01-31&page=1
 GET /api/marketer/returns?status=approved&from_date=2024-01-01
 ```
 
@@ -76,24 +78,37 @@ GET /api/marketer/returns?status=approved&from_date=2024-01-01
 ```json
 {
   "message": "قائمة طلبات الإرجاع",
-  "data": [
-    {
-      "id": 1,
-      "invoice_number": "MRR-20240203-0001",
-      "marketer_id": 3,
-      "status": "pending",
-      "created_at": "2024-02-03 10:30:00",
-      "updated_at": "2024-02-03 10:30:00",
-      "approved_by": null,
-      "approved_at": null,
-      "documented_by": null,
-      "documented_at": null,
-      "rejected_by": null,
-      "rejected_at": null,
-      "stamped_image": null,
-      "notes": null
-    }
-  ]
+  "data": {
+    "current_page": 1,
+    "data": [
+      {
+        "id": 1,
+        "invoice_number": "MRR-20240203-0001",
+        "marketer_id": 3,
+        "status": "pending",
+        "created_at": "2024-02-03 10:30:00",
+        "updated_at": "2024-02-03 10:30:00",
+        "approved_by": null,
+        "approved_at": null,
+        "documented_by": null,
+        "documented_at": null,
+        "rejected_by": null,
+        "rejected_at": null,
+        "stamped_image": null,
+        "notes": null
+      }
+    ],
+    "first_page_url": "http://domain.com/api/marketer/returns?page=1",
+    "from": 1,
+    "last_page": 5,
+    "last_page_url": "http://domain.com/api/marketer/returns?page=5",
+    "next_page_url": "http://domain.com/api/marketer/returns?page=2",
+    "path": "http://domain.com/api/marketer/returns",
+    "per_page": 20,
+    "prev_page_url": null,
+    "to": 20,
+    "total": 95
+  }
 }
 ```
 
@@ -187,11 +202,13 @@ Authorization: Bearer {token}
 - `marketer_id`: رقم المسوق
 - `from_date`: YYYY-MM-DD
 - `to_date`: YYYY-MM-DD
+- `page`: رقم الصفحة (اختياري، افتراضي: 1)
 
 **Examples:**
 ```http
 GET /api/warehouse/returns?status=pending
-GET /api/warehouse/returns?marketer_id=3
+GET /api/warehouse/returns?status=pending&page=2
+GET /api/warehouse/returns?marketer_id=3&page=1
 GET /api/warehouse/returns?status=pending&marketer_id=3
 GET /api/warehouse/returns?from_date=2024-01-01&to_date=2024-01-31
 ```
@@ -200,16 +217,29 @@ GET /api/warehouse/returns?from_date=2024-01-01&to_date=2024-01-31
 ```json
 {
   "message": "قائمة طلبات الإرجاع",
-  "data": [
-    {
-      "id": 1,
-      "invoice_number": "MRR-20240203-0001",
-      "marketer_id": 3,
-      "marketer_name": "محمد السالم",
-      "status": "pending",
-      "created_at": "2024-02-03 10:30:00"
-    }
-  ]
+  "data": {
+    "current_page": 1,
+    "data": [
+      {
+        "id": 1,
+        "invoice_number": "MRR-20240203-0001",
+        "marketer_id": 3,
+        "marketer_name": "محمد السالم",
+        "status": "pending",
+        "created_at": "2024-02-03 10:30:00"
+      }
+    ],
+    "first_page_url": "http://domain.com/api/warehouse/returns?page=1",
+    "from": 1,
+    "last_page": 5,
+    "last_page_url": "http://domain.com/api/warehouse/returns?page=5",
+    "next_page_url": "http://domain.com/api/warehouse/returns?page=2",
+    "path": "http://domain.com/api/warehouse/returns",
+    "per_page": 20,
+    "prev_page_url": null,
+    "to": 20,
+    "total": 95
+  }
 }
 ```
 

@@ -124,29 +124,45 @@ GET /api/products
 Authorization: Bearer {token}
 ```
 
+**Query Parameters:**
+- `page`: رقم الصفحة (اختياري، افتراضي: 1)
+
 **✅ Success Response (200):**
 ```json
 {
-  "data": [
-    {
-      "id": 1,
-      "name": "منتج 1",
-      "current_price": 100.00,
-      "description": "وصف المنتج",
-      "barcode": "123456",
-      "is_active": true,
-      "main_stock_quantity": 500
-    },
-    {
-      "id": 2,
-      "name": "منتج 2",
-      "current_price": 150.00,
-      "description": null,
-      "barcode": null,
-      "is_active": true,
-      "main_stock_quantity": 300
-    }
-  ]
+  "data": {
+    "current_page": 1,
+    "data": [
+      {
+        "id": 1,
+        "name": "منتج 1",
+        "current_price": 100.00,
+        "description": "وصف المنتج",
+        "barcode": "123456",
+        "is_active": true,
+        "main_stock_quantity": 500
+      },
+      {
+        "id": 2,
+        "name": "منتج 2",
+        "current_price": 150.00,
+        "description": null,
+        "barcode": null,
+        "is_active": true,
+        "main_stock_quantity": 300
+      }
+    ],
+    "first_page_url": "http://domain.com/api/products?page=1",
+    "from": 1,
+    "last_page": 5,
+    "last_page_url": "http://domain.com/api/products?page=5",
+    "next_page_url": "http://domain.com/api/products?page=2",
+    "path": "http://domain.com/api/products",
+    "per_page": 20,
+    "prev_page_url": null,
+    "to": 20,
+    "total": 95
+  }
 }
 ```
 
@@ -251,30 +267,46 @@ GET /api/stores
 Authorization: Bearer {token}
 ```
 
+**Query Parameters:**
+- `page`: رقم الصفحة (اختياري، افتراضي: 1)
+
 **✅ Success Response (200):**
 ```json
-[
-  {
-    "id": 1,
-    "name": "متجر الشرق",
-    "owner_name": "أحمد محمد",
-    "phone": "0501234567",
-    "location": "الرياض",
-    "address": "شارع الملك فهد",
-    "is_active": true,
-    "created_at": "2024-01-01T10:00:00.000000Z"
-  },
-  {
-    "id": 2,
-    "name": "متجر الغرب",
-    "owner_name": "خالد علي",
-    "phone": "0509876543",
-    "location": "جدة",
-    "address": null,
-    "is_active": true,
-    "created_at": "2024-01-02T11:00:00.000000Z"
-  }
-]
+{
+  "current_page": 1,
+  "data": [
+    {
+      "id": 1,
+      "name": "متجر الشرق",
+      "owner_name": "أحمد محمد",
+      "phone": "0501234567",
+      "location": "الرياض",
+      "address": "شارع الملك فهد",
+      "is_active": true,
+      "created_at": "2024-01-01T10:00:00.000000Z"
+    },
+    {
+      "id": 2,
+      "name": "متجر الغرب",
+      "owner_name": "خالد علي",
+      "phone": "0509876543",
+      "location": "جدة",
+      "address": null,
+      "is_active": true,
+      "created_at": "2024-01-02T11:00:00.000000Z"
+    }
+  ],
+  "first_page_url": "http://domain.com/api/stores?page=1",
+  "from": 1,
+  "last_page": 5,
+  "last_page_url": "http://domain.com/api/stores?page=5",
+  "next_page_url": "http://domain.com/api/stores?page=2",
+  "path": "http://domain.com/api/stores",
+  "per_page": 20,
+  "prev_page_url": null,
+  "to": 20,
+  "total": 95
+}
 ```
 
 **✅ Success - لا توجد متاجر (200):**
@@ -626,35 +658,51 @@ Authorization: Bearer {token}
 Role: admin
 ```
 
+**Query Parameters:**
+- `page`: رقم الصفحة (اختياري، افتراضي: 1)
+
 **✅ Success Response (200):**
 ```json
 {
-  "data": [
-    {
-      "id": 1,
-      "username": "admin",
-      "full_name": "المدير العام",
-      "is_active": true,
-      "role_name": "مدير النظام",
-      "commission_rate": 0
-    },
-    {
-      "id": 2,
-      "username": "keeper1",
-      "full_name": "أحمد المخزني",
-      "is_active": true,
-      "role_name": "أمين مخزن",
-      "commission_rate": 0
-    },
-    {
-      "id": 3,
-      "username": "salesman1",
-      "full_name": "محمد السالم",
-      "is_active": true,
-      "role_name": "مسوق",
-      "commission_rate": 5.00
-    }
-  ]
+  "data": {
+    "current_page": 1,
+    "data": [
+      {
+        "id": 1,
+        "username": "admin",
+        "full_name": "المدير العام",
+        "is_active": true,
+        "role_name": "مدير النظام",
+        "commission_rate": 0
+      },
+      {
+        "id": 2,
+        "username": "keeper1",
+        "full_name": "أحمد المخزني",
+        "is_active": true,
+        "role_name": "أمين مخزن",
+        "commission_rate": 0
+      },
+      {
+        "id": 3,
+        "username": "salesman1",
+        "full_name": "محمد السالم",
+        "is_active": true,
+        "role_name": "مسوق",
+        "commission_rate": 5.00
+      }
+    ],
+    "first_page_url": "http://domain.com/api/users?page=1",
+    "from": 1,
+    "last_page": 5,
+    "last_page_url": "http://domain.com/api/users?page=5",
+    "next_page_url": "http://domain.com/api/users?page=2",
+    "path": "http://domain.com/api/users",
+    "per_page": 20,
+    "prev_page_url": null,
+    "to": 20,
+    "total": 95
+  }
 }
 ```
 

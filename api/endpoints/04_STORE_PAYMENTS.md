@@ -61,11 +61,13 @@ Authorization: Bearer {token}
 - `payment_method`: cash, transfer, certified_check
 - `from_date`: YYYY-MM-DD
 - `to_date`: YYYY-MM-DD
+- `page`: رقم الصفحة (اختياري، افتراضي: 1)
 
 **Examples:**
 ```http
 GET /api/marketer/payments?status=pending
-GET /api/marketer/payments?store_id=5
+GET /api/marketer/payments?status=pending&page=2
+GET /api/marketer/payments?store_id=5&page=1
 GET /api/marketer/payments?payment_method=cash
 GET /api/marketer/payments?status=pending&store_id=5&payment_method=cash
 ```
@@ -74,19 +76,32 @@ GET /api/marketer/payments?status=pending&store_id=5&payment_method=cash
 ```json
 {
   "message": "قائمة إيصالات القبض",
-  "data": [
-    {
-      "id": 1,
-      "payment_number": "PAY-20240203-0001",
-      "store_id": 1,
-      "store_name": "متجر الأمل",
-      "marketer_id": 3,
-      "amount": 5000,
-      "payment_method": "cash",
-      "status": "pending",
-      "created_at": "2024-02-03 10:30:00"
-    }
-  ]
+  "data": {
+    "current_page": 1,
+    "data": [
+      {
+        "id": 1,
+        "payment_number": "PAY-20240203-0001",
+        "store_id": 1,
+        "store_name": "متجر الأمل",
+        "marketer_id": 3,
+        "amount": 5000,
+        "payment_method": "cash",
+        "status": "pending",
+        "created_at": "2024-02-03 10:30:00"
+      }
+    ],
+    "first_page_url": "http://domain.com/api/marketer/payments?page=1",
+    "from": 1,
+    "last_page": 5,
+    "last_page_url": "http://domain.com/api/marketer/payments?page=5",
+    "next_page_url": "http://domain.com/api/marketer/payments?page=2",
+    "path": "http://domain.com/api/marketer/payments",
+    "per_page": 20,
+    "prev_page_url": null,
+    "to": 20,
+    "total": 95
+  }
 }
 ```
 
@@ -174,23 +189,37 @@ Authorization: Bearer {token}
 - `payment_method`: cash, transfer, certified_check
 - `from_date`: YYYY-MM-DD
 - `to_date`: YYYY-MM-DD
+- `page`: رقم الصفحة (اختياري، افتراضي: 1)
 
 **Success Response (200):**
 ```json
 {
   "message": "قائمة إيصالات القبض",
-  "data": [
-    {
-      "id": 1,
-      "payment_number": "PAY-20240203-0001",
-      "store_name": "متجر الأمل",
-      "marketer_name": "محمد السالم",
-      "keeper_name": "أحمد المخزني",
-      "amount": 5000,
-      "payment_method": "cash",
-      "status": "pending"
-    }
-  ]
+  "data": {
+    "current_page": 1,
+    "data": [
+      {
+        "id": 1,
+        "payment_number": "PAY-20240203-0001",
+        "store_name": "متجر الأمل",
+        "marketer_name": "محمد السالم",
+        "keeper_name": "أحمد المخزني",
+        "amount": 5000,
+        "payment_method": "cash",
+        "status": "pending"
+      }
+    ],
+    "first_page_url": "http://domain.com/api/warehouse/payments?page=1",
+    "from": 1,
+    "last_page": 5,
+    "last_page_url": "http://domain.com/api/warehouse/payments?page=5",
+    "next_page_url": "http://domain.com/api/warehouse/payments?page=2",
+    "path": "http://domain.com/api/warehouse/payments",
+    "per_page": 20,
+    "prev_page_url": null,
+    "to": 20,
+    "total": 95
+  }
 }
 ```
 

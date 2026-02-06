@@ -80,11 +80,13 @@ Authorization: Bearer {token}
 - `store_id`: رقم المتجر
 - `from_date`: YYYY-MM-DD
 - `to_date`: YYYY-MM-DD
+- `page`: رقم الصفحة (اختياري، افتراضي: 1)
 
 **Examples:**
 ```http
 GET /api/marketer/store-returns?status=pending
-GET /api/marketer/store-returns?store_id=5
+GET /api/marketer/store-returns?status=pending&page=2
+GET /api/marketer/store-returns?store_id=5&page=1
 GET /api/marketer/store-returns?status=pending&store_id=5
 ```
 
@@ -92,20 +94,33 @@ GET /api/marketer/store-returns?status=pending&store_id=5
 ```json
 {
   "message": "قائمة طلبات الإرجاع",
-  "data": [
-    {
-      "id": 1,
-      "return_number": "RET-20240203-0001",
-      "sales_invoice_id": 25,
-      "sales_invoice_number": "SI-20240203-0025",
-      "store_id": 1,
-      "store_name": "متجر الأمل",
-      "marketer_id": 3,
-      "total_amount": 800,
-      "status": "pending",
-      "created_at": "2024-02-03 10:30:00"
-    }
-  ]
+  "data": {
+    "current_page": 1,
+    "data": [
+      {
+        "id": 1,
+        "return_number": "RET-20240203-0001",
+        "sales_invoice_id": 25,
+        "sales_invoice_number": "SI-20240203-0025",
+        "store_id": 1,
+        "store_name": "متجر الأمل",
+        "marketer_id": 3,
+        "total_amount": 800,
+        "status": "pending",
+        "created_at": "2024-02-03 10:30:00"
+      }
+    ],
+    "first_page_url": "http://domain.com/api/marketer/store-returns?page=1",
+    "from": 1,
+    "last_page": 5,
+    "last_page_url": "http://domain.com/api/marketer/store-returns?page=5",
+    "next_page_url": "http://domain.com/api/marketer/store-returns?page=2",
+    "path": "http://domain.com/api/marketer/store-returns",
+    "per_page": 20,
+    "prev_page_url": null,
+    "to": 20,
+    "total": 95
+  }
 }
 ```
 
@@ -193,11 +208,13 @@ Authorization: Bearer {token}
 - `store_id`: رقم المتجر
 - `from_date`: YYYY-MM-DD
 - `to_date`: YYYY-MM-DD
+- `page`: رقم الصفحة (اختياري، افتراضي: 1)
 
 **Examples:**
 ```http
 GET /api/warehouse/store-returns?status=pending
-GET /api/warehouse/store-returns?marketer_id=3
+GET /api/warehouse/store-returns?status=pending&page=2
+GET /api/warehouse/store-returns?marketer_id=3&page=1
 GET /api/warehouse/store-returns?store_id=5
 GET /api/warehouse/store-returns?marketer_id=3&store_id=5
 ```
@@ -206,17 +223,30 @@ GET /api/warehouse/store-returns?marketer_id=3&store_id=5
 ```json
 {
   "message": "قائمة طلبات الإرجاع",
-  "data": [
-    {
-      "id": 1,
-      "return_number": "RET-20240203-0001",
-      "store_name": "متجر الأمل",
-      "marketer_name": "محمد السالم",
-      "sales_invoice_number": "SI-20240203-0025",
-      "total_amount": 800,
-      "status": "pending"
-    }
-  ]
+  "data": {
+    "current_page": 1,
+    "data": [
+      {
+        "id": 1,
+        "return_number": "RET-20240203-0001",
+        "store_name": "متجر الأمل",
+        "marketer_name": "محمد السالم",
+        "sales_invoice_number": "SI-20240203-0025",
+        "total_amount": 800,
+        "status": "pending"
+      }
+    ],
+    "first_page_url": "http://domain.com/api/warehouse/store-returns?page=1",
+    "from": 1,
+    "last_page": 5,
+    "last_page_url": "http://domain.com/api/warehouse/store-returns?page=5",
+    "next_page_url": "http://domain.com/api/warehouse/store-returns?page=2",
+    "path": "http://domain.com/api/warehouse/store-returns",
+    "per_page": 20,
+    "prev_page_url": null,
+    "to": 20,
+    "total": 95
+  }
 }
 ```
 

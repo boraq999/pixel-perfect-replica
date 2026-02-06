@@ -79,32 +79,47 @@ Authorization: Bearer {token}
 - `status`: pending, approved, rejected, cancelled
 - `from_date`: YYYY-MM-DD
 - `to_date`: YYYY-MM-DD
+- `page`: رقم الصفحة (اختياري، افتراضي: 1)
 
 **Examples:**
 ```http
 GET /api/marketer/withdrawals?status=pending
-GET /api/marketer/withdrawals?from_date=2024-01-01&to_date=2024-01-31
+GET /api/marketer/withdrawals?status=pending&page=2
+GET /api/marketer/withdrawals?from_date=2024-01-01&to_date=2024-01-31&page=1
 ```
 
 **Success Response (200):**
 ```json
 {
   "message": "قائمة طلبات السحب",
-  "data": [
-    {
-      "id": 1,
-      "marketer_id": 3,
-      "requested_amount": 5000,
-      "status": "pending",
-      "approved_by": null,
-      "approved_at": null,
-      "rejected_by": null,
-      "rejected_at": null,
-      "signed_receipt_image": null,
-      "notes": null,
-      "created_at": "2024-02-03 10:30:00"
-    }
-  ]
+  "data": {
+    "current_page": 1,
+    "data": [
+      {
+        "id": 1,
+        "marketer_id": 3,
+        "requested_amount": 5000,
+        "status": "pending",
+        "approved_by": null,
+        "approved_at": null,
+        "rejected_by": null,
+        "rejected_at": null,
+        "signed_receipt_image": null,
+        "notes": null,
+        "created_at": "2024-02-03 10:30:00"
+      }
+    ],
+    "first_page_url": "http://domain.com/api/marketer/withdrawals?page=1",
+    "from": 1,
+    "last_page": 5,
+    "last_page_url": "http://domain.com/api/marketer/withdrawals?page=5",
+    "next_page_url": "http://domain.com/api/marketer/withdrawals?page=2",
+    "path": "http://domain.com/api/marketer/withdrawals",
+    "per_page": 20,
+    "prev_page_url": null,
+    "to": 20,
+    "total": 95
+  }
 }
 ```
 
@@ -174,11 +189,13 @@ Authorization: Bearer {token}
 **Query Parameters (Filters):**
 - `status`: pending, approved, rejected, cancelled
 - `marketer_id`: رقم المسوق
+- `page`: رقم الصفحة (اختياري، افتراضي: 1)
 
 **Examples:**
 ```http
 GET /api/admin/withdrawals?status=pending
-GET /api/admin/withdrawals?marketer_id=3
+GET /api/admin/withdrawals?status=pending&page=2
+GET /api/admin/withdrawals?marketer_id=3&page=1
 GET /api/admin/withdrawals?status=pending&marketer_id=3
 ```
 
@@ -186,18 +203,31 @@ GET /api/admin/withdrawals?status=pending&marketer_id=3
 ```json
 {
   "message": "قائمة طلبات السحب",
-  "data": [
-    {
-      "id": 1,
-      "marketer_id": 3,
-      "marketer_name": "محمد السالم",
-      "requested_amount": 5000,
-      "status": "pending",
-      "approved_by_name": null,
-      "rejected_by_name": null,
-      "created_at": "2024-02-03 10:30:00"
-    }
-  ]
+  "data": {
+    "current_page": 1,
+    "data": [
+      {
+        "id": 1,
+        "marketer_id": 3,
+        "marketer_name": "محمد السالم",
+        "requested_amount": 5000,
+        "status": "pending",
+        "approved_by_name": null,
+        "rejected_by_name": null,
+        "created_at": "2024-02-03 10:30:00"
+      }
+    ],
+    "first_page_url": "http://domain.com/api/admin/withdrawals?page=1",
+    "from": 1,
+    "last_page": 5,
+    "last_page_url": "http://domain.com/api/admin/withdrawals?page=5",
+    "next_page_url": "http://domain.com/api/admin/withdrawals?page=2",
+    "path": "http://domain.com/api/admin/withdrawals",
+    "per_page": 20,
+    "prev_page_url": null,
+    "to": 20,
+    "total": 95
+  }
 }
 ```
 

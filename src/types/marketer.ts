@@ -43,22 +43,37 @@ export interface SalesInvoice {
 }
 
 export interface MarketerRequestItem {
-  id: string;
-  request_id: string;
-  product_id: string;
-  product?: Product;
+  id: number;
+  request_id: number;
+  product_id: number;
+  product_name: string;
   quantity: number;
+  current_price: number;
 }
 
 export interface MarketerRequest {
-  id: string;
+  id: number;
   invoice_number: string;
-  marketer_id: string;
-  status: RequestStatus;
-  items: MarketerRequestItem[];
+  marketer_id: number;
+  status: 'pending' | 'approved' | 'documented' | 'rejected' | 'cancelled';
   created_at: string;
-  updated_at?: string;
-  keeper_id?: string;
+  updated_at: string;
+  approved_by?: number;
+  approved_at?: string;
+  documented_by?: number;
+  documented_at?: string;
+  rejected_by?: number;
+  rejected_at?: string;
+  stamped_image?: string;
+  notes?: string;
+  approver_name?: string;
+  documenter_name?: string;
+  rejecter_name?: string;
+}
+
+export interface MarketerRequestDetails {
+  request: MarketerRequest;
+  items: MarketerRequestItem[];
 }
 
 export interface MarketerActualStock {

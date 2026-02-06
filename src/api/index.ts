@@ -21,3 +21,6 @@ export const stockApi = {
   getMarketerStock: () => axiosInstance.get('/marketer/stock'),
   getWarehouseStock: () => axiosInstance.get('/warehouse/stock'),
 };
+
+export { marketerRequestsAPI } from './marketerRequests';
+export { productsAPI } from './products';

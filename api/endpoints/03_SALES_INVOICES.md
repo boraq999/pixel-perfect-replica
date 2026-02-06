@@ -78,31 +78,46 @@ Authorization: Bearer {token}
 
 **Query Parameters (Filters):**
 - `status`: pending, approved, rejected, cancelled
+- `page`: رقم الصفحة (اختياري، افتراضي: 1)
 
 **Examples:**
 ```http
 GET /api/marketer/sales?status=pending
-GET /api/marketer/sales?status=approved
+GET /api/marketer/sales?status=pending&page=2
+GET /api/marketer/sales?status=approved&page=1
 ```
 
 **Success Response (200):**
 ```json
 {
-  "data": [
-    {
-      "id": 1,
-      "invoice_number": "SI-20240203-0001",
-      "marketer_id": 3,
-      "store_id": 1,
-      "store_name": "متجر الأمل",
-      "total_amount": 4750,
-      "subtotal": 5000,
-      "product_discount": 200,
-      "invoice_discount_amount": 50,
-      "status": "pending",
-      "created_at": "2024-02-03 10:30:00"
-    }
-  ]
+  "data": {
+    "current_page": 1,
+    "data": [
+      {
+        "id": 1,
+        "invoice_number": "SI-20240203-0001",
+        "marketer_id": 3,
+        "store_id": 1,
+        "store_name": "متجر الأمل",
+        "total_amount": 4750,
+        "subtotal": 5000,
+        "product_discount": 200,
+        "invoice_discount_amount": 50,
+        "status": "pending",
+        "created_at": "2024-02-03 10:30:00"
+      }
+    ],
+    "first_page_url": "http://domain.com/api/marketer/sales?page=1",
+    "from": 1,
+    "last_page": 5,
+    "last_page_url": "http://domain.com/api/marketer/sales?page=5",
+    "next_page_url": "http://domain.com/api/marketer/sales?page=2",
+    "path": "http://domain.com/api/marketer/sales",
+    "per_page": 20,
+    "prev_page_url": null,
+    "to": 20,
+    "total": 95
+  }
 }
 ```
 
@@ -226,11 +241,13 @@ Authorization: Bearer {token}
 - `store_id`: رقم المتجر
 - `from_date`: YYYY-MM-DD
 - `to_date`: YYYY-MM-DD
+- `page`: رقم الصفحة (اختياري، افتراضي: 1)
 
 **Examples:**
 ```http
 GET /api/warehouse/sales?status=pending
-GET /api/warehouse/sales?marketer_id=3
+GET /api/warehouse/sales?status=pending&page=2
+GET /api/warehouse/sales?marketer_id=3&page=1
 GET /api/warehouse/sales?store_id=5
 GET /api/warehouse/sales?marketer_id=3&store_id=5&status=pending
 GET /api/warehouse/sales?from_date=2024-01-01&to_date=2024-01-31
@@ -240,19 +257,32 @@ GET /api/warehouse/sales?from_date=2024-01-01&to_date=2024-01-31
 ```json
 {
   "message": "قائمة فواتير البيع",
-  "data": [
-    {
-      "id": 1,
-      "invoice_number": "SI-20240203-0001",
-      "marketer_id": 3,
-      "marketer_name": "محمد السالم",
-      "store_id": 1,
-      "store_name": "متجر الأمل",
-      "total_amount": 4750,
-      "status": "pending",
-      "created_at": "2024-02-03 10:30:00"
-    }
-  ]
+  "data": {
+    "current_page": 1,
+    "data": [
+      {
+        "id": 1,
+        "invoice_number": "SI-20240203-0001",
+        "marketer_id": 3,
+        "marketer_name": "محمد السالم",
+        "store_id": 1,
+        "store_name": "متجر الأمل",
+        "total_amount": 4750,
+        "status": "pending",
+        "created_at": "2024-02-03 10:30:00"
+      }
+    ],
+    "first_page_url": "http://domain.com/api/warehouse/sales?page=1",
+    "from": 1,
+    "last_page": 5,
+    "last_page_url": "http://domain.com/api/warehouse/sales?page=5",
+    "next_page_url": "http://domain.com/api/warehouse/sales?page=2",
+    "path": "http://domain.com/api/warehouse/sales",
+    "per_page": 20,
+    "prev_page_url": null,
+    "to": 20,
+    "total": 95
+  }
 }
 ```
 
@@ -404,21 +434,35 @@ Authorization: Bearer {token}
 - `store_id`: رقم المتجر
 - `from_date`: YYYY-MM-DD
 - `to_date`: YYYY-MM-DD
+- `page`: رقم الصفحة (اختياري، افتراضي: 1)
 
 **Success Response (200):**
 ```json
 {
   "message": "قائمة فواتير البيع",
-  "data": [
-    {
-      "id": 1,
-      "invoice_number": "SI-20240203-0001",
-      "marketer_name": "محمد السالم",
-      "store_name": "متجر الأمل",
-      "total_amount": 4750,
-      "status": "pending"
-    }
-  ]
+  "data": {
+    "current_page": 1,
+    "data": [
+      {
+        "id": 1,
+        "invoice_number": "SI-20240203-0001",
+        "marketer_name": "محمد السالم",
+        "store_name": "متجر الأمل",
+        "total_amount": 4750,
+        "status": "pending"
+      }
+    ],
+    "first_page_url": "http://domain.com/api/admin/sales?page=1",
+    "from": 1,
+    "last_page": 5,
+    "last_page_url": "http://domain.com/api/admin/sales?page=5",
+    "next_page_url": "http://domain.com/api/admin/sales?page=2",
+    "path": "http://domain.com/api/admin/sales",
+    "per_page": 20,
+    "prev_page_url": null,
+    "to": 20,
+    "total": 95
+  }
 }
 ```
 
