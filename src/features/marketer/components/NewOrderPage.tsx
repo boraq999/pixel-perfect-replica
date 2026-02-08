@@ -30,6 +30,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useNavigate } from 'react-router-dom';
 import { DiscountType, SalesInvoiceItem } from '@/types/marketer';
 import { useCurrency } from '@/store/currencyStore';
+import { PageHeader } from './shared';
 
 export const NewOrderPage = () => {
   const navigate = useNavigate();
@@ -165,17 +166,15 @@ export const NewOrderPage = () => {
     s.product?.name.includes(searchQuery) || s.product?.barcode.includes(searchQuery)
   );
 
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-          <ArrowRight className="w-5 h-5" />
-        </Button>
-        <div>
-          <h1 className="text-2xl font-bold text-right">إنشاء فاتورة مبيعات</h1>
-          <p className="text-muted-foreground text-right">بيع بضاعة لمتجر وتسجيلها في النظام</p>
-        </div>
-      </div>
+      <PageHeader
+        title="إنشاء فاتورة مبيعات"
+        subtitle="بيع بضاعة لمتجر وتسجيلها في النظام"
+        icon={CircleDollarSign}
+        onBack={() => navigate(-1)}
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">

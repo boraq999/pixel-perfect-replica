@@ -8,6 +8,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { MarketerDashboard } from "@/features/marketer/components/Dashboard";
 import { WarehousePage } from "@/features/marketer/components/WarehousePage";
 import { StoresPage } from "@/features/marketer/components/StoresPage";
+import { StoreDetailsPage } from "@/features/marketer/components/StoreDetailsPage";
 import { NewOrderPage } from "@/features/marketer/components/NewOrderPage";
 import { ReturnsPage } from "@/features/marketer/components/ReturnsPage";
 import { OperationsPage } from "@/features/marketer/components/OperationsPage";
@@ -15,6 +16,7 @@ import { SettingsPage } from "@/features/marketer/components/SettingsPage";
 import { BestMarketerDashboard } from "@/features/marketer/components/BestMarketerDashboard";
 import { OrderManagementPage } from "@/features/marketer/components/OrderManagementPage";
 import { ProfitsWithdrawalPage } from "@/features/marketer/components/ProfitsWithdrawalPage";
+import { NewStockRequestPage } from "@/features/marketer/components/NewStockRequestPage";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { useAuthStore } from "@/store/authStore";
 import NotFound from "./pages/NotFound";
@@ -36,6 +38,8 @@ import { KeeperPaymentConfirmationPage } from "@/features/keeper/components/Paym
 import { KeeperSalesReturnsPage } from "@/features/keeper/components/SalesReturnsPage";
 import { KeeperSalesDocsPage } from "@/features/keeper/components/SalesDocsPage";
 import { KeeperSettingsPage } from "@/features/keeper/components/SettingsPage";
+import { WarehouseRequestsPage } from "@/features/keeper/components/WarehouseRequestsPage";
+
 
 import { ThemeProvider } from "@/components/theme-provider";
 
@@ -46,7 +50,7 @@ const App = () => {
 
   const getDefaultRoute = () => {
     if (!isAuthenticated || !user) return "/";
-    
+
     switch (user.role) {
       case 'admin': return "/admin";
       case 'keeper': return "/keeper";
@@ -100,6 +104,7 @@ const App = () => {
                 <Route index element={<div className="p-8 text-center h-full flex flex-col items-center justify-center"><h1 className="text-2xl font-bold">لوحة أمين المخزن</h1><p className="text-muted-foreground">قم بإدارة المخزون وطلبات المسوقين من القائمة</p></div>} />
                 <Route path="stock" element={<WarehouseStockPage />} />
                 <Route path="requests" element={<KeeperRequestsPage />} />
+                <Route path="marketer-requests" element={<WarehouseRequestsPage />} />
                 <Route path="factory-invoices" element={<FactoryInvoicesPage />} />
                 <Route path="delivery-confirmation" element={<KeeperDeliveryConfirmationPage />} />
                 <Route path="payment-confirmation" element={<KeeperPaymentConfirmationPage />} />
@@ -120,7 +125,9 @@ const App = () => {
                 <Route index element={<BestMarketerDashboard />} />
                 <Route path="orders" element={<OrderManagementPage />} />
                 <Route path="warehouse" element={<WarehousePage />} />
+                <Route path="warehouse/receive" element={<NewStockRequestPage />} />
                 <Route path="stores" element={<StoresPage />} />
+                <Route path="stores/:storeId" element={<StoreDetailsPage />} />
                 <Route path="stores/new-order" element={<NewOrderPage />} />
                 <Route path="returns" element={<ReturnsPage />} />
                 <Route path="profits" element={<ProfitsWithdrawalPage />} />

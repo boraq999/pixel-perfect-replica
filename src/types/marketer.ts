@@ -28,17 +28,18 @@ export interface SalesInvoice {
   marketer_id: string;
   store_id: string;
   store?: Store;
+  store_name?: string;
   subtotal: number;
   product_discount: number;
-  invoice_discount_type: DiscountType;
-  invoice_discount_value: number;
-  invoice_discount_amount: number;
+  invoice_discount_type?: DiscountType;
+  invoice_discount_value?: number;
+  invoice_discount_amount?: number;
   total_amount: number;
   status: InvoiceStatus;
   keeper_id?: string;
   stamped_invoice_image?: string;
   notes?: string;
-  items: SalesInvoiceItem[];
+  items?: SalesInvoiceItem[];
   created_at: string;
 }
 

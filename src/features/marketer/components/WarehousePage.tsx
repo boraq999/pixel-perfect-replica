@@ -13,7 +13,8 @@ import {
   Clock,
   CheckCircle,
   TrendingUp,
-  Calendar
+  Calendar,
+  Eye,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,15 +30,17 @@ import { Card, CardHeader } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { useMarketerStore } from '@/store/marketerStore';
 import { useAuthStore } from '@/store/authStore';
+import { useCurrency } from '@/store/currencyStore';
 import { useNavigate } from 'react-router-dom';
-import { StatCard, SearchBar, ViewModeToggle, EmptyState, StatusBadge } from './shared';
+import { StatCard, SearchBar, ViewModeToggle, EmptyState, StatusBadge, PageHeader } from './shared';
 import { useMarketerData, useFilteredData } from '../hooks';
 
 export const WarehousePage = () => {
   const navigate = useNavigate();
   const { user } = useAuthStore();
   const { cancelRequest, documentRequest } = useMarketerStore();
-  const { requests, stock, isLoading } = useMarketerData(user?.id);
+  const { requests, stock, reservedStock, invoices, isLoading } = useMarketerData(user?.id);
+  const { formatAmount } = useCurrency();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'my-stock' | 'requests' | 'pending'>('my-stock');
@@ -49,38 +52,30 @@ export const WarehousePage = () => {
   const stats = useMemo(() => {
     return {
       totalStockItems: stock.reduce((acc, item) => acc + item.quantity, 0),
-      reservedRequests: requests.filter(r => r.status === 'approved' || r.status === 'pending').length,
-      pendingRequests: requests.filter(r => r.status === 'pending').length,
+      reservedRequests: reservedStock.length > 0 ? reservedStock.length : requests.filter(r => r.status === 'approved').length,
+      pendingRequests: invoices.length, // عدد الفواتير
       approvedRequests: requests.filter(r => r.status === 'approved').length,
     };
-  }, [stock, requests]);
+  }, [stock, requests, reservedStock, invoices]);
 
   const reservedItems = useMemo(() => {
-    return requests
-      .filter(r => r.status === 'approved')
-      .flatMap(r => r.items.map(item => ({
-        ...item,
-        status: r.status,
-        invoice_number: r.invoice_number,
-        date: r.created_at,
-        request_id: r.id
-      })));
-  }, [requests]);
+    // نستخدم reservedStock القادمة من الـ API مباشرة
+    return reservedStock.map(item => ({
+      ...item,
+      status: 'approved', // أو 'reserved'
+      // عرض الباركود بدلاً من رقم الطلب لأن المخزون المحجوز مجمع وليس مرتبط بطلب واحد
+      invoice_number: item.product?.barcode || '---',
+      date: new Date().toISOString(),
+      request_id: 0
+    }));
+  }, [reservedStock]);
 
-  const pendingItems = useMemo(() => {
-    return requests
-      .filter(r => r.status === 'pending')
-      .flatMap(r => r.items.map(item => ({
-        ...item,
-        status: r.status,
-        invoice_number: r.invoice_number,
-        date: r.created_at,
-        request_id: r.id
-      })));
-  }, [requests]);
+  const storeInvoices = useMemo(() => {
+    return invoices;
+  }, [invoices]);
 
+  const filteredStoreInvoices = useFilteredData(storeInvoices, searchQuery, ['invoice_number', 'store_name']);
   const filteredReservedItems = useFilteredData(reservedItems, searchQuery, ['product', 'invoice_number']);
-  const filteredPendingItems = useFilteredData(pendingItems, searchQuery, ['product', 'invoice_number']);
   const filteredStock = useFilteredData(stock, searchQuery, ['product']);
 
   const handleCancelRequest = async (id: string) => {
@@ -118,41 +113,16 @@ export const WarehousePage = () => {
   return (
     <div className="space-y-8 pb-12">
       {/* Premium Header */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-primary/95 to-primary p-6 text-white shadow-2xl md:p-8">
-        <div className="absolute top-0 right-0 h-full w-1/2 bg-[url('/pattern.svg')] opacity-10 mix-blend-overlay" />
-        <div className="relative z-10 flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <div className="flex items-center gap-3">
-              <div className="rounded-2xl bg-white/20 p-2 backdrop-blur-md md:p-3">
-                <Boxes className="h-6 w-6 md:h-8 md:w-8" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-extrabold tracking-tight md:text-4xl text-white">مخزوني الفعلي</h1>
-                <p className="mt-0.5 text-xs md:mt-1 md:text-base text-white/80">إدارة البضاعة ومتابعة حالة الطلبات</p>
-              </div>
-            </div>
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="hidden md:block"
-          >
-            <Button
-              onClick={() => navigate('receive')}
-              size="lg"
-              className="h-14 gap-2 rounded-2xl bg-white px-8 font-bold text-primary shadow-xl hover:bg-white/90 font-ar"
-            >
-              <Plus className="h-5 w-5" />
-              طلب بضاعة جديد
-            </Button>
-          </motion.div>
-        </div>
-      </div>
+      <PageHeader
+        title="مخزوني الفعلي"
+        subtitle="إدارة البضاعة ومتابعة حالة الطلبات"
+        icon={Boxes}
+        action={{
+          label: "طلب بضاعة جديد",
+          icon: Plus,
+          onClick: () => navigate('/dashboard/warehouse/receive')
+        }}
+      />
 
       {/* Stats */}
       <div className="hide-scrollbar flex gap-4 overflow-x-auto pb-2 -mx-2 px-2 md:mx-0 md:px-0 md:grid md:grid-cols-4 md:overflow-visible">
@@ -203,7 +173,7 @@ export const WarehousePage = () => {
                   onClick={() => setActiveTab('pending')}
                   className={`pb-4 text-sm font-bold transition-all relative ${activeTab === 'pending' ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
                 >
-                  قيد المراجعة
+                  فواتير محلات
                   {activeTab === 'pending' && (
                     <motion.div layoutId="tab-indicator" className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
                   )}
@@ -221,44 +191,61 @@ export const WarehousePage = () => {
                     exit={{ opacity: 0, x: 20 }}
                     className={viewMode === 'grid' ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" : "flex flex-col gap-3"}
                   >
-                    {filteredPendingItems.length === 0 ? (
+                    {filteredStoreInvoices.length === 0 ? (
                       <EmptyState
                         icon={Clock}
-                        title="لا توجد طلبات قيد المراجعة"
-                        description="جميع طلباتك تمت مراجعتها"
+                        title="لا توجد فواتير محلات"
+                        description="لم تقم بإصدار أي فواتير للمحلات بعد"
                       />
                     ) : (
-                      filteredPendingItems.map((item, idx) => (
+                      filteredStoreInvoices.map((item, idx) => (
                         <motion.div
                           key={`${item.id}-${idx}`}
                           initial={{ opacity: 0, scale: 0.95 }}
                           animate={{ opacity: 1, scale: 1 }}
                           transition={{ delay: idx * 0.05 }}
-                          className={`group rounded-2xl border bg-card transition-all hover:border-amber-500/50 hover:shadow-lg ${viewMode === 'grid' ? 'p-6 flex flex-col items-center text-center' : 'p-4 flex items-center justify-between'}`}
+                          className={`group rounded-2xl border bg-card transition-all hover:border-amber-500/50 hover:shadow-lg ${viewMode === 'grid' ? 'p-6 flex flex-col items-center text-center' : 'p-4 flex flex-col sm:flex-row items-center sm:justify-between gap-4 sm:gap-0'}`}
                         >
-                          <div className={`flex items-center gap-4 ${viewMode === 'grid' ? 'flex-col mb-4' : ''}`}>
+                          <div className={`flex items-center gap-4 ${viewMode === 'grid' ? 'flex-col mb-4' : 'w-full sm:w-auto'}`}>
                             <div className="h-14 w-14 rounded-full flex items-center justify-center transition-transform duration-300 group-hover:scale-110 bg-amber-500/10 text-amber-600">
-                              <Clock className="h-7 w-7" />
+                              <FileText className="h-7 w-7" />
                             </div>
                             <div className={viewMode === 'grid' ? '' : 'text-right flex-1'}>
                               <div className="flex items-center gap-2 justify-center md:justify-start mb-1">
-                                <h3 className="font-bold text-lg">{item.product?.name}</h3>
+                                <h3 className="font-bold text-lg">#{item.invoice_number}</h3>
                               </div>
-                              <p className="text-xs text-muted-foreground mb-2">رقم الطلب: {item.invoice_number}</p>
-                              <StatusBadge status={item.status as any} size="md" />
+                              <p className="text-sm font-medium text-foreground mb-1">{item.store_name}</p>
+                              <div className="flex items-center gap-2 text-xs text-muted-foreground justify-center md:justify-start">
+                                <Calendar className="w-3 h-3" />
+                                {new Date(item.created_at).toLocaleDateString('ar-LY')}
+                              </div>
                             </div>
                           </div>
-                          <div className={viewMode === 'grid' ? 'w-full pt-4 border-t' : 'text-left pl-4 border-l'}>
+                          <div className={viewMode === 'grid' ? 'w-full pt-4 border-t grid grid-cols-1 gap-2' : 'w-full sm:w-auto flex justify-between sm:justify-end gap-4 sm:gap-8 items-center border-t sm:border-t-0 sm:border-l pt-4 sm:pt-0 sm:pl-4 border-border'}>
                             <div className="flex flex-col items-center">
-                              <span className="text-xs text-muted-foreground font-medium mb-1">الكمية المطلوبة</span>
-                              <span className="text-3xl font-black font-ar text-amber-500">{item.quantity}</span>
+                              <span className="text-xs text-muted-foreground font-medium mb-1">المبلغ</span>
+                              <span className="text-xl font-black font-ar text-amber-600 dark:text-amber-500">{formatAmount(item.total_amount)}</span>
                             </div>
+                            {viewMode === 'grid' && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="w-full mt-2 text-xs border-amber-200 text-amber-700 hover:bg-amber-50 hover:text-amber-800 dark:border-amber-800 dark:text-amber-400 dark:hover:bg-amber-900/20"
+                              >
+                                <Eye className="w-3 h-3 ml-2" />
+                                تفاصيل الفاتورة
+                              </Button>
+                            )}
                           </div>
                           {viewMode === 'list' && (
-                            <div className="mr-6 flex items-center gap-2 text-xs text-muted-foreground min-w-[120px]">
-                              <Calendar className="w-3 h-3" />
-                              {new Date(item.date).toLocaleDateString('ar-LY')}
-                            </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-xs border-amber-200 text-amber-700 hover:bg-amber-50 hover:text-amber-800 dark:border-amber-800 dark:text-amber-400 dark:hover:bg-amber-900/20"
+                            >
+                              <Eye className="w-3 h-3 ml-2" />
+                              تفاصيل الفاتورة
+                            </Button>
                           )}
                         </motion.div>
                       ))
@@ -285,9 +272,9 @@ export const WarehousePage = () => {
                           initial={{ opacity: 0, scale: 0.95 }}
                           animate={{ opacity: 1, scale: 1 }}
                           transition={{ delay: idx * 0.05 }}
-                          className={`group rounded-2xl border bg-card transition-all hover:border-primary/50 hover:shadow-lg ${viewMode === 'grid' ? 'p-6 flex flex-col items-center text-center' : 'p-4 flex items-center justify-between'}`}
+                          className={`group rounded-2xl border bg-card transition-all hover:border-primary/50 hover:shadow-lg ${viewMode === 'grid' ? 'p-6 flex flex-col items-center text-center' : 'p-4 flex flex-col sm:flex-row items-center sm:justify-between gap-4 sm:gap-0'}`}
                         >
-                          <div className={`flex items-center gap-4 ${viewMode === 'grid' ? 'flex-col mb-4' : ''}`}>
+                          <div className={`flex items-center gap-4 ${viewMode === 'grid' ? 'flex-col mb-4' : 'w-full sm:w-auto'}`}>
                             <div className="h-14 w-14 rounded-full flex items-center justify-center transition-transform duration-300 group-hover:scale-110 bg-emerald-500/10 text-emerald-600">
                               <Package className="h-7 w-7" />
                             </div>
@@ -295,14 +282,18 @@ export const WarehousePage = () => {
                               <div className="flex items-center gap-2 justify-center md:justify-start mb-1">
                                 <h3 className="font-bold text-lg">{item.product?.name}</h3>
                               </div>
-                              <p className="text-xs text-muted-foreground mb-2">رقم الطلب: {item.invoice_number}</p>
+                              <p className="text-xs text-muted-foreground mb-2">الباركود: {item.invoice_number}</p>
                               <StatusBadge status={item.status as any} size="md" />
                             </div>
                           </div>
-                          <div className={viewMode === 'grid' ? 'w-full pt-4 border-t' : 'text-left pl-4 border-l'}>
+                          <div className={viewMode === 'grid' ? 'w-full pt-4 border-t grid grid-cols-2 divide-x divide-x-reverse gap-2' : 'w-full sm:w-auto flex justify-between sm:justify-end gap-4 sm:gap-8 items-center border-t sm:border-t-0 sm:border-l pt-4 sm:pt-0 sm:pl-4 border-border'}>
                             <div className="flex flex-col items-center">
                               <span className="text-xs text-muted-foreground font-medium mb-1">الكمية المحجوزة</span>
-                              <span className="text-3xl font-black font-ar text-emerald-600">{item.quantity}</span>
+                              <span className="text-2xl font-black font-ar text-emerald-700 dark:text-emerald-500">{item.quantity}</span>
+                            </div>
+                            <div className="flex flex-col items-center">
+                              <span className="text-xs text-muted-foreground font-medium mb-1">السعر</span>
+                              <span className="text-lg font-bold text-foreground font-ar">{formatAmount(item.product?.current_price || 0)}</span>
                             </div>
                           </div>
                           {viewMode === 'list' && (
@@ -330,7 +321,7 @@ export const WarehousePage = () => {
                         description="لم يتم إضافة أي بضاعة لمخزونك الفعلي بعد"
                         action={{
                           label: 'طلب بضاعة من المخزن',
-                          onClick: () => navigate('receive')
+                          onClick: () => navigate('/dashboard/warehouse/receive')
                         }}
                       />
                     ) : (
@@ -340,9 +331,9 @@ export const WarehousePage = () => {
                           initial={{ opacity: 0, scale: 0.95 }}
                           animate={{ opacity: 1, scale: 1 }}
                           transition={{ delay: idx * 0.05 }}
-                          className={`group rounded-2xl border bg-card transition-all hover:border-primary/50 hover:shadow-lg ${viewMode === 'grid' ? 'p-6 flex flex-col items-center text-center' : 'p-4 flex items-center justify-between'}`}
+                          className={`group rounded-2xl border bg-card transition-all hover:border-primary/50 hover:shadow-lg ${viewMode === 'grid' ? 'p-6 flex flex-col items-center text-center' : 'p-4 flex flex-col sm:flex-row items-center sm:justify-between gap-4 sm:gap-0'}`}
                         >
-                          <div className={`flex items-center gap-4 ${viewMode === 'grid' ? 'flex-col mb-4' : ''}`}>
+                          <div className={`flex items-center gap-4 ${viewMode === 'grid' ? 'flex-col mb-4' : 'w-full sm:w-auto'}`}>
                             <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform duration-300">
                               <Package className="h-7 w-7" />
                             </div>
@@ -355,10 +346,14 @@ export const WarehousePage = () => {
                               </p>
                             </div>
                           </div>
-                          <div className={viewMode === 'grid' ? 'w-full pt-4 border-t' : 'text-left pl-4 border-l'}>
+                          <div className={viewMode === 'grid' ? 'w-full pt-4 border-t grid grid-cols-2 divide-x divide-x-reverse gap-2' : 'w-full sm:w-auto flex justify-between sm:justify-end gap-4 sm:gap-8 items-center border-t sm:border-t-0 sm:border-l pt-4 sm:pt-0 sm:pl-4 border-border'}>
                             <div className="flex flex-col items-center">
-                              <span className="text-xs text-muted-foreground font-medium mb-1">الكمية المتوفرة</span>
-                              <span className="text-3xl font-black text-primary font-ar">{item.quantity}</span>
+                              <span className="text-xs text-muted-foreground font-medium mb-1">الكمية</span>
+                              <span className="text-2xl font-black text-primary font-ar">{item.quantity}</span>
+                            </div>
+                            <div className="flex flex-col items-center">
+                              <span className="text-xs text-muted-foreground font-medium mb-1">السعر</span>
+                              <span className="text-lg font-bold text-foreground font-ar">{formatAmount(item.product?.current_price || 0)}</span>
                             </div>
                           </div>
                         </motion.div>
@@ -380,7 +375,7 @@ export const WarehousePage = () => {
         transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.5 }}
       >
         <Button
-          onClick={() => navigate('receive')}
+          onClick={() => navigate('/dashboard/warehouse/receive')}
           size="icon"
           className="h-16 w-16 rounded-full bg-primary text-white shadow-2xl shadow-primary/40 flex items-center justify-center active:scale-90 transition-transform"
         >

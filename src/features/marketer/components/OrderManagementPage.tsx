@@ -8,18 +8,20 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import {
   Package, Plus, Filter, Clock, CheckCircle, XCircle, AlertCircle, Truck,
-  FileText, Calendar, ChevronRight, Download, ShoppingCart, Boxes, History, Info, UserCheck, ChevronLeft, ChevronRight as ChevronRightIcon, DollarSign
+  FileText, Calendar, ChevronRight, Download, ShoppingCart, Boxes, History, Info, UserCheck, ChevronLeft, ChevronRight as ChevronRightIcon, DollarSign, Printer
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { useCurrency } from '@/store/currencyStore';
-import { StatCard, SearchBar } from './shared';
+import { StatCard, SearchBar, PageHeader } from './shared';
 import { useFilteredData } from '../hooks';
 import { marketerRequestsAPI } from '@/api/marketerRequests';
 import { productsAPI, type Product } from '@/api/products';
 import type { MarketerRequest, MarketerRequestDetails } from '@/types/marketer';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 interface NewOrderItem {
   product_id: number;
@@ -189,6 +191,177 @@ export const OrderManagementPage = () => {
     }
   };
 
+  const handlePrintInvoice = async (order: MarketerRequestDetails) => {
+    try {
+      toast.loading('جاري إنشاء الفاتورة...', { id: 'invoice-generation' });
+
+      // حساب المجموع الفرعي
+      const subtotal = order.items.reduce((sum, item) => sum + (item.current_price * item.quantity), 0);
+      const taxRate = 0;
+      const taxAmount = subtotal * taxRate;
+      const total = subtotal + taxAmount;
+
+      // إنشاء عنصر مخفي للفاتورة
+      const invoiceElement = document.createElement('div');
+      invoiceElement.style.position = 'absolute';
+      invoiceElement.style.left = '-9999px';
+      invoiceElement.style.top = '0';
+      invoiceElement.style.width = '800px';
+      invoiceElement.innerHTML = `
+        <div style="font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #ffffff; direction: rtl; color: #000;">
+          <div style="max-width: 800px; margin: 0 auto; background: white; border: 2px solid #000;">
+            <div style="background: #000; color: #fff; padding: 30px 40px; text-align: center; border-bottom: 3px solid #000;">
+              <div style="display: inline-block; padding: 4px 12px; background: #fff; color: #000; font-size: 11px; font-weight: bold; border-radius: 4px; margin-bottom: 10px;">
+                ${getStatusDetails(order.request.status).label}
+              </div>
+              <div style="font-size: 36px; font-weight: bold; letter-spacing: 2px; margin: 10px 0;">
+                ${order.request.invoice_number}
+              </div>
+              <div style="display: flex; justify-content: center; gap: 30px; margin-top: 15px; font-size: 13px;">
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <span>📅</span>
+                  <span>تم الطلب بتاريخ: ${formatDateTime(order.request.created_at)}</span>
+                </div>
+              </div>
+            </div>
+            
+            <div style="padding: 30px 40px;">
+              ${order.request.approver_name || order.request.documenter_name ? `
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0; padding: 15px; background: #f9f9f9; border: 1px solid #ddd; border-radius: 6px;">
+                  ${order.request.approver_name ? `
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                      <span style="font-size: 11px; color: #666; font-weight: 600; text-transform: uppercase;">✅ تمت الموافقة بواسطة</span>
+                      <span style="font-size: 14px; color: #000; font-weight: bold;">${order.request.approver_name}</span>
+                      ${order.request.approved_at ? `<span style="font-size: 11px; color: #666;">${formatDateTime(order.request.approved_at)}</span>` : ''}
+                    </div>
+                  ` : ''}
+                  ${order.request.documenter_name ? `
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                      <span style="font-size: 11px; color: #666; font-weight: 600; text-transform: uppercase;">📝 تم التوثيق بواسطة</span>
+                      <span style="font-size: 14px; color: #000; font-weight: bold;">${order.request.documenter_name}</span>
+                      ${order.request.documented_at ? `<span style="font-size: 11px; color: #666;">${formatDateTime(order.request.documented_at)}</span>` : ''}
+                    </div>
+                  ` : ''}
+                </div>
+              ` : ''}
+
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #000;">
+                <span style="font-size: 18px; font-weight: bold; color: #000;">ملخص الأصناف</span>
+                <span style="font-size: 14px; color: #666; background: #f5f5f5; padding: 4px 12px; border-radius: 4px;">
+                  ${order.items.length} ${order.items.length === 1 ? 'صنف' : order.items.length === 2 ? 'صنفان' : 'أصناف'}
+                </span>
+              </div>
+              
+              <table style="width: 100%; border-collapse: collapse; margin: 20px 0; border: 1px solid #000;">
+                <thead style="background: #000; color: #fff;">
+                  <tr>
+                    <th style="padding: 12px 15px; text-align: right; font-weight: bold; font-size: 13px; border: 1px solid #000;">المنتج</th>
+                    <th style="padding: 12px 15px; text-align: center; font-weight: bold; font-size: 13px; border: 1px solid #000;">الكمية</th>
+                    <th style="padding: 12px 15px; text-align: center; font-weight: bold; font-size: 13px; border: 1px solid #000;">المبلغ</th>
+                    <th style="padding: 12px 15px; text-align: center; font-weight: bold; font-size: 13px; border: 1px solid #000;">الإجمالي</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${order.items.map((item, idx) => `
+                    <tr style="border-bottom: ${idx === order.items.length - 1 ? '2px solid #000' : '1px solid #ddd'};">
+                      <td style="padding: 12px 15px; text-align: right; font-size: 14px; border: 1px solid #ddd; font-weight: 600; color: #000;">${item.product_name}</td>
+                      <td style="padding: 12px 15px; text-align: center; font-size: 14px; border: 1px solid #ddd;">${item.quantity}</td>
+                      <td style="padding: 12px 15px; text-align: center; font-size: 14px; border: 1px solid #ddd;">${formatAmount(item.current_price)}</td>
+                      <td style="padding: 12px 15px; text-align: center; font-size: 14px; border: 1px solid #ddd;"><strong>${formatAmount(item.current_price * item.quantity)}</strong></td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+
+              <div style="background: #f9f9f9; border: 1px solid #000; border-radius: 8px; padding: 20px; margin-top: 30px;">
+                <div style="display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: bold; margin-bottom: 15px; color: #000;">
+                  <span>📋</span>
+                  <span>ملاحظات إضافية</span>
+                </div>
+                <div style="display: grid; gap: 10px;">
+                  <div style="display: flex; justify-content: space-between; padding: 8px 0; font-size: 14px; color: #666;">
+                    <span style="font-weight: 600;">المجموع الفرعي:</span>
+                    <span style="font-weight: bold;">${formatAmount(subtotal)}</span>
+                  </div>
+                  ${taxRate > 0 ? `
+                    <div style="display: flex; justify-content: space-between; padding: 8px 0; font-size: 13px; color: #666;">
+                      <span style="font-weight: 600;">الضريبة (${taxRate * 100}%):</span>
+                      <span style="font-weight: bold;">${formatAmount(taxAmount)}</span>
+                    </div>
+                  ` : ''}
+                  <div style="display: flex; justify-content: space-between; border-top: 2px solid #000; padding-top: 15px; margin-top: 10px; font-size: 18px; font-weight: bold;">
+                    <span style="font-weight: 600;">الإجمالي:</span>
+                    <span style="font-size: 24px; color: #000;">${formatAmount(total)}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div style="text-align: center; padding: 20px; background: #f5f5f5; border-top: 2px solid #000; color: #666; font-size: 11px;">
+              <p>تم إنشاء هذه الفاتورة بتاريخ ${new Date().toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+            </div>
+          </div>
+        </div>
+      `;
+
+      document.body.appendChild(invoiceElement);
+
+      // تحويل العنصر إلى صورة بجودة وخيارات محسنة لتقليل الحجم
+      const canvas = await html2canvas(invoiceElement, {
+        scale: 1.5, // تقليل الدقة قليلاً لتقليل الحجم
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff'
+      });
+
+      document.body.removeChild(invoiceElement);
+
+      // استخدام JPEG بدلاً من PNG لضغط أفضل
+      const imgData = canvas.toDataURL('image/jpeg', 0.8); // جودة 80%
+
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+        compress: true // تفعيل ضغط PDF
+      });
+
+      const imgWidth = 210;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight, undefined, 'FAST'); // استخدام وضع FAST للرسم
+
+      // تنزيل الملف
+      const fileName = `فاتورة-${order.request.invoice_number}.pdf`;
+      pdf.save(fileName);
+
+      toast.success('تم تنزيل الفاتورة بنجاح', { id: 'invoice-generation' });
+
+      // طباعة الفاتورة من المتصفح
+      setTimeout(() => {
+        const pdfBlob = pdf.output('blob');
+        const pdfUrl = URL.createObjectURL(pdfBlob);
+
+        const printFrame = document.createElement('iframe');
+        printFrame.style.display = 'none';
+        printFrame.src = pdfUrl;
+        document.body.appendChild(printFrame);
+
+        printFrame.onload = () => {
+          printFrame.contentWindow?.print();
+          setTimeout(() => {
+            document.body.removeChild(printFrame);
+            URL.revokeObjectURL(pdfUrl);
+          }, 100);
+        };
+      }, 500);
+
+    } catch (error) {
+      console.error('Error generating invoice:', error);
+      toast.error('فشل إنشاء الفاتورة', { id: 'invoice-generation' });
+    }
+  };
+
   const handleCancelOrder = async (orderId: number, notes?: string) => {
     try {
       const response = await marketerRequestsAPI.cancelRequest(orderId, notes);
@@ -203,27 +376,16 @@ export const OrderManagementPage = () => {
   return (
     <div className="space-y-8 pb-12">
       {/* Header */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-primary/95 to-primary p-6 text-white shadow-2xl md:p-8">
-        <div className="relative z-10 flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
-          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }}>
-            <div className="flex items-center gap-3">
-              <div className="rounded-2xl bg-white/20 p-2 backdrop-blur-md md:p-3">
-                <Package className="h-6 w-6 md:h-8 md:w-8" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-extrabold tracking-tight md:text-4xl">إدارة طلبات البضاعة</h1>
-                <p className="mt-0.5 text-xs md:mt-1 md:text-base text-primary-foreground/80">تتبع وإدارة مخزونك بكل سهولة</p>
-              </div>
-            </div>
-          </motion.div>
-          <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5, delay: 0.2 }} className="hidden md:block">
-            <Button onClick={() => setIsNewOrderOpen(true)} size="lg" className="h-14 gap-2 rounded-2xl bg-white px-8 font-bold text-primary shadow-xl hover:bg-white/90">
-              <Plus className="h-5 w-5" />
-              إنشاء طلب جديد
-            </Button>
-          </motion.div>
-        </div>
-      </div>
+      <PageHeader
+        title="إدارة طلبات البضاعة"
+        subtitle="تتبع وإدارة مخزونك بكل سهولة"
+        icon={Package}
+        action={{
+          label: "إنشاء طلب جديد",
+          icon: Plus,
+          onClick: () => setIsNewOrderOpen(true)
+        }}
+      />
 
       {/* Stats */}
       <div className="hide-scrollbar flex gap-4 overflow-x-auto pb-2 -mx-2 px-2">
@@ -313,7 +475,7 @@ export const OrderManagementPage = () => {
               </Tabs>
             </CardHeader>
           </Card>
-          
+
           {/* Pagination */}
           {totalPages > 1 && (
             <div className="flex items-center justify-center gap-2">
@@ -413,7 +575,9 @@ export const OrderManagementPage = () => {
                           setOrderItems(updatedItems);
                         }}>
                           <SelectTrigger className="h-11 text-sm">
-                            <SelectValue placeholder="اختر المنتج..." />
+                            <SelectValue placeholder="اختر المنتج...">
+                              {selectedProduct ? selectedProduct.name : "اختر المنتج..."}
+                            </SelectValue>
                           </SelectTrigger>
                           <SelectContent className="max-h-[300px]">
                             {isLoadingProducts ? (
@@ -451,19 +615,19 @@ export const OrderManagementPage = () => {
                       </div>
                       <div className="w-28 space-y-2">
                         <Label className="text-xs font-medium text-muted-foreground">الكمية</Label>
-                        <Input 
-                          type="number" 
-                          min="1" 
+                        <Input
+                          type="number"
+                          min="1"
                           max={products.find(p => p.id === item.product_id)?.main_stock_quantity || 999999}
-                          value={item.quantity} 
+                          value={item.quantity}
                           onChange={(e) => {
                             const updatedItems = [...orderItems];
                             const maxQty = products.find(p => p.id === item.product_id)?.main_stock_quantity || 999999;
                             const newQty = parseInt(e.target.value) || 1;
                             updatedItems[index].quantity = Math.min(newQty, maxQty);
                             setOrderItems(updatedItems);
-                          }} 
-                          className="h-11 text-sm text-center font-semibold" 
+                          }}
+                          className="h-11 text-sm text-center font-semibold"
                         />
                       </div>
                       <div className="pt-7">
@@ -599,6 +763,12 @@ export const OrderManagementPage = () => {
               </div>
               <div className="pt-4 border-t flex gap-2">
                 <Button variant="outline" className="flex-1" onClick={() => setSelectedOrder(null)}>إغلاق</Button>
+                {(selectedOrder.request.status === 'approved' || selectedOrder.request.status === 'documented') && (
+                  <Button variant="default" className="flex-1 gap-2" onClick={() => handlePrintInvoice(selectedOrder)}>
+                    <Printer className="h-4 w-4" />
+                    طباعة الفاتورة
+                  </Button>
+                )}
                 {(selectedOrder.request.status === 'pending' || selectedOrder.request.status === 'approved') && (
                   <Button variant="destructive" className="flex-1 gap-2" onClick={() => handleCancelOrder(selectedOrder.request.id, 'إلغاء من المسوق')}>
                     <XCircle className="h-4 w-4" />

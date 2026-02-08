@@ -29,7 +29,7 @@ export const marketerRequestsAPI = {
   },
 
   // عرض تفاصيل طلب محدد
-  getRequestDetails: async (id: number) => {
+  getRequestDetails: async (id: number | string) => {
     const response = await axiosInstance.get(`/marketer/requests/${id}`);
     return response.data;
   },
@@ -38,5 +38,17 @@ export const marketerRequestsAPI = {
   cancelRequest: async (id: number, notes?: string) => {
     const response = await axiosInstance.put(`/marketer/requests/${id}/cancel`, { notes });
     return response.data;
+  },
+
+  // المخزون الفعلي
+  getActualStock: async () => {
+    const response = await axiosInstance.get('/marketer/stock/actual');
+    return response;
+  },
+
+  // المخزون المحجوز
+  getReservedStock: async () => {
+    const response = await axiosInstance.get('/marketer/stock/reserved');
+    return response;
   },
 };

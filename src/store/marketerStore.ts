@@ -1,5 +1,9 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { marketerRequestsAPI } from '@/api/marketerRequests';
+import { productsAPI } from '@/api/products';
+import { salesInvoicesAPI } from '@/api/salesInvoices';
+import { storesAPI, StoreFilters } from '@/api/stores';
 import {
   MarketerRequest,
   Product,
@@ -12,11 +16,21 @@ import {
   DiscountType
 } from '@/types/marketer';
 
+export interface PaginationData {
+  current_page: number;
+  last_page: number;
+  total: number;
+  per_page: number;
+}
+
 interface MarketerStore {
   requests: MarketerRequest[];
   stock: MarketerActualStock[];
+  reservedStock: MarketerActualStock[];
   products: Product[];
   stores: Store[];
+  storesPagination: PaginationData | null;
+  totalStoresBalance: number;
   promotions: ProductPromotion[];
   invoices: SalesInvoice[];
   isLoading: boolean;
@@ -38,6 +52,9 @@ interface MarketerStore {
   // Warehouse Keeper Actions (For simulation)
   approveRequest: (requestId: string, keeperId: string) => Promise<void>;
   documentRequest: (requestId: string, keeperId: string, signedImage: string) => Promise<void>;
+
+  fetchSalesInvoices: () => Promise<void>;
+  fetchStores: (filters?: StoreFilters) => Promise<void>;
 }
 
 const mockProducts: Product[] = [
@@ -102,8 +119,11 @@ export const useMarketerStore = create<MarketerStore>()(
     (set, get) => ({
       requests: mockRequests,
       stock: mockStock,
+      reservedStock: [],
       products: mockProducts,
       stores: mockStores,
+      storesPagination: null,
+      totalStoresBalance: 0,
       promotions: mockPromotions,
       invoices: [],
       isLoading: false,
@@ -114,8 +134,13 @@ export const useMarketerStore = create<MarketerStore>()(
 
       fetchProducts: async () => {
         set({ isLoading: true });
-        await new Promise(resolve => setTimeout(resolve, 500));
-        set({ products: mockProducts, isLoading: false });
+        try {
+          const response = await productsAPI.getProducts();
+          set({ products: response.data?.data || [], isLoading: false });
+        } catch (error) {
+          console.error('Failed to fetch products', error);
+          set({ isLoading: false });
+        }
       },
 
       createRequest: async (marketerId, items) => {
@@ -146,22 +171,168 @@ export const useMarketerStore = create<MarketerStore>()(
       },
 
       fetchRequests: async (marketerId) => {
-        // Simulate API fetch
         set({ isLoading: true });
-        await new Promise(resolve => setTimeout(resolve, 500));
-        set({
-          requests: mockRequests.filter(r => r.marketer_id === marketerId),
-          isLoading: false
-        });
+        try {
+          // جلب الطلبات والمنتجات
+          const [requestsResponse, productsResponse] = await Promise.all([
+            marketerRequestsAPI.getRequests(),
+            productsAPI.getProducts()
+          ]);
+
+          console.log('📦 Requests List Response:', requestsResponse);
+
+          const basicRequests = requestsResponse.data?.data || [];
+          const products = productsResponse.data?.data || [];
+
+          // تحديث قائمة المنتجات في الـ store
+          set({ products });
+
+          // جلب تفاصيل كل طلب للحصول على الأصناف (Items) وربطها بالمنتجات
+          const detailedRequests = await Promise.all(
+            basicRequests.map(async (req: any) => {
+              try {
+                const detailsResponse = await marketerRequestsAPI.getRequestDetails(req.id);
+
+                const rawItems = detailsResponse.data?.items || [];
+
+                // ربط الأصناف ببيانات المنتج
+                const itemsWithProduct = rawItems.map((item: any) => {
+                  const product = products.find((p: any) => p.id === item.product_id);
+                  return {
+                    ...item,
+                    product: product || { name: item.product_name || 'منتج غير معروف', id: item.product_id, barcode: '---' }
+                  };
+                });
+
+                return {
+                  ...req,
+                  ...detailsResponse.data?.request,
+                  items: itemsWithProduct
+                };
+              } catch (error) {
+                console.error(`Failed to fetch details for request ${req.id}`, error);
+                return { ...req, items: [] };
+              }
+            })
+          );
+
+          console.log('📦 Detailed Requests (with products):', detailedRequests);
+
+          set({
+            requests: detailedRequests,
+            isLoading: false
+          });
+        } catch (error) {
+          console.error('Failed to fetch requests', error);
+          set({ isLoading: false });
+        }
       },
       fetchStock: async (marketerId) => {
-        // Simulate API fetch
         set({ isLoading: true });
-        await new Promise(resolve => setTimeout(resolve, 500));
-        set({
-          stock: mockStock.filter(s => s.marketer_id === marketerId),
-          isLoading: false
-        });
+        try {
+          // جلب المخزون الفعلي والمحجوز والمنتجات معاً
+          const [stockResponse, reservedStockResponse, productsResponse] = await Promise.all([
+            marketerRequestsAPI.getActualStock(),
+            marketerRequestsAPI.getReservedStock(),
+            productsAPI.getProducts()
+          ]);
+
+          console.log('🏭 Actual Stock Raw:', stockResponse);
+          console.log('📦 Reserved Stock Raw:', reservedStockResponse);
+
+          const rawStock = stockResponse.data?.data || [];
+          const rawReservedStock = reservedStockResponse.data?.data || [];
+          const products = productsResponse.data?.data || [];
+
+          // تحديث قائمة المنتجات
+          set({ products });
+
+          // دالة مساعدة لربط المنتج بالمخزون
+          const mapStockWithProduct = (stockItems: any[]) => {
+            return stockItems.map((item: any) => {
+              const product = products.find((p: any) => p.id === item.product_id);
+              return {
+                ...item,
+                product: product || { name: 'منتج غير معروف', id: item.product_id, barcode: '---' }
+              };
+            });
+          };
+
+          const stockWithDetails = mapStockWithProduct(rawStock);
+          const reservedStockWithDetails = mapStockWithProduct(rawReservedStock);
+
+          set({
+            stock: stockWithDetails,
+            reservedStock: reservedStockWithDetails,
+            isLoading: false
+          });
+        } catch (error) {
+          console.error('Failed to fetch stock', error);
+          set({ isLoading: false });
+        }
+      },
+
+      fetchSalesInvoices: async () => {
+        set({ isLoading: true });
+        try {
+          const response = await salesInvoicesAPI.getSalesInvoices();
+          console.log('💰 Sales Invoices Response:', response);
+
+          const invoices = response.data?.data || [];
+          set({ invoices, isLoading: false });
+        } catch (error) {
+          console.error('Failed to fetch sales invoices', error);
+          set({ isLoading: false });
+        }
+      },
+
+      fetchStores: async (filters) => {
+        set({ isLoading: true });
+        try {
+          // جلب المتاجر (مقسمة لصفحات) وجلب الديون (القائمة الكاملة)
+          const [storesResponse, debtsResponse] = await Promise.all([
+            storesAPI.getStores(filters),
+            storesAPI.getStoresDebts()
+          ]);
+
+          console.log('🏪 Stores API Response:', storesResponse);
+          console.log('💸 Stores Debts Response:', debtsResponse);
+
+          const paginationObj = storesResponse;
+          const basicStores = paginationObj.data || [];
+
+          // تحديد مصفوفة الديون بشكل صحيح (سواء كانت مصفوفة مباشرة أو كائن مقسم لصفحات)
+          const debtsDataRaw = debtsResponse.data || [];
+          const debtsList = Array.isArray(debtsDataRaw) ? debtsDataRaw : (debtsDataRaw.data || []);
+
+          // دمج بيانات الديون مع المتاجر في الصفحة الحالية
+          const storesWithDebts = basicStores.map((store: any) => {
+            const debtInfo = debtsList.find((d: any) => d.id === store.id);
+            return {
+              ...store,
+              ...(debtInfo || {}),
+              remaining_debt: debtInfo?.remaining_debt || 0
+            };
+          });
+
+          // حساب إجمالي الديون لجميع المتاجر (من القائمة المتاحة)
+          const totalBalance = debtsList.reduce((acc: number, curr: any) => acc + (Number(curr.remaining_debt) || 0), 0);
+
+          set({
+            stores: storesWithDebts,
+            totalStoresBalance: totalBalance,
+            storesPagination: {
+              current_page: paginationObj.current_page,
+              last_page: paginationObj.last_page,
+              total: paginationObj.total,
+              per_page: paginationObj.per_page
+            },
+            isLoading: false
+          });
+        } catch (error) {
+          console.error('Failed to fetch stores', error);
+          set({ isLoading: false });
+        }
       },
 
       approveRequest: async (requestId, keeperId) => {

@@ -27,6 +27,11 @@ export interface Store {
     phone: string;
     location: string;
     address: string;
+    remaining_debt?: number;
+    total_sales?: number;
+    total_payments?: number;
+    total_returns?: number;
+    is_active?: boolean;
 }
 
 export interface NavigationItem {
